@@ -7,6 +7,7 @@
 import { Schema, model } from 'mongoose'
 
 var School = new Schema({
+    reg_number: Schema.Types.String,
     name: Schema.Types.String,
     address: Schema.Types.String,
     logo: Schema.Types.String,

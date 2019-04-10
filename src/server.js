@@ -18,3 +18,4 @@ app.configure(socketio())
 app.listen(config.port, config.host, () => {
     console.log(`SERPS magic happens on port ${config.port}`)
 })
+
