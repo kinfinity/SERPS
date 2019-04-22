@@ -14,23 +14,23 @@ import timeTableAdapter from '../db/timeTableAdapter';
 
 const timeTableController = {
 
-    getClassTimetable(Class){
-        return timeTableAdapter.getClassTimetable(Class);
+    getClassAliasTimetable(ClassAlias){
+        return timeTableAdapter.getClassAliasTimetable(ClassAlias);
     },
-    getSubjectTimetable(subjectAlias,Class){
-        return timeTableAdapter.getSubjectTimetable(subjectAlias,Class);
+    getSubjectTimetable(subjectAlias,ClassAlias){
+        return timeTableAdapter.getSubjectTimetable(subjectAlias,ClassAlias);
     },
     createTimetable(timeTableData){
         return timeTableAdapter.createTimetable(timeTableData); // list or Datastructure [list of lists]
     },
-    updateTimetable(Class,subject,timeSlot){ // timeSlot Enum for class ranges
-        return timeTableAdapter.updateTimetable(Class,subject,timeSlot);
+    updateTimetable(ClassAlias,subject,timeSlot){ // timeSlot Enum for ClassAlias ranges
+        return timeTableAdapter.updateTimetable(ClassAlias,subject,timeSlot);
     },
-    deleteTimetable(Class,timeTableID){
-        return timeTableAdapter.deleteTimetable(Class,timeTableID);
+    deleteTimetable(ClassAlias,timeTableID){
+        return timeTableAdapter.deleteTimetable(ClassAlias,timeTableID);
     },
-    archiveTimetable(Class,timeTableID){
-        return timeTableAdapter.archiveTimetable(Class,timeTableID);
+    archiveTimetable(ClassAlias,timeTableID){
+        return timeTableAdapter.archiveTimetable(ClassAlias,timeTableID);
     }
 
 };

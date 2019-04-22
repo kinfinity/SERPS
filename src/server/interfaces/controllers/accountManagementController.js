@@ -26,6 +26,9 @@ const accountManagementController = {
     },
     async removeStudent(studentName,studentID){
         return accountManagementAdapter.removeStudent(studentName,studentID);
+    },
+    async generateParentKey(studentName,studentID){
+        return accountManagementAdapter.generateParentKey(studentName,studentID);
     }
 
 };

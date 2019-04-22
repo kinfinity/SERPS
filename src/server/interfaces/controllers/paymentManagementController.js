@@ -26,14 +26,11 @@ const paymentManagementController = {
         return paymentManagementAdapter.viewTeacherPaymentTransactionHistory(TeacherName,TeacherID); 
     },
 
-    async createSchoolPaymentInfo(SchoolPaymentInfoData){
-        return paymentManagementAdapter.createSchoolPaymentInfo(SchoolPaymentInfoData);
+    async getSchoolPaymentInfo(SchoolName,SchoolID){
+        return paymentManagementAdapter.getSchoolPaymentInfo(SchoolName,SchoolID);
     },
-    async getSchoolPaymentInfo(SchoolPaymentInfoName,SchoolPaymentInfoID){
-        return paymentManagementAdapter.getSchoolPaymentInfo(SchoolPaymentInfoName,SchoolPaymentInfoID);
-    },
-    async updateSchoolPaymentInfo(TeacherPaymentInfoName,TeacherPaymentInfoID,TeacherPaymentInfoData){
-        return paymentManagementAdapter.updateSchoolPaymentInfo(TeacherPaymentInfoName,TeacherPaymentInfoID,TeacherPaymentInfoData);
+    async updateSchoolPaymentInfo(SchoolName,SchoolID,PaymentInfoData){
+        return paymentManagementAdapter.updateSchoolPaymentInfo(SchoolName,SchoolID,PaymentInfoData);
     },
     async viewSchoolPaymentTransactionHistory(SchoolName,SchoolID){// TransactionID month teacher bank[Teacher] accNo Receipt/Amount
         return paymentManagementAdapter.viewSchoolPaymentTransactionHistory(SchoolName,SchoolID); 
@@ -50,6 +47,9 @@ const paymentManagementController = {
     },
     async viewParentPaymentTransactionHistory(ParentName,ParentID){// TransactionID Term bank[parent] accNo Receipt
         return paymentManagementAdapter.viewParentPaymentTransactionHistory(ParentName,ParentID);
+    },
+    async payTuition(ParentName,ParentID,StudentID){
+        return paymentManagementAdapter.payTuition(ParentName,ParentID,StudentID);
     }
 
 };

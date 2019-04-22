@@ -1,17 +1,15 @@
 {
     "restartable": "rs",
-    "delay": "2500",
+    "delay": "1000",
     "ignore": [
       ".git",
-      "node_modules/**/node_modules"
+      "node_modules"
     ],
     "verbose": true,
     "execMap": {
       "js": "node "
     },
-    "events": {
-      "restart": "osascript -e 'display notification \"App restarted due to:\n'$FILENAME'\" with title \"nodemon\"'"
-    },
+    "events": {},
     "watch": [
       "./"
     ],

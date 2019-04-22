@@ -8,3 +8,9 @@ docker ps
 docker logs <container id> 
 
 docker exec -it <container id> /bin/bash
+
+
+* DockerCompose
+    *docker-compose build
+    *docker-machine ip
+    *docker-compose up

@@ -15,9 +15,9 @@
 // Import hashing library
 import bcrypt from 'bcrypt';
 // Import configuration file
-import config from '../../Infrastructure/server/utils/config';
+import config from '../../Infrastructure/utils/config';
 import nexmo from 'nexmo';
-import mailer from '../../Infrastructure/server/plugins/mailer';
+import mailer from '../../Infrastructure/plugins/mailer';
 import shortid from 'shortid';
 
 const Password = {

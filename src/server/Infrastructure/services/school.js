@@ -15,20 +15,18 @@
 
 import authenticationController from '../../interfaces/controllers/authenticationController';
 import singUpController from '../../interfaces/controllers/signUpController';
-import notificationController from '../../interfaces/controllers/notificationController';
 import documentsController from '../../interfaces/controllers/documentsController';
 import timeTableController from '../../interfaces/controllers/timeTableController';
 import accountManagementController from '../../interfaces/controllers/accountManagementController';
 import paymentManagementController from '../../interfaces/controllers/paymentManagementController';
 import profileManagementController from '../../interfaces/controllers/profileManagementController';
 import notificationController from '../../interfaces/controllers/notificationController';
-
-
+import educationManagementController from '../../interfaces/controllers/educationManagementController';
 
 export default {
-
+ 
   // Creates a new parent in the database
-  async signupParent(params) {
+  async signupSchool(params) {
 
     let payload = null;
     await singUpController.createSchoolAdmin(params)
@@ -44,7 +42,7 @@ export default {
 
   return payload;
 
-},
+    },
 
   // Authenticates an already existing user
   async authenticate(params) {
@@ -151,17 +149,21 @@ export default {
     async getParentInfo(ParentAlias){
         return profileManagementController.getParentInfo(ParentAlias);
     },
-    async getSchoolInfo(ParentAlias,SchoolTitle){
-        return profileManagementController.getSchoolInfo(ParentAlias,SchoolTitle);
+    async getProfileInfo(SchoolName,SchoolID){
+      return profileManagementController.getSchoolProfileInfo(SchoolName,SchoolID);
     },
-    async updateSchoolInfo(ParentAlias,SchoolTitle,SchoolData){
-        return profileManagementController.updateSchoolInfo(ParentAlias,SchoolTitle,SchoolData);
+    async getContactInfo(SchoolName,SchoolID){
+      return profileManagementController.getSchoolContactInfo(SchoolName,SchoolID);
     },
-
-    //
-    async updateData(Data) {},
-    async getData(){},
-    async getContactInfo(){},
+    async updateContactInfo(contactInfo){
+        return profileManagementController.updateSchoolContactInfo(contactInfo);
+    },
+    async getAddressInfo(SchoolName,SchoolID){
+        return profileManagementController.getSchoolAddressInfo(SchoolName,SchoolID);
+    },
+    async updateAddressInfo(addressInfo){
+        return profileManagementController.updateSchoolContactInfo(addressInfo);
+    },
     
     // paymentManagementController
     async createSchoolPaymentInfo(SchoolPaymentInfoData){
@@ -176,10 +178,6 @@ export default {
     async viewSchoolPaymentTransactionHistory(SchoolName,SchoolID){// TransactionID month teacher bank[Teacher] accNo Receipt/Amount
         return paymentManagementController.viewSchoolPaymentTransactionHistory(SchoolName,SchoolID); 
     },
-    //
-
-    async updateContactInfo(email, address, phoneNumber){},
-    async updatePaymentInfo(Bank, accountNumber){},
 
     // notificationController
     getNotifications(){
@@ -196,11 +194,14 @@ export default {
     },
 
     // documentsController
-    async validateLectureNote(type,subject,Class,lectureNoteData,teacherID){
-      return documentsController.validateLectureNote(type,subject,Class,lectureNoteData,teacherID);
+    async validateLectureNote(subject,ClassAlias,lectureNoteID){
+      return documentsController.validateLectureNote(subject,ClassAlias,lectureNoteID);
     },
-    async getLectureNote(type,subject,Class,noteTitle){
-        return documentsController.getLectureNote(type,subject,Class,noteTitle);
+    async getLectureNote(subject,classAlias,lectureNoteID){
+        return documentsController.getLectureNote(subject,classAlias,lectureNoteID);
+    },
+    async getLectureNotes(subject,ClassAlias){
+      return documentsController.getLectureNotes(subject,ClassAlias);
     },
 
     // timetableController
@@ -223,20 +224,77 @@ export default {
         return timeTableController.archiveTimetable(Class,timeTableID);
     },
 
-    //
-    async viewPendingResults(){},
-    async validatePendingResult(SubjectResult){},
+    // educationManagementController
+    async createClass(classAlias,classData){
+      return educationManagementController.createClass(classAlias,classData);
+    },
+    async createSubject(classAlias,subjectData){
+        return educationManagementController.createSubject(classAlias,subjectData);
+    },
+    async getClass(classAlias){
+        return educationManagementController.getClass(classAlias);
+    },
+    async getSubject(classAlias,subjectTitle){
+        return educationManagementController.getSubject(classAlias,subjectTitle);
+    },
+    async updateClass(classAlias){
+        return educationManagementController.updateClass(classAlias);
+    },
+    async updateSubject(classAlias,subjectTitle){
+        return educationManagementController.updateSubject(classAlias,subjectTitle);
+    },
+    async removeClass(classAlias){
+        return educationManagementController.removeClass(classAlias);
+    },
+    async removeSubject(classAlias,subjectTitle){
+        return educationManagementController.removeSubject(classAlias,subjectTitle);
+    },
+    async assignClassTeacher(classAlias,TeacherID){
+        return educationManagementController.assignClassTeacher(classAlias,TeacherID);
+    },
+    async reassignClassTeacher(classAlias,TeacherID){
+        return educationManagementController.removeSubject(classAlias,TeacherID);
+    },
+    async createActivity(activityAlias,activityData){
+      return educationManagementController.createActivity(activityAlias,activityData);
+    },
+    async getActivity(activityAlias){
+        return educationManagementController.removeSubject(activityAlias);
+    },
+    async updateActivity(activityAlias,activityData){
+        return educationManagementController.removeClass(activityAlias,activityData);
+    },
+    async removeActivity(activityAlias){
+        return educationManagementController.removeSubject(activityAlias);
+    },
+    async assignActivityTeacher(activityAlias,TeacherID){
+        return educationManagementController.removeClass(activityAlias,TeacherID);
+    },
+    async reassignActivityTeacher(activityAlias,oldTeacherID,newTeacherID){
+        return educationManagementController.removeSubject(activityAlias,oldTeacherID,newTeacherID);
+    },
 
-    async viewRegisteredStudent(registeredStudent){},
-    async validateRegisteredStudent(){},
+    async viewPendingResults(){
+      return educationManagementController.viewPendingResults();
+    },
+    async validatePendingResult(SubjectID,classAlias){
+        return educationManagementController.validatePendingResult(SubjectID,classAlias);
+    },
 
-    async updateTeacherRole(teacher,Role){},
-    async createclassSequence(){},
-
-    async createExtracurricular(activity,activityDays,activityTime,activityManager){},
-    async updateExtracurricular(activity,activityDays,activityTime,activityManager){},
-    async deleteExtracurricular(activity){},
-
-    async createGradeRanges(gradeData){}// holds grade Enum and lower and upper bounds
+    async viewRegisteredStudents(){
+        return educationManagementController.viewRegisteredStudents();
+    },
+    async viewRegisteredStudent(studentID){
+        return educationManagementController.viewRegisteredStudent(studentID);
+    },
+    async validateRegisteredStudent(studentID){
+        return educationManagementController.validateRegisteredStudent(studentID);
+    },
+    async createclassSequence(){
+        return educationManagementController.createclassSequence();
+    },
+    async createGradeRanges(gradeData){
+        return educationManagementController.createGradeRanges(gradeData);
+    },// holds grade Enum and lower and upper bounds
 
 };

@@ -15,11 +15,14 @@ const documentsController = {
     async uploadLectureNote(type,subject,Class,lectureNoteData,teacherID){
         return documentsAdapter.uploadLectureNote(type,subject,Class,lectureNoteData,teacherID);
     },
-    async validateLectureNote(type,subject,Class,noteTitle){
-        return documentsAdapter.validateLectureNote(type,subject,Class,noteTitle);
+    async validateLectureNote(subject,ClassAlias,lectureNoteID){
+        return documentsAdapter.validateLectureNote(subject,ClassAlias,lectureNoteID);
     },
-    async getLectureNote(type,subject,Class,noteTitle){
-        return documentsAdapter.getLectureNote(type,subject,Class,noteTitle);
+    async getLectureNote(subject,classAlias,lectureNoteID){
+        return documentsAdapter.getLectureNote(subject,classAlias,lectureNoteID);
+    },
+    async getLectureNotes(subject,ClassAlias){
+        return documentsAdapter.getLectureNotes(subject,ClassAlias);
     },
     async deletelectureNote(type,subject,Class,noteTitle,teacherID){
         return documentsAdapter.deleteLectureNote(type,subject,Class,noteTitle,teacherID);

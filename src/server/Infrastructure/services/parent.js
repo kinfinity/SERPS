@@ -16,6 +16,10 @@
 import authenticationController from '../../interfaces/controllers/authenticationController';
 import singUpController from '../../interfaces/controllers/signUpController';
 import notificationController from '../../interfaces/controllers/notificationController';
+import paymentManagementController from '../../interfaces/controllers/paymentManagementController';
+import profileManagementController from '../../interfaces/controllers/profileManagementController';
+import educationManagementController from '../../interfaces/controllers/educationManagementController';
+import timeTableController from '../../interfaces/controllers/timeTableController';
 
 export default {
 
@@ -128,20 +132,74 @@ export default {
         }
      * 
      */
-    async updateData(Data) {},
-    async getData(){},
-  
-    async getContactInfo(){},
-    async updateContactInfo(email, address, phoneNumber){},
-  
+    // paymentConotroller
+    async createParentPaymentInfo(ParentPaymentInfoAlias,ParentPaymentInfoData){
+      return paymentManagementController.createParentPaymentInfo(ParentPaymentInfoAlias,ParentPaymentInfoData);
+    },
+    async getPaymentInfo(ParentPaymentInfoAlias){
+        return paymentManagementController.getParentPaymentInfo(ParentPaymentInfoAlias);
+    },
+    async updatePaymentInfo(ParentPaymentInfoAlias,ParentPaymentInfoData){
+        return paymentManagementController.updateParentPaymentInfo(ParentPaymentInfoAlias,ParentPaymentInfoData);
+    },
+    async viewParentPaymentTransactionHistory(ParentName,ParentID){// TransactionID Term bank[parent] accNo Receipt
+        return paymentManagementController.viewParentPaymentTransactionHistory(ParentName,ParentID);
+    },
+    async payTution(ParentName,ParentID,StudentID){// TransactionID Term bank[parent] accNo Receipt
+      return paymentManagementController.payTution(ParentName,ParentID,StudentID);
+  },
+
+    // profileManagementController
+    async createProfileInfo(profileInfo){
+      return profileManagementController.createParentProfileInfo(profileInfo);
+    },
+    async getProfileInfo(ParentName,ParentID){
+      return profileManagementController.getParentProfileInfo(ParentName,ParentID);
+    },
+    async getContactInfo(ParentName,ParentID){
+      return profileManagementController.getParentContactInfo(ParentName,ParentID);
+    },
+    async updateContactInfo(contactInfo){
+        return profileManagementController.updateParentContactInfo(contactInfo);
+    },
+    async getAddressInfo(ParentName,ParentID){
+        return profileManagementController.getParentAddressInfo(ParentName,ParentID);
+    },
+    async updateAddressInfo(addressInfo){
+        return profileManagementController.updateParentContactInfo(addressInfo);
+    },
+    async getHealthInfo(studentName,studentID){
+      return profileManagementController.getStudentHealthInfo(studentName,studentID);
+    },
+    async updateHealthInfo(studentID){
+        return profileManagementController.getStudentHealthReport(studentID);
+    },
+    async getHealthStatus(studentID){
+        return profileManagementController.getStudentHealthReports(studentID);
+    },
+
     // notificationController
-    getNotifications(){
+    async getNotifications(){
       return notificationController.getLatest(); // max=10
     },
 
-    //
-    async getTimetable(){},
+    // educationManagementController
+    async getAttendance(studentID){
+      return educationManagementController.getStudentAttendance(studentID);
+    },
+    async getActivities(studentID){
+        return educationManagementController.getStudentActivities(studentID);
+    },
+    async getActivityNotification(activityAlias){
+        return educationManagementController.getActivityNotification(activityAlias);
+    },
+    async getResults(studentID){
+        return educationManagementController.getStudentResults(studentID);
+    },
 
-    async viewStudentresults(){}
+    //
+    getClassTimetable(ClassAlias){
+      return timeTableController.getClassTimetable(ClassAlias);
+    },
 
 };

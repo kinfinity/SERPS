@@ -16,6 +16,11 @@
 import authenticationController from '../../interfaces/controllers/authenticationController';
 import singUpController from '../../interfaces/controllers/signUpController';
 import profileManagementController from '../../interfaces/controllers/profileManagementController';
+import notificationController from '../../interfaces/controllers/notificationController';
+import educationManagementController from '../../interfaces/controllers/educationManagementController';
+import timeTableController from '../../interfaces/controllers/timeTableController';
+import documentsController from '../../interfaces/controllers/documentsController';
+import accountManagementController from '../../interfaces/controllers/accountManagementController';
 
 export default {
 
@@ -132,34 +137,51 @@ export default {
      */
     //profileManagementController
     async getStudentPersonalInfo(studentName,studentID){
-      return profileManagementAdapter.getStudentPersonalInfo(studentName,studentID);
+      return profileManagementController.getStudentPersonalInfo(studentName,studentID);
     },
-    async getStudenAcademictInfo(studentName,studentID){
-        return profileManagementAdapter.getStudentAcademicInfo(studentName,studentID);
+    async updateContactInfo(studentName,studentID,contactInfo){
+      return profileManagementController.updateStudentContactInfo(studentName,studentID,contactInfo);
     },
-    async getStudentHealthInfo(studentName,studentID){
-        return profileManagementAdapter.getStudentHealthInfo(studentName,studentID);
+    async getStudentAddressInfo(studentName,studentID){
+      return profileManagementController.getStudentAddressInfo(studentName,studentID);
+    },
+    async updateStudentAddressInfo(studentName,studentID,AddressInfo){
+      return profileManagementController.updateStudentGuardianInfo(studentName,studentID,AddressInfo);
+    },
+    async getStudentAcademictInfo(studentName,studentID){
+        return profileManagementController.getStudentAcademicInfo(studentName,studentID);
     },
     async getStudentGuardianInfo(studentName,studentID){
-        return profileManagementAdapter.getStudentGuardianInfo(studentName,studentID);
+        return profileManagementController.getStudentGuardianInfo(studentName,studentID);
     },
-    async updateStudent(teacherName,teacherID,teacherData){
-        return profileManagementAdapter.updateStudent(teacherName,teacherID,teacherData);
+    async updateStudentGuardianInfo(studentName,studentID,guardianInfo){
+      return profileManagementController.updateStudentGuardianInfo(studentName,studentID,guardianInfo);
     },
-    async getStudentHealthReport(studentID){
-        return profileManagementAdapter.getStudentHealthReport(studentID);
-    },
+
 
     // notificationController
     getNotifications(){
-      return notificationAdapter.getLatest(); // max=10
+      return notificationController.getNotifications(); // max=10
     },
 
-    //
-    async getLectureNotes(subjectalias){},
-    async getTimetable(){},
-    async generateParentKey(){},
+    // documentController
+    async getLectureNotes(subjectAlias,classAlias){
+      return documentsController.getLectureNotes(subjectAlias,classAlias);
+    },
 
-    async viewresults(){}
+    // timeTableController
+    async getTimetable(classAlias){
+      return timeTableController.getClassAliasTimetable(classAlias);
+    },
+
+    // accountManagementController
+    async generateParentKey(studentName,studentID){
+      return accountManagementController.generateParentKey(studentName,studentID);
+    },
+
+    // educationController
+    async viewresults(studentID){
+      return educationManagementController.getStudentResults(studentID);
+    }
     
 };
