@@ -5,7 +5,7 @@
  *
  */
 import fs from 'fs';
-import config from '../../Infrastructure/server/utils/config';
+import config from '../../Infrastructure/utils/config';
 
 export default class {
 
@@ -17,7 +17,7 @@ export default class {
 
     }
 
-    execute(payload, clientID) {
+    execute(payload) {
 
       //
       var options = {
@@ -26,7 +26,7 @@ export default class {
         expiresIn: '12h',
    //     algorithm: 'RS256'
         };
-      options.audience = clientID;
+      options.audience = 'serps';// verify
 
       return this.accessTokenManager.generate(payload, options);
 

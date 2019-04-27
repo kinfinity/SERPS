@@ -8,7 +8,7 @@
  * 
  */
 
-import mongoose from '../../Infrastructure/server/plugins/mongooseCon';
+import mongoose from '../../Infrastructure/plugins/mongooseCon';
 const TSchema = mongoose.Schema;
 
 const TeacherSchema = new TSchema(

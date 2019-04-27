@@ -13,8 +13,8 @@
  *      signout()       | LOGOUT
  */
 
-import authenticationController from '../../interfaces/controllers/authenticationController';
 import singUpController from '../../interfaces/controllers/signUpController';
+import authenticationController from '../../interfaces/controllers/authenticationController';
 import documentsController from '../../interfaces/controllers/documentsController';
 import timeTableController from '../../interfaces/controllers/timeTableController';
 import accountManagementController from '../../interfaces/controllers/accountManagementController';
@@ -25,11 +25,11 @@ import educationManagementController from '../../interfaces/controllers/educatio
 
 export default {
  
-  // Creates a new parent in the database
+  // Creates a new school in the database
   async signupSchool(params) {
 
     let payload = null;
-    await singUpController.createSchoolAdmin(params)
+    await singUpController.createSchool(params)
     .then((result) => {
         payload = result;
     })
@@ -37,12 +37,10 @@ export default {
         console.log(err);
         payload = null;
     });
-    console.log('FINALLY HERE WITH PAYLOAD');
-    console.log(payload);
 
   return payload;
 
-    },
+},
 
   // Authenticates an already existing user
   async authenticate(params) {
@@ -205,8 +203,8 @@ export default {
     },
 
     // timetableController
-    getClassTimetable(Class){
-      return timeTableController.getClassTimetable(Class);
+    getClassTimetable(ClassAlias){
+      return timeTableController.getClassTimetable(ClassAlias);
     },
     getSubjectTimetable(subjectAlias,Class){
         return timeTableController.getSubjectTimetable(subjectAlias,Class);
@@ -214,14 +212,14 @@ export default {
     createTimetable(timeTableData){
         return timeTableController.createTimetable(timeTableData); // list or Datastructure [list of lists]
     },
-    updateTimetable(Class,subject,timeSlot){ // timeSlot Enum for class ranges
-        return timeTableController.updateTimetable(Class,subject,timeSlot);
+    updateTimetable(ClassAlias,subject,timeSlot){ // timeSlot Enum for class ranges
+        return timeTableController.updateTimetable(ClassAlias,subject,timeSlot);
     },
-    deleteTimetable(Class,timeTableID){
-        return timeTableController.deleteTimetable(Class,timeTableID);
+    deleteTimetable(ClassAlias,timeTableID){
+        return timeTableController.deleteTimetable(ClassAlias,timeTableID);
     },
-    archiveTimetable(Class,timeTableID){
-        return timeTableController.archiveTimetable(Class,timeTableID);
+    archiveTimetable(ClassAlias,timeTableID){
+        return timeTableController.archiveTimetable(ClassAlias,timeTableID);
     },
 
     // educationManagementController

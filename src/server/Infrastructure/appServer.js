@@ -15,7 +15,10 @@ import config from './utils/config';
 import fs from 'fs';
 import path from 'path';
 import https from 'https';
-import express from 'express';
+import throng from 'throng';
+
+const cpus = require('os').cpus().length;
+
 
 // Log
 console.log('STARTING APPLICATION SERPS_SERVER');
@@ -34,12 +37,24 @@ const options = {
     requestCert: false,
     rejectUnauthorized: true
 };
-
-const server = https.createServer(options);
-const app = require('./plugins/app');
+ 
+// const startServer = async function() {
+    
+    const server = https.createServer(options).setMaxListeners(Infinity);
+    const app = require('./plugins/app');
 
     server.on('request', app);
     server.listen(config.serverPort);
     server.on('listening', function() {
-        console.log('Listening on :' + server.address().port);
+        console.log('Listening on :' + JSON.stringify(server.address()));
     });
+
+// };
+
+// throng(
+//     {
+//         workers: cpus,
+//         lifetime: Infinity
+//     },
+//     startServer
+// );

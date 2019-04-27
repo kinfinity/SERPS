@@ -1,7 +1,10 @@
-import schoolService from '../services/school';
-import routerOptions from '../utils/routerOptions';
-import express from 'express';
-import bodyParser from 'body-parser';
+import schoolService from '../services/school'
+import {routerOptions,verifyToken,asyncMiddleware} from '../utils/routerOptions'
+import express from 'express'
+import bodyParser from 'body-parser'
+import authorisationService from '../../domains/services/authorisationService'
+import multerHandle from '../utils/multerHandle'
+import cloudinaryCon from '../plugins/cloudinaryCon'
 
 /**
      * 
@@ -10,29 +13,38 @@ import bodyParser from 'body-parser';
      */
 
   // school router for all school calls 
-  const schoolRouter = express.Router([routerOptions]);
-  schoolRouter.use(bodyParser.json());
+  console.log(routerOptions)
+  const schoolRouter = express.Router([routerOptions])
+  schoolRouter.use(bodyParser.json())
 
   // Authentication routes
-  schoolRouter.route('/SERPS/School/signUp').get(async (req,res) => {
+  schoolRouter.route('/SERPS/School/signUp').get(asyncMiddleware(async (req,res,next) => {
+
+    //multerHandle.single('Logo')
+    // cloudinaryCon.upload(req.file.path);
+    
     try{
+      console.log(req.body)
+      const payload = await schoolService.signupSchool({
+        Name: req.body.Name,
+        email: req.body.email,
+        password: req.body.password,
+        motto: req.body.motto,
+        Address: req.body.Address,
+        Logo: req.file.path,
+        Images: [req.body.imagesLinks] // 1-3
+      })
+      res.sendStatus(200).json(payload)
 
-        // 
-        const payload = await schoolService.signupSchool({
-            Name: req.body.Name,
-            motto: req.body.motto,
-            Address: req.body.Address,
-            Logo: req.body.logoLink,
-            Images: [req.body.imagesLinks] // 1-3
-        });
-        res.json(payload);
-
-    }catch(e){
-        res.status(500).json(e);
+    }catch(e) {
+      // res.sendStatus(404).json(e)
+      console.log('there is an error')
     }
-    next();
-  });
-  schoolRouter.route('/SERPS/School/login').get(async (req,res) => {
+
+    next()
+
+}))
+  schoolRouter.route('/SERPS/School/login').get(asyncMiddleware(async (req,res,next) => {
       try {
           
           // *
@@ -40,117 +52,123 @@ import bodyParser from 'body-parser';
             email: req.body.email,
             password: req.body.password,
             username: req.body.username
-          });
-          res.json(payload);
+          })
+          res.json(payload)
           
       } catch (e) {
-          res.status(500).json(e);
+          // res.sendStatus(500).json(e)
       }
-      next();
-  });
-  schoolRouter.route('/SERPS/:School/logOut').get(async (req,res) => {
+      next()
+}))
+  schoolRouter.route('/SERPS/:School/logOut').get(asyncMiddleware (async (req,res, next) => {
       try {
-          
+          //first authorize for this API
+          const authResult = await authorisationService.authoriseToken(Token)
+          if(!authResult){
+              res.sendStatus(403).json()
+          }
+          console.log(authResult)
+
           // *
-          const payload = await schoolService.signout({Token: req.body.Token});
-          res.json(payload);
+          const payload = await schoolService.signout({Token: req.body.Token})
+          res.json(payload)
 
       } catch (e) {
-          res.status(500).json(e);
+          res.sendStatus(500).json(e)
       }
-      next();
-  });
+      next()
+}))
 
   // Info API routes
   schoolRouter.route('/SERPS/:School')// profileInfo
-  .get(async (req,res) => {
+  .get(asyncMiddleware (async (req,res, next) => {
     try {
         
         // *
         const schoolProfileInfo = await schoolService.getProfileInfo(
           req.body.schoolName,
           req.body.schoolID
-        );
-        res.json(schoolProfileInfo);
+        )
+        res.json(schoolProfileInfo)
 
     } catch (e) {
-        res.status(500).json(e);
+        res.sendStatus(500).json(e)
     }
-    next();
-  });
+    next()
+}))
   schoolRouter.route('/SERPS/:school/contactInfo')
-  .get(async (req,res) => {
+  .get(asyncMiddleware (async (req,res, next) => {
     try {
         
         // *
-        const schoolContactInfo = await schoolService.getContactInfo();
-        res.json(schoolContactInfo);
+        const schoolContactInfo = await schoolService.getContactInfo()
+        res.json(schoolContactInfo)
         
     } catch (e) {
-        res.status(500).json(e);
+        res.sendStatus(500).json(e)
     }
-    next();
-  });
+    next()
+}))
   schoolRouter.route('/SERPS/:school/contactInfo/update')
-  .get(async (req,res) => {
+  .get(asyncMiddleware (async (req,res, next) => {
     try {
       
         // *
         const result = await schoolService.updateContactInfo(
           req.body.ContactInfo
-        );
-        res.json(result);
+        )
+        res.json(result)
         
     } catch (e) {
-        res.status(500).json(e);
+        res.sendStatus(500).json(e)
     }
-    next();
-  });
+    next()
+}))
   schoolRouter.route('/SERPS/:school/addressInfo')
-  .get(async (req,res) => {
+  .get(asyncMiddleware (async (req,res, next) => {
     try {
         
         // *
-        const schoolAddressInfo = await schoolService.getAddressInfo();
-        res.json(schoolAddressInfo);
+        const schoolAddressInfo = await schoolService.getAddressInfo()
+        res.json(schoolAddressInfo)
         
     } catch (e) {
-        res.status(500).json(e);
+        res.sendStatus(500).json(e)
     }
-    next();
-  });
+    next()
+}))
   schoolRouter.route('/SERPS/:school/addressInfo/update')
-  .get(async (req,res) => {
+  .get(asyncMiddleware (async (req,res, next) => {
     try {
         
         // *
-        const result = await schoolService.updateAddressInfo(req.body.addressInfo);
-        res.json(result);
+        const result = await schoolService.updateAddressInfo(req.body.addressInfo)
+        res.json(result)
         
     } catch (e) {
-        res.status(500).json(e);
+        res.sendStatus(500).json(e)
     }
-    next();
-  });
+    next()
+}))
   // payment API routes
   schoolRouter.route('/SERPS/:school/paymentInfo')
-  .get(async (req,res) => {
+  .get(asyncMiddleware (async (req,res, next) => {
     try {
         
         // *
         const studentResults = await schoolService.getschoolPaymentInfo(
           req.body.SchoolName,
           req.body.SchoolID
-        );
-        res.json(studentResults);
+        )
+        res.json(studentResults)
         
     } catch (e) {
       
     }
-    next();
-  });
+    next()
+}))
   schoolRouter.route('/SERPS/:school/paymentInfo/update')
-  .get(async (req,res) => {
+  .get(asyncMiddleware (async (req,res, next) => {
     try {
         
         // *
@@ -158,259 +176,584 @@ import bodyParser from 'body-parser';
             req.body.schoolName,
             req.body.schoolID,
             req.body.paymentInfoData
-        );
-        res.json(result);
+        )
+        res.json(result)
           
     } catch (e) {
-        res.status(500).json(e);
+        res.sendStatus(500).json(e)
     }
-    next();
-  });
+    next()
+}))
   schoolRouter.route('/SERPS/:school/paymentInfo/transactionHistory')
-  .get(async (req,res) => {
+  .get(asyncMiddleware (async (req,res, next) => {
     try {
         // *
         const transactionHistory = await schoolService.viewSchoolPaymentTransactionHistory(
           req.body.schoolName,
           req.body.schoolID
-        );
-        res.json(transactionHistory);
+        )
+        res.json(transactionHistory)
     
     } catch (e) {
-        res.status(500).json(e);
+        res.sendStatus(500).json(e)
     }
-    next();
-  });
+    next()
+}))
 
   // notification API routes
   schoolRouter.route('/SERPS/:school/notifications')
-  .get((req,res) => {
-    // *
-    const notifications = schoolService.getNotifications();
-    next();
-  });
+  .get(asyncMiddleware (async (req,res, next) => {
+    try {
+      
+        // *
+        const notifications = await schoolService.getNotifications()
+        res.json(notifications)
+        
+    } catch (e) {
+        res.sendStatus(500).json(e)
+    }
+    next()
+}))
   schoolRouter.route('/SERPS/:school/notifications/create')
-  .get((req,res) => {
-    // *
-    const notifications = schoolService.createNotification();
-    next();
-  });
+  .get(asyncMiddleware (async (req,res, next) => {
+    try {
+      
+        // *
+        const result = await schoolService.createNotification({
+          noteTitle: req.body.noteTitle,
+          Note: req.body.Note,
+          imageLink: req.body.imageLink
+        })
+        res.json(result)
+        
+    } catch (e) {
+        res.sendStatus(500).json(e)
+    }
+    next()
+}))
   schoolRouter.route('/SERPS/:school/notifications/update')
-  .get((req,res) => {
-    // *
-    const notifications = schoolService.updateNotification();
-    next();
-  });
+  .get(asyncMiddleware (async (req,res, next) => {
+    try {
+        
+        // *
+        const result = await schoolService.updateNotification()
+        res.json(result)
+        
+    } catch (e) {
+        res.sendStatus(500).json(e)
+    }
+    next()
+}))
   schoolRouter.route('/SERPS/:school/notifications/delete')
-  .get((req,res) => {
-    // *
-    const notifications = schoolService.deleteNotification();
-    next();
-  });
+  .get(asyncMiddleware (async (req,res, next) => {
+    try {
+        
+        // *
+        const result = await schoolService.deleteNotification({
+          noteTitle: req.body.noteTitle,
+          noteID: req.body.noteID
+        })
+        res.json(result)
+        
+    } catch (e) {
+        res.sendStatus(500).json(e)
+    }
+    next()
+}))
 
   // timetable API routes
   schoolRouter.route('/SERPS/:school/:class/createTimetable')
-  .get((req,res) => {
-    // *
-    const result = schoolService.createTimetable();
-    next();
-  });
+  .get(asyncMiddleware (async (req,res, next) => {
+    try {
+        
+        // *
+        const result = schoolService.createTimetable(
+          req.body.timeTableData
+        )
+        res.json(result)
+        
+    } catch (e) {
+        res.sendStatus(500).json(e)
+    }
+    next()
+}))
   schoolRouter.route('/SERPS/:school/:class/getTimetable')
-  .get((req,res) => {
-    // *
-    const result = schoolService.getClassTimetable();
-    next();
-  });
+  .get(asyncMiddleware (async (req,res, next) => {
+    try {
+      
+        // *
+        const timeTable = await schoolService.getClassTimetable(
+          req.body.classAlias
+        )
+        res.json(timeTable)
+        
+    } catch (error) {
+        res.sendStatus(500).json(e)
+    }
+    next()
+}))
   schoolRouter.route('/SERPS/:school/:class/updateTimetable')
-  .get((req,res) => {
-    // *
-    const result = schoolService.updateTimetable();
-    next();
-  });
+  .get(asyncMiddleware (async (req,res, next) => {
+    try {
+        
+        // *
+        const result = await schoolService.updateTimetable(
+          req.body.ClassAlias,
+          req.body.subject,
+          req.body.timeSlot
+        )
+        res.json(result)
+        
+    } catch (e) {
+        res.sendStatus(500).json(e)
+    }
+    next()
+}))
   schoolRouter.route('/SERPS/:school/:class/deleteTimetable')
-  .get((req,res) => {
-    // *
-    const result = schoolService.deleteTimetable();
-    next();
-  });
+  .get(asyncMiddleware (async (req,res, next) => {
+    try {
+        
+        // *
+        const result = await schoolService.deleteTimetable(
+          req.body.classAlias,
+          req.body.timeTableID
+        )
+        res.json(result)
+        
+    } catch (e) {
+        res.sendStatus(500).json(e)
+    }
+    next()
+}))
   schoolRouter.route('/SERPS/:school/:class/archiveTimetable')
-  .get((req,res) => {
-    // *
-    const result = schoolService.archiveTimetable();
-    next();
-  });
+  .get(asyncMiddleware (async (req,res, next) => {
+    try {
+        
+        // *
+        const result = await schoolService.archiveTimetable(
+            req.body.classAlias,
+            req.body.timeTableID
+        )
+        res.json(result)
+
+    } catch (e) {
+        res.sendStatus(500).json(e)
+    }
+    next()
+}))
   // class API call routes
   schoolRouter.route('/SERPS/:school/createClass')
-  .get((req,res) => {
-    // *
-    const result = schoolService.createClass(classAlias,classData);
-    next();
-  });
+  .get(asyncMiddleware (async (req,res, next) => {
+    try {
+        // *
+        const result = await schoolService.createClass(
+            req.body.classAlias,
+            req.body.classData
+        )
+        res.json(result)
+
+    } catch (e) {
+      res.sendStatus(500).json(e)
+    }
+    next()
+}))
   schoolRouter.route('/SERPS/:school/createClassSequence')
-  .get((req,res) => {
-    // *
-    const result = schoolService.createclassSequence();
-    next();
-  });
+  .get(asyncMiddleware (async (req,res, next) => {
+    try {
+      
+        // *
+        const result = await schoolService.createclassSequence()
+        res.json(result)
+
+    } catch (e) {
+        res.sendStatus(500).json(e)
+    }
+    next()
+}))
   schoolRouter.route('/SERPS/:school/:class')
-  .get((req,res) => {
-    // *
-    const classData = schoolService.getClass(classAlias);
-    next();
-  });
+  .get(asyncMiddleware (async (req,res, next) => {
+    try{
+        
+        // *
+        const classData = schoolService.getClass(
+          req.body.classAlias
+        )
+        res.json(classData)
+        
+    }catch(e){
+        // res.sendStatus(500).json(e)
+    }
+    next()
+}))
   schoolRouter.route('/SERPS/:school/:class/createSubject')
-  .get((req,res) => {
-    // *
-    const result = schoolService.createSubject(classAlias,subjectData);
-    next();
-  });
+  .get(asyncMiddleware (async (req,res, next) => {
+    try {
+      
+        // *
+        const result = schoolService.createSubject(
+            req.body.classAlias,
+            req.body.subjectData
+        )
+        res.json(result)
+        
+    } catch (e) {
+        res.sendStatus(500).json(e)
+    }
+    next()
+}))
   schoolRouter.route('/SERPS/:school/:class/:subject')
-  .get((req,res) => {
-    // *
-    const SubjectData = schoolService.getSubject(classAlias,subjectTitle);
-    next();
-  });
+  .get(asyncMiddleware (async (req,res, next) => {
+    try {
+      
+        // *
+        const SubjectData = await schoolService.getSubject(
+            req.body.classAlias,
+            req.body.subjectTitle
+        )
+        res.json(SubjectData)
+        
+    } catch (e) {
+        res.sendStatus(500).json(e)
+    }
+    next()
+}))
   schoolRouter.route('/SERPS/:school/:class/update')
-  .get((req,res) => {
-    // *
-    const result = schoolService.updateClass(classAlias);
-    next();
-  });
+  .get(asyncMiddleware (async (req,res, next) => {
+    try {
+      
+        // *
+        const result = await schoolService.updateClass(classAlias)
+        res.json(result)
+        
+    } catch (e) {
+        res.sendStatus(500).json(e)
+    }
+    next()
+}))
   schoolRouter.route('/SERPS/:school/:class/:subject')
-  .get((req,res) => {
-    // *
-    const result = schoolService.updateSubject(classAlias,subjectTitle);
-    next();
-  });
+  .get(asyncMiddleware (async (req,res, next) => {
+    try {
+
+        // *
+        const result = await schoolService.updateSubject(
+            req.body.classAlias,
+            req.body.subjectTitle
+        )
+        res.json(result)
+
+    } catch (e) {
+      res.sendStatus(500).json(e)
+    }
+    next()
+}))
   schoolRouter.route('/SERPS/:school/:class/remove')
-  .get((req,res) => {
-    // *
-    const result = schoolService.removeClass(classAlias);
-    next();
-  });
+  .get(asyncMiddleware (async (req,res, next) => {
+    try {
+      
+        // *
+        const result = await schoolService.removeClass(
+          req.body.classAlias
+        )
+        res.json(result)
+
+    } catch (e) {
+        res.sendStatus(500).json(e)
+    }
+    next()
+}))
   schoolRouter.route('/SERPS/:school/:class/:subject/remove')
-  .get((req,res) => {
-    // *
-    const result = schoolService.removeSubject(classAlias,subjectTitle);
-    next();
-  });
+  .get(asyncMiddleware (async (req,res, next) => {
+    try {
+      
+        // *
+        const result = await schoolService.removeSubject(
+            req.body.classAlias,
+            req.body.subjectTitle
+        )
+        res.json(result)
+        
+    } catch (e) {
+        res.sendStatus(500).json(e)
+    }
+    next()
+}))
   schoolRouter.route('/SERPS/:school/:class/assignTeacher')
-  .get((req,res) => {
-    // *
-    const result = schoolService.assignClassTeacher(classAlias,TeacherID);
-    next();
-  });
+  .get(asyncMiddleware (async (req,res, next) => {
+    try {
+      
+        //*
+        const result = await schoolService.assignClassTeacher(
+            req.body.classAlias,
+            req.body.TeacherID
+        )
+        res.json(result)
+        
+    } catch (e) {
+        res.sendStatus(500).json(e)
+    }
+    next()
+}))
   schoolRouter.route('/SERPS/:school/:class/reassignTeacher')
-  .get((req,res) => {
-    // *
-    const result = schoolService.reassignClassTeacher();
-    next();
-  });
+  .get(asyncMiddleware (async (req,res, next) => {
+    try {
+      
+        // *
+        const result = await schoolService.reassignClassTeacher()
+        res.json(result)
+        
+    } catch (e) {
+        res.sendStatus(500).json(e)
+    }
+    next()
+}))
   schoolRouter.route('/SERPS/:school/activity/create')
-  .get((req,res) => {
-    // *
-    const result = schoolService.createActivity(activityAlias,activityData);
-    next();
-  });
+  .get(asyncMiddleware (async (req,res, next) => {
+    try {
+      
+        // *
+        const result = await schoolService.createActivity(
+            req.body.activityAlias,
+            req.body.activityData
+        )
+        res.json(result)
+        
+    } catch (e) {
+        res.sendStatus(500).json(e)
+    }
+    next()
+}))
 
   // activity API call routes
   schoolRouter.route('/SERPS/:school/:activity')
-  .get((req,res) => {
-    // *
-    const result = schoolService.getActivity(activityAlias);
-    next();
-  });
+  .get(asyncMiddleware (async (req,res, next) => {
+    try {
+      
+        // *
+        const result = await schoolService.getActivity(
+            req.body.activityAlias
+        )
+        res.json(result)
+        
+    } catch (e) {
+        // res.sendStatus(500).json(e)
+    }
+    next()
+}))
   schoolRouter.route('/SERPS/:school/:activity/update')
-  .get((req,res) => {
-    // *
-    const result = schoolService.updateActivity(activityAlias,activityData);
-    next();
-  });
+  .get(asyncMiddleware (async (req,res, next) => {
+    try {
+    
+        // *
+        const result = await schoolService.updateActivity(
+            req.body.activityAlias,
+            req.body.activityData
+        )
+        res.json(result)
+        
+    } catch (e) {
+        res.sendStatus(500).json(e)
+    }
+    next()
+}))
   schoolRouter.route('/SERPS/:school/:activity/remove')
-  .get((req,res) => {
-    // *
-    const result = schoolService.remove(activityAlias);
-    next();
-  });
+  .get(asyncMiddleware (async (req,res, next) => {
+    try {
+    
+        // *
+        const result = await schoolService.remove(
+            req.body.activityAlias
+        )
+        res.json(result)
+        
+    } catch (e) {
+        res.sendStatus(500).json(e)
+    }
+    next()
+}))
   schoolRouter.route('/SERPS/:school/:activity/assignTeacher')
-  .get((req,res) => {
-    // *
-    const result = schoolService.assignActivityTeacher(activityAlias,TeacherID);
-    next();
-  });
+  .get(asyncMiddleware (async (req,res, next) => {
+    try {
+      
+        // *
+        const result = await schoolService.assignActivityTeacher(
+            req.body.activityAlias,
+            req.body.TeacherID
+        )
+        res.json(result)
+        
+    } catch (e) {
+        res.sendStatus(500).json(e)
+    }
+    next()
+}))
   schoolRouter.route('/SERPS/:school/:activity/reassignTeacher')
-  .get((req,res) => {
-    // *
-    const result = schoolService.reassignActivityTeacher(activityAlias,oldTeacher,newTeacher);
-    next();
-  });
+  .get(asyncMiddleware (async (req,res, next) => {
+    try {
+      
+        // *
+        const result = await schoolService.reassignActivityTeacher(
+            req.body.activityAlias,
+            req.body.oldTeacher,
+            req.body.newTeacher
+        )
+        res.json(result)
+        
+    } catch (e) {
+        res.sendStatus(500).json(e)
+    }
+    next()
+}))
 
   // results API call routes
   schoolRouter.route('/SERPS/:school/results/pending')
-  .get((req,res) => {
-    // *
-    const result = schoolService.viewPendingResults();
-    next();
-  });
+  .get(asyncMiddleware (async (req,res, next) => {
+    try {
+      
+        // *
+        const result = await schoolService.viewPendingResults()
+        res.json(result)
+        
+    } catch (e) {
+        res.sendStatus(500).json(e)
+    }
+    next()
+}))
   schoolRouter.route('/SERPS/:school/results/validate')
-  .get((req,res) => {
-    // *
-    const result = schoolService.validatePendingResult(SubjectID,classAlias);
-    next();
-  });
+  .get(asyncMiddleware (async (req,res, next) => {
+    try {
+    
+        // *
+        const result = await schoolService.validatePendingResult(
+            req.body.SubjectID,
+            req.body.classAlias
+        )
+        res.json(result)
+        
+    } catch (e) {
+        res.sendStatus(500).json(e)
+    }
+    next()
+}))
 
   // student API call routes
   schoolRouter.route('/SERPS/:school/registeredStudents')
-  .get((req,res) => {
-    // *
-    const result = schoolService.viewRegisteredStudents();
-    next();
-  });
+  .get(asyncMiddleware (async (req,res, next) => {
+    try {
+    
+        // *
+        const result = await schoolService.viewRegisteredStudents()
+        res.json(result)
+        
+    } catch (e) {
+        res.sendStatus(500).json(e)
+    }
+    next()
+}))
   schoolRouter.route('/SERPS/:school/registeredStudents/:student')
-  .get((req,res) => {
-    // *
-    const result = schoolService.viewRegisteredStudent(studentID);
-    next();
-  });
+  .get(asyncMiddleware (async (req,res, next) => {
+    try {
+    
+        // *
+        const result = await schoolService.viewRegisteredStudent(
+            req.body.studentID
+        )
+        res.json(result)
+        
+    } catch (e) {
+        res.sendStatus(500).json(e)
+    }
+    next()
+}))
   schoolRouter.route('/SERPS/:school/registeredStudents/:student/validate')
-  .get((req,res) => {
+  .get(asyncMiddleware (async (req,res, next) => {
+    try {
+      
+    } catch (e) {
+        res.sendStatus(500).json(e)
+    }
     // *
-    const result = schoolService.validatere(studentID);
-    next();
-  });
+    const result = schoolService.validatere(studentID)
+    next()
+}))
 
   // lectureNote API call routes
   schoolRouter.route('/SERPS/:school/:class/:subject/')
-  .get((req,res) => {
-    // *
-    const lectureNotes = schoolService.getLectureNotes(subject,classAlias);
-    next();
-  });
+  .get(asyncMiddleware (async (req,res, next) => {
+    try {
+    
+        // *
+        const lectureNotes = await schoolService.getLectureNotes(
+            req.body.subject,
+            req.body.classAlias
+        )
+        res.json(lectureNotes)
+        
+    } catch (e) {
+        res.sendStatus(500).json(e)
+    }
+    next()
+}))
   schoolRouter.route('/SERPS/:school/:class/:subject/:lectureNoteID')
-  .get((req,res) => {
-    // *
-    const lectureNotes = schoolService.getLectureNote(subject,classAlias,lectureNoteID);
-    next();
-  });
+  .get(asyncMiddleware (async (req,res, next) => {
+    try {
+    
+        // *
+        const lectureNote = await schoolService.getLectureNote(
+            req.body.subject,
+            req.body.classAlias,
+            req.body.lectureNoteID
+        )
+        res.json(lectureNote)
+        
+    } catch (e) {
+        res.sendStatus(500).json(e)
+    }
+    next()
+}))
   schoolRouter.route('/SERPS/:school/:class/:subject/:lectureNote/validate')
-  .get((req,res) => {
-    // *
-    const lectureNotes = schoolService.validateLectureNote(subject,classAlias,lectureNoteID);
-    next();
-  });
+  .get(asyncMiddleware (async (req,res, next) => {
+    try {
+    
+        // *
+        const result = await schoolService.validateLectureNote(
+            req.body.subject,
+            req.body.classAlias,
+            req.body.lectureNoteID
+        )
+        res.json(result)
+        
+    } catch (e) {
+        res.sendStatus(500).json(e)
+    }
+    next()
+}))
 
   //
   schoolRouter.route('/SERPS/:school/createClassSequence')
-  .get((req,res) => {
-    // *
-    const lectureNotes = schoolService.createclass();
-    next();
-  });
+  .get(asyncMiddleware (async (req,res, next) => {
+    try {
+    
+        // *
+        const result = await schoolService.createclass()
+        res.json(result)
+        
+    } catch (e) {
+        res.sendStatus(500).json(e)
+    }
+    next()
+}))
   schoolRouter.route('/SERPS/:school/createGradeRanges')
-  .get((req,res) => {
-    // *
-    const lectureNotes = schoolService.createGradeRanges(gradeData);
-    next();
-  });
+  .get(asyncMiddleware (async (req,res, next) => {
+    try {
+    
+        // *
+        const result = await schoolService.createGradeRanges(gradeData)
+        res.json(result)
+        
+    } catch (e) {
+        res.sendStatus(500).json(e)
+    }
+    next()
+}))
 
-  module.exports = schoolROuter;
+  module.exports = schoolRouter

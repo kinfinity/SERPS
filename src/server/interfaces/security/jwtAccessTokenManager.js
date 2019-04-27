@@ -7,9 +7,8 @@
  *
  */
 
-import config from '../../Infrastructure/server/utils/config';
+import config from '../../Infrastructure/utils/config';
 import jwt from 'jsonwebtoken';
-import fs from 'fs';
 
 export default class {
   

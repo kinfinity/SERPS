@@ -1,3 +1,5 @@
+console.log('***./plugins/schoolSchema.js');
+
 /*
  * Created by k_infinity3 <ksupro1@gmail.com>
  * Created on Tues Apr 15 2019
@@ -8,30 +10,46 @@
  * 
  */
 
-import mongoose from '../../Infrastructure/server/plugins/mongooseCon';
-const paymentInfoSchema = require('./paymentInfoSchema')
-const TSchema = mongoose.Schema;
+import mongoose from '../../Infrastructure/plugins/mongooseCon';
+require('mongoose-type-url');
 
-const SchoolSchema = new TSchema(
-    {
-        'name': {
+const TSchema = mongoose.Schema;
+/**
+     * params.Name,
+     * params.email,
+     * params.password,
+     * params.motto,
+     * params.Address, 
+     * params.Logo,
+     * params.Images
+ */
+const SchoolSchema = new TSchema({
+    'name': {
         type: String,
-      required: true,
-      unique: true,
+        required: true,
+        unique: true,
     },
-     motto: {
+    'motto': {
          type: String,
          required: false,
          unique: true
      },
      images: [{}],
-     logo: {},
-     address: {},
+     logo: {
+       type: TSchema.Types.Url,
+       required:false,
+
+     },
+     address: {
+       type: String,
+       required: false,
+       unique: false
+     },
      paymentInfo: {
         type: TSchema.Types.ObjectId,
         ref: 'paymentInfoModel'
-     },
-     
+     }
+
     },
   {strict: true}
 );

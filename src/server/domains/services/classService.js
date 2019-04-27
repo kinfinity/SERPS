@@ -27,7 +27,7 @@ const classService = {
   // handle for the ClassModel
   _classModel: ClassModel,
   // Create new class
-  async createNewClass(key, clientID) {
+  async createNewClass(key) {
 
     console.log('inside classService');
     // Holds return data for this fucntion
@@ -142,6 +142,15 @@ const classService = {
   async deleteClass(classE) {
     
   },
+  async assignClassTeacher(){
+
+  },
+  async getClass(){
+
+  },
+  async createclassSequence(){
+    
+  }
 
 };
 

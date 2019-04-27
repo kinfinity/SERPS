@@ -1,4 +1,4 @@
-FROM node:latest
+FROM node:8
 
 #create server_working directory within image
 WORKDIR /usr/src/app

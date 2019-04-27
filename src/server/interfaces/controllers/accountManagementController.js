@@ -10,25 +10,26 @@
  */
 
 
-import accountManagementAdapter from '../db/accountManagementAdapter';
+import teacherAdapter from '../db/teacherAdapter';
+import studentAdapter from '../db/studentAdapter';
  
 const accountManagementController = {
 
     async createTeacher(teacherData){
-        return accountManagementAdapter.createTeacher(teacherData);
+        //return teacherAdapter.createTeacher(teacherData);
     },
     async removeTeacher(teacherName,teacherID){
-        return accountManagementAdapter.removeTeacher(teacherName,teacherID);
+        //return teacherAdapter.removeTeacher(teacherName,teacherID);
     },
 
     async createStudent(studentData){
-        return accountManagementAdapter.createStudent(studentData);
+        //return studentAdapter.createStudent(studentData);
     },
     async removeStudent(studentName,studentID){
-        return accountManagementAdapter.removeStudent(studentName,studentID);
+        //return studentAdapter.removeStudent(studentName,studentID);
     },
     async generateParentKey(studentName,studentID){
-        return accountManagementAdapter.generateParentKey(studentName,studentID);
+        //return studentAdapter.generateParentKey(studentName,studentID);
     }
 
 };

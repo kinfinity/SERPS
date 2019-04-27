@@ -8,90 +8,94 @@
  *
  */
 
-
-import profileManagementAdapter from '../db/profileManagementAdapter';
+import teacherAdapter from '../db/teacherAdapter';
+import parentAdapter from '../db/parentAdapter';
+import schoolAdapter from '../db/schoolAdminAdapter';
+import studentAdapter from '../db/studentAdapter';
 
 const profileManagementController = {
 
     // teacher
     async getTeacherInfo(teacherName,teacherID){
-        return profileManagementAdapter.getTeacherInfo(teacherName,teacherID);
+        return teacherAdapter.getTeacherInfo(teacherName,teacherID);
     },
     async updateTeacher(teacherName,teacherID,teacherData){
-        return profileManagementAdapter.updateTeacher(teacherName,teacherID,teacherData);
+        return teacherAdapter.updateTeacher(teacherName,teacherID,teacherData);
     },
     async createStudentHealthReport(studentID,teacherID,healthData){
-        return profileManagementAdapter.createStudentHealthReport(studentID,teacherID,healthData);
+        return studentAdapter.createStudentHealthReport(studentID,teacherID,healthData);
     },
     async getStudentHealthReports(studentID,teacherID){
-        return profileManagementAdapter.getStudentHealthReports(studentID,teacherID);
+        return studentAdapter.getStudentHealthReports(studentID,teacherID);
     },
     async getStudentHealthReport(reportID,studentID,teacherID){
-        return profileManagementAdapter.getStudentHealthReportsLast(reportID,studentID,teacherID);
+        return studentAdapter.getStudentHealthReportsLast(reportID,studentID,teacherID);
     },
     async updateStudentHealthReport(studentID,teacherID){
-        return profileManagementAdapter.updateStudentHealthReport(studentID,teacherID);
+        return studentAdapter.updateStudentHealthReport(studentID,teacherID);
     },
     async removeStudentHealthReport(studentID,teacherID){
-        return profileManagementAdapter.removeStudentHealthReport(studentID,teacherID);
+        return studentAdapter.removeStudentHealthReport(studentID,teacherID);
     },
 
     // student
     async getStudentPersonalInfo(studentName,studentID){
-        return profileManagementAdapter.getStudentPersonalInfo(studentName,studentID);
+        return studentAdapter.getStudentPersonalInfo(studentName,studentID);
     },
     async updateStudentContactInfo(studentName,studentID,contactInfo){
-      return profileManagementAdapter.updateStudentContactInfo(studentName,studentID,contactInfo);
+      return studentAdapter.updateStudentContactInfo(studentName,studentID,contactInfo);
     },
     async getStudentAddressInfo(studentName,studentID){
-      return profileManagementAdapter.getStudentAddressInfo(studentName,studentID);
+      return studentAdapter.getStudentAddressInfo(studentName,studentID);
     },
     async updateStudentAddressInfo(studentName,studentID,AddressInfo){
-      return profileManagementAdapter.updateStudentGuardianInfo(studentName,studentID,AddressInfo);
+      return studentAdapter.updateStudentGuardianInfo(studentName,studentID,AddressInfo);
     },
     async getStudentAcademicInfo(studentName,studentID){
-        return profileManagementAdapter.getStudentAcademicInfo(studentName,studentID);
+        return studentAdapter.getStudentAcademicInfo(studentName,studentID);
     },
     async getStudentGuardianInfo(studentName,studentID){
-        return profileManagementAdapter.getStudentGuardianInfo(studentName,studentID);
+        //get parentID
+        const parentID = studentAdapter.getGuardianInfo(studentName,studentID);
+        return parentAdapter.getPersonalInfo(parentID);
     },
     async updateStudentGuardianInfo(studentName,studentID,guardianInfo){
-      return profileManagementAdapter.updateStudentGuardianInfo(studentName,studentID,guardianInfo);
-    },
-    async updateStudent(teacherName,teacherID,teacherData){
-        return profileManagementAdapter.updateStudent(teacherName,teacherID,teacherData);
+      return studentAdapter.updateStudentGuardianInfo(studentName,studentID,guardianInfo);
     },
     async getStudentHealthInfo(studentName,studentID){
-        return profileManagementAdapter.getStudentHealthInfo(studentName,studentID);
+        return studentAdapter.getStudentHealthInfo(studentName,studentID);
     },
     async updateStudentHealthInfo(studentID){
-        return profileManagementAdapter.getStudentHealthReport(studentID);
+        return studentAdapter.getStudentHealthReport(studentID);
     },
     async getStudentHealthReports(studentID){
-        return profileManagementAdapter.getStudentHealthReports(studentID);
+        return studentAdapter.getStudentHealthReports(studentID);
     },
 
     // parent
+    async getPeresonalInfo(ParentName,ParentID){
+        return parentAdapter.getParentContactInfo(ParentName,ParentID);
+    },
     async getParentContactInfo(ParentName,ParentID){
-        return profileManagementAdapter.getParentContactInfo(ParentName,ParentID);
+        return parentAdapter.getParentContactInfo(ParentName,ParentID);
     },
     async updateParentContactInfo(contactInfo){
-        return profileManagementAdapter.updateParentContactInfo(contactInfo);
+        return parentAdapter.updateParentContactInfo(contactInfo);
     },
     async getParentAddressInfo(ParentName,ParentID){
-        return profileManagementAdapter.getParentAddressInfo(ParentName,ParentID);
+        return parentAdapter.getParentAddressInfo(ParentName,ParentID);
     },
     async updateParentAddressInfo(addressInfo){
-        return profileManagementAdapter.updateParentContactInfo(addressInfo);
+        return parentAdapter.updateParentContactInfo(addressInfo);
     },
     
 
     // school
     async getSchoolInfo(ParentAlias,SchoolTitle){
-        return profileManagementAdapter.getSchoolInfo(ParentAlias,SchoolTitle);
+        return schoolAdapter.getSchoolInfo(ParentAlias,SchoolTitle);
     },
     async updateSchool(ParentAlias,SchoolTitle,SchoolData){
-        return profileManagementAdapter.updateSchool(ParentAlias,SchoolTitle,SchoolData);
+        return schoolAdapter.updateSchool(ParentAlias,SchoolTitle,SchoolData);
     }
 
 };

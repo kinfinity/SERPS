@@ -12,17 +12,35 @@
 
 
 import authorisationService from '../../domains/services/authorisationService';
-import schoolAdminService from '../../domains/services/schoolAdminService';
+import schoolAdminService from '../../domains/services/schoolService';
 
 
 const schoolAdminAdapter = {
 
-  // Adds new user to the database with email and password
-  async persist(email, password, username, clientID) {
+  // Adds new school to the database
+  async persist(params) {
 
+    
+    /**
+     *      Name: req.body.Name,
+     *      email: req.body.email
+     *      password: req.body.password
+            motto: req.body.motto,
+            Address: req.body.Address,
+            Logo: req.body.logoLink,
+            Images: [req.body.imagesLinks] // 1-3
+     */
     let response = null;
 
-    await schoolAdminService.createNewEmailUser(email, password, username, clientID).
+    await schoolAdminService.createNewEmailUser(
+        params.Name,
+        params.email,
+        params.password,
+        params.motto, 
+        params.Address, 
+        params.Logo,
+        params.Images
+    ).
     then((resolve) => {
 
       // Creation Succeeded
@@ -41,11 +59,11 @@ const schoolAdminAdapter = {
 
   },
   // Authenticates already existing user
-  async authenticate(email, password, username, clientID) {
+  async authenticate(email, password, username) {
   
     let response = null;
 
-    await schoolAdminService.authenticateSchoolAdmin({email, password, username}, clientID).
+    await schoolAdminService.authenticateSchoolAdmin({email, password, username}).
     then((resolve) => {
 
       // Authentication succeeded

@@ -40,13 +40,13 @@ const schoolService = {
   // handle for the SchoolModel
   _schoolModel: SchoolModel,
   // Create new user
-  async createNewEmailUser(email, ipassword, username, clientID) {
+  async createNewEmailUser(Name,email,password,motto,Address,Logo,Images) {
 
     console.log('inside schoolService');
     // Holds return data for this fucntion
     let response = null;
     // Check if user exists first returns promise resolved to true or false
-    await schoolService.schoolExists({email, username}).
+    await schoolService.schoolExists({email,name}).
     then((result) => {
 
       // Email exists in database
@@ -63,8 +63,13 @@ const schoolService = {
     }
     // Create static Data for user
       const schoolData = {
+        Name,
         email,
-        username
+        password,
+        motto,
+        Address,
+        Logo,
+        Images
     };
     // Hash user password on first save
     await Password.hash(ipassword).
@@ -73,20 +78,20 @@ const schoolService = {
       // Append Hashed password to static user Data
       schoolData.password = hashedPassword;
       // Create new user model
-      const student = new SchoolModel(schoolData);
+      const school = new SchoolModel(schoolData);
     
       // Save new user
-      student.
+      school.
       save().
       then(() => {
 
         // Succeeded in saving new user to DB
-        console.log('USER CREATED:::');
+        console.log('SCHOOL CREATED:::');
 
       }).
       catch((err) => {
 
-        console.log(`USER NOT CREATED:::${err}`);
+        console.log(`SCHOOL NOT CREATED:::${err}`);
 
         return Promise.resolve({
           result: false,
@@ -98,7 +103,7 @@ const schoolService = {
 
     }).catch((err) => {
 
-      console.log(`USER PASSWORD NOT HASHED:::${err}`);
+      console.log(`SCHOOL PASSWORD NOT HASHED:::${err}`);
         
       response = Promise.resolve({
           result: false,
@@ -117,7 +122,7 @@ const schoolService = {
     // Swap back in unhashedPassword for authentication
     schoolData.password = ipassword;
     // Authenticate user after signup
-    await schoolService.authenticateUser(schoolData, clientID).
+    await schoolService.authenticateUser(schoolData).
     then((us) => {
 
       // Succeeded authentication
@@ -136,7 +141,7 @@ const schoolService = {
 
   },
   // Authenticate an already existing user
-  async authenticateUser(schoolData, clientID) {
+  async authenticateUser(schoolData) {
 
     let response = null;
     let response1 = null;
@@ -169,20 +174,20 @@ const schoolService = {
 
     });
 
-    // Try username
+    // Try name
     await schoolService.
     _schoolModel.
-    findOne({username: schoolData.username}).
+    findOne({name: schoolData.name}).
     then((Data) => {
 
       // Get data from DB
       if(Data) {
 
-        console.log('username found');
+        console.log('name found');
         tempData = Data;
         console.log(Data);
         response2 = true;
-        id = schoolData.username;
+        id = schoolData.name;
 
       }
 
@@ -202,7 +207,7 @@ const schoolService = {
       response = Promise.resolve({
         result: false,
         Token: null,
-        message: 'username +/- email does not exist'
+        message: 'name +/- email does not exist'
       });
 
       return response;
@@ -236,10 +241,8 @@ const schoolService = {
     // Return a boolean(true) and signed JWT
     const Token = await Promise.resolve(tokenService.generateToken({
           email: tempData.email,
-          username: tempData.username
-    },
-    clientID
-    ));
+          name: tempData.name
+    }));
 
     // Resolve
     response = Promise.resolve({
@@ -268,14 +271,13 @@ const schoolService = {
     findOne({email: schoolE.email}).
     then((Data) => {
 
-      console.log(`checking data base for user`);
+      console.log(`checking data base for school with email `);
       if(Data){
   
         if (Data.length === 0) {
 
-          console.log('no user exists');
+          console.log('no school with email exists');
           eeResult1 = Promise.resolve(false);
-
 
         }
 
@@ -291,18 +293,18 @@ const schoolService = {
       eeResult1 = Promise.resolve(false);
 
     });
-    // Check username
+    // Check name
     await schoolService.
     _schoolModel.
-    findOne({username: schoolE.username}).
+    findOne({name: schoolE.name}).
     then((Data) => {
 
-      console.log(`checking data base for user`);
+      console.log(`checking data base for school name`);
       if(Data) {
 
         if (Data.length === 0) {
 
-          console.log('no user exists');
+          console.log('no school exists with name ');
           eeResult2 = Promise.resolve(false);
 
         }

@@ -10,10 +10,10 @@
  *
  */
 
+import schoolAdminAdapter from '../db/schoolAdminAdapter';
 import parentAdapter from '../db/parentAdapter';
 import studentAdapter from '../db/studentAdapter';
 import teacherAdapter from '../db/teacherAdapter';
-import schoolAdminAdapter from '../db/schoolAdminAdapter';
 
 const authenticationController = {
 

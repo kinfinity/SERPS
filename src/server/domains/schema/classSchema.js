@@ -8,33 +8,36 @@
  * 
  */
 
-import mongoose from '../../Infrastructure/server/plugins/mongooseCon';
+import mongoose from '../../Infrastructure/plugins/mongooseCon';
 const TSchema = mongoose.Schema;
 
-const ClassSchema = new TSchema(
-    {
-        'name': {
+const ClassSchema = new TSchema({
+    
+    'name': {
         type: String,
-      required: false,
-      unique: true,
+        required: false,
+        unique: true,
     },
-      'alias': {
+    'alias': {
         type: String,
         required: true,
         unique: true
-      },
-        'subjects': [{
-          subject: {
-            type: TSchema.Types.ObjectId,
-            ref: 'subjectModel'    
-          }
-        }],
-        'teacher': {
+    },
+    'subjects': [{
+        type: TSchema.Types.ObjectId,
+        ref: 'subjectModel'    
+    }],
+    'teachers': [{
         type: TSchema.Types.ObjectId,
         ref: 'teacherModel'
-      }
-    },
-  {strict: true}
+    }],
+    'students': [{
+        type: TSchema.Types.ObjectId,
+        ref: 'studentModel'
+    }]},
+
+    {strict: true}
+
 );
 
 export default ClassSchema;

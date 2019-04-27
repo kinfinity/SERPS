@@ -8,12 +8,12 @@
  * 
  */
 
-const mongoose = require('../../Infrastructure/server/plugins/mongooseCon');
+const mongoose = require('../../Infrastructure/plugins/mongooseCon');
 const TeacherSchema = require('../schema/teacherSchema');
 
 // Preparatory steps before save to model(pre-save)
-TeacherSchema.pre('save', function(next) {
+TeacherSchema.default.pre('save', function(next) {
     next();
 });
 
-export default mongoose.model('TeacherModel', TeacherSchema);
+export default mongoose.default.model('TeacherModel', TeacherSchema.default);
