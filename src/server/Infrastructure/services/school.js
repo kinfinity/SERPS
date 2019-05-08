@@ -35,7 +35,6 @@ export default {
     })
     .catch((err) => {
         console.log(err);
-        payload = null;
     });
 
   return payload;
@@ -55,8 +54,7 @@ export default {
     await authenticationController.authenticateSchoolAdmin(
       params.email,
       params.password,
-      params.username,
-      params.metadata.get('clientID')
+      params.username
     ).
     then((result) => {
 

@@ -20,24 +20,25 @@ import cloudinaryCon from '../plugins/cloudinaryCon'
   // Authentication routes
   schoolRouter.route('/SERPS/School/signUp').get(asyncMiddleware(async (req,res,next) => {
 
-    //multerHandle.single('Logo')
+    //multerHandle.single('Logo');
     // cloudinaryCon.upload(req.file.path);
     
     try{
-      console.log(req.body)
+      console.log(req.body);
       const payload = await schoolService.signupSchool({
         Name: req.body.Name,
         email: req.body.email,
         password: req.body.password,
         motto: req.body.motto,
         Address: req.body.Address,
-        Logo: req.file.path,
-        Images: [req.body.imagesLinks] // 1-3
+        // Logo: req.file.Logo,
+        Images: req.body.imagesLinks // 1-3
       })
-      res.sendStatus(200).json(payload)
+      res.json(payload)
 
     }catch(e) {
       // res.sendStatus(404).json(e)
+      console.log(e);
       console.log('there is an error')
     }
 
@@ -48,11 +49,16 @@ import cloudinaryCon from '../plugins/cloudinaryCon'
       try {
           
           // *
+          console.log("xd let's go")
+          console.log(req.body)
+
           const payload = await schoolService.authenticate({
-            email: req.body.email,
+            email: req.body.email || null,
             password: req.body.password,
-            username: req.body.username
+            username: req.body.username || null
           })
+          console.log("payload is here")
+          console.log(payload)
           res.json(payload)
           
       } catch (e) {

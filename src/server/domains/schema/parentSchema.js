@@ -32,8 +32,8 @@ const ParentSchema = new TSchema(
         password: {
                 type: String,
                 required: true,
-            },
-            gender: {
+        },
+        gender: {
             type: String,
         required: false,
         },  

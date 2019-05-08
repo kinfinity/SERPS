@@ -24,23 +24,36 @@ const TSchema = mongoose.Schema;
      * params.Images
  */
 const SchoolSchema = new TSchema({
-    'name': {
+    'Name': {
         type: String,
         required: true,
         unique: true,
+    },
+    'email': {
+        type: String,
+        required: true,
+        unique: false
+    },
+    'password': {
+        type: String,
+        required: true,
+        unique: true
     },
     'motto': {
          type: String,
          required: false,
          unique: true
      },
-     images: [{}],
-     logo: {
+     "Images": [{
+        type: TSchema.Types.Url,
+        required:false,
+      }],
+     'Logo': {
        type: TSchema.Types.Url,
        required:false,
 
      },
-     address: {
+     'Address': {
        type: String,
        required: false,
        unique: false
@@ -50,8 +63,8 @@ const SchoolSchema = new TSchema({
         ref: 'paymentInfoModel'
      }
 
-    },
-  {strict: true}
+    },{strict: true}
+
 );
 
 export default SchoolSchema;

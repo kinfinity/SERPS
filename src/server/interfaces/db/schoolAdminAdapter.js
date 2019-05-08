@@ -63,7 +63,7 @@ const schoolAdminAdapter = {
   
     let response = null;
 
-    await schoolAdminService.authenticateSchoolAdmin({email, password, username}).
+    await schoolAdminService.authenticateUser({email, password, username}).
     then((resolve) => {
 
       // Authentication succeeded

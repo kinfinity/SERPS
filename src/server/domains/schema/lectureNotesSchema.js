@@ -23,7 +23,7 @@ const LectureNotesSchema = new TSchema(
         },
 
         createdAt: {
-            type: Date,
+            type: Date.now(),
             required: false,
         },
         updatedAt: {

@@ -25,6 +25,7 @@ const signUpController = {
         }).catch((e) => {
 
           console.log('error caught');
+          console.log(e);
           return null;
 
         }); 

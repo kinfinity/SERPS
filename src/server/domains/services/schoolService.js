@@ -46,14 +46,18 @@ const schoolService = {
     // Holds return data for this fucntion
     let response = null;
     // Check if user exists first returns promise resolved to true or false
-    await schoolService.schoolExists({email,name}).
+    await schoolService.schoolExists({email,Name}).
     then((result) => {
 
       // Email exists in database
         response = result;
 
     }).
-    catch((err) => Promise.resolve({'result': false, 'Token': null, 'message': err.toString()}));
+    catch((e) => {
+      console.log('existence error');
+      console.log(e);
+      Promise.resolve({'result': false, 'Token': null, 'message': e})
+    });
     // Becomes true if user already exists and we kick out of function
     if (response) {
 
@@ -71,6 +75,7 @@ const schoolService = {
         Logo,
         Images
     };
+    const ipassword = schoolData.password;
     // Hash user password on first save
     await Password.hash(ipassword).
     then((hashedPassword) => {
@@ -174,20 +179,20 @@ const schoolService = {
 
     });
 
-    // Try name
+    // Try Name
     await schoolService.
     _schoolModel.
-    findOne({name: schoolData.name}).
+    findOne({Name: schoolData.Name}).
     then((Data) => {
 
       // Get data from DB
       if(Data) {
 
-        console.log('name found');
+        console.log('Name found');
         tempData = Data;
         console.log(Data);
         response2 = true;
-        id = schoolData.name;
+        id = schoolData.Name;
 
       }
 
@@ -207,7 +212,7 @@ const schoolService = {
       response = Promise.resolve({
         result: false,
         Token: null,
-        message: 'name +/- email does not exist'
+        message: 'Name +/- email does not exist'
       });
 
       return response;
@@ -241,7 +246,7 @@ const schoolService = {
     // Return a boolean(true) and signed JWT
     const Token = await Promise.resolve(tokenService.generateToken({
           email: tempData.email,
-          name: tempData.name
+          Name: tempData.Name
     }));
 
     // Resolve
@@ -293,18 +298,18 @@ const schoolService = {
       eeResult1 = Promise.resolve(false);
 
     });
-    // Check name
+    // Check Name
     await schoolService.
     _schoolModel.
-    findOne({name: schoolE.name}).
+    findOne({Name: schoolE.Name}).
     then((Data) => {
 
-      console.log(`checking data base for school name`);
+      console.log(`checking data base for school Name`);
       if(Data) {
 
         if (Data.length === 0) {
 
-          console.log('no school exists with name ');
+          console.log('no school exists with Name ');
           eeResult2 = Promise.resolve(false);
 
         }
