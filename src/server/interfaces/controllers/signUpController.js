@@ -16,6 +16,8 @@ const signUpController = {
   // Interface layer controller for creating User
   async createSchool(params) {
 
+    
+    let sData = null 
         await schoolAdminAdapter.persist(params).then((Data) => {
 
           winstonLogger.info('Controller Data')
@@ -35,7 +37,7 @@ const signUpController = {
                   }
                 )// send a few params
 
-            return Data
+            sData = Data
 
         }).catch((e) => {
 
@@ -45,6 +47,8 @@ const signUpController = {
           return null
 
         }) 
+
+        return sData
 
   },
 

@@ -227,7 +227,8 @@ const schoolService = {
           email: tempData.email,
           Name: tempData.Name
     }))
-
+    winstonLogger.info('GENERATED TOKEN')
+    winstonLogger.info(Token)
 
     // Resolve
     response = Promise.resolve({

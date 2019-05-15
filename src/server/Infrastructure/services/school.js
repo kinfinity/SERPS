@@ -31,22 +31,24 @@ export default {
 
     winstonLogger.info('SIGNUP')
     // create school
-    let payload = null
-    const Data = await singUpController.createSchool(params)
+    let payload,Data = null
+    await singUpController.createSchool(params)
     .then((result) => {
 
         winstonLogger.info("aquiring SIGNUP DATA")
-        winstonLogger.infO(result)
+        winstonLogger.info(result)
+        Data = result
 
     })
     .catch((err) => {
+        winstonLogger.error('signup Error')
         winstonLogger.error(err)
     })
 
     if(Data == null){
 
         return payload = {
-            status: "SC101",
+            status: "SC101x",
             Token: null
         }
 
@@ -54,16 +56,26 @@ export default {
     // done with SIGNUP
 
     // authenticate school -> creates token
-    const payload = await this.authenticate({
+    const payloadA = await this.authenticate({
         email: Data.email,
         password: Data.password,
         username: Data.username || null
+    }).then((result) => {
+
+        winstonLogger.info("authenticating SIGNUP DATA")
+        winstonLogger.info(result)
+
     })
+    .catch((err) => {
+        winstonLogger.error('authentication Error')
+        winstonLogger.error(err)
+    })
+
     winstonLogger.info("SIGNUP PAYLOAD")
-    winstonLogger.info(payload)
+    winstonLogger.info(payloadA)
 
 
-    return payload
+    return payloadA
 
 },
 

@@ -25,7 +25,7 @@ import winstonLogger from '../utils/winstonLogger'
 
         winstonLogger.info(req.body)
         
-        const payload = await schoolService.signupSchool({
+        const payloadS = await schoolService.signupSchool({
             Name: req.body.Name,
             schoolPrefix: req.body.schoolPrefix,
             email: req.body.email,
@@ -39,17 +39,17 @@ import winstonLogger from '../utils/winstonLogger'
         // cloudinaryCon.uploadSchoolLogo(req.body.Logo)
         
         // Send the payload to client
-        res.json(payload)
+        res.json(payloadS)
 
     }catch(e) {
       
       winstonLogger.error(e)
 
-      payload = {
+      const payloadE = {
           statusCode: 'SC102',
           Token: null
       }
-      res.json(payload)
+      res.json(payloadE)
     }
     
     profiler.done({ message: 'End of school_signup' })
@@ -62,7 +62,7 @@ import winstonLogger from '../utils/winstonLogger'
       try {
           
           // *
-          winstonLogger.info("xd let's go")
+          winstonLogger.info("LOGIN")
           winstonLogger.info(req.body)
 
           const payload = await schoolService.authenticate({

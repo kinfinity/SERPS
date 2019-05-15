@@ -23,7 +23,7 @@ export default class {
       const options = {
         issuer: config.serverID,
         subject: 'accessToken',
-        expiresIn: '12h',
+        expiresIn: '1h',
    //     algorithm: 'RS256',
         audience: 'serp'
         };

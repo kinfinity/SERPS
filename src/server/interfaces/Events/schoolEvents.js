@@ -4,7 +4,7 @@ import onSignUp from '../EventListeners/onSignUP'
 // SetUp the various events and listeners 
 const schoolSignUp = new EventEmitter()
 
-schoolSignUp.on('school-registered',onSignUp.school)
+// schoolSignUp.on('school-registered',onSignUp.school)
 
 const schoolEvent = {
     schoolSignUp,
