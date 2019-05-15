@@ -13,7 +13,7 @@ import parentAdapter from '../db/parentAdapter';
 import schoolAdapter from '../db/schoolAdminAdapter';
 import studentAdapter from '../db/studentAdapter';
 
-const profileManagementController = {
+const   profileManagementController = {
 
     // teacher
     async getTeacherInfo(teacherName,teacherID){
@@ -91,11 +91,11 @@ const profileManagementController = {
     
 
     // school
-    async getSchoolInfo(ParentAlias,SchoolTitle){
-        return schoolAdapter.getSchoolInfo(ParentAlias,SchoolTitle);
+    async getSchoolInfo(schoolName,schoolID){
+        return schoolAdapter.getSchoolInfo(schoolName,schoolID);
     },
-    async updateSchool(ParentAlias,SchoolTitle,SchoolData){
-        return schoolAdapter.updateSchool(ParentAlias,SchoolTitle,SchoolData);
+    async updateSchool(schoolName,schoolID,SchoolData){
+        return schoolAdapter.updateSchool(schoolName,schoolID,SchoolData);
     }
 
 };

@@ -1,4 +1,3 @@
-console.log('***./plugins/schoolModel.js');
 
 /*
  * Created by k_infinity3 <ksupro1@gmail.com>

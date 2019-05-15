@@ -14,13 +14,14 @@ import schoolAdminAdapter from '../db/schoolAdminAdapter';
 import parentAdapter from '../db/parentAdapter';
 import studentAdapter from '../db/studentAdapter';
 import teacherAdapter from '../db/teacherAdapter';
+import winstonLogger from '../../Infrastructure/utils/winstonLogger';
 
 const authenticationController = {
 
   // student
     authenticateStudent(email, password, username, clientID) {
 
-      console.log('authenticationController handling login');
+      winstonLogger.info('authenticationController handling login');
 
       return studentAdapter.authenticate(email, password, username, clientID);
 
@@ -28,7 +29,7 @@ const authenticationController = {
 
     logoutStudent(Token) {
 
-      console.log('authenticationController handling logout');
+      winstonLogger.info('authenticationController handling logout');
 
     return studentAdapter.logout(Token);
 
@@ -37,7 +38,7 @@ const authenticationController = {
   // Parent
     authenticateParent(email, password) {
 
-      console.log('authenticationController handling login');
+      winstonLogger.info('authenticationController handling login');
 
       return parentAdapter.authenticate(email, password);
 
@@ -45,7 +46,7 @@ const authenticationController = {
 
     logoutParent(Token) {
 
-      console.log('authenticationController handling logout');
+      winstonLogger.info('authenticationController handling logout');
 
       return parentAdapter.logout(Token);
 
@@ -54,7 +55,7 @@ const authenticationController = {
   // Teacher
     authenticateTeacher(email, password) {
 
-      console.log('authenticationController handling login');
+      winstonLogger.info('authenticationController handling login');
 
       return teacherAdapter.authenticate(email, password);
 
@@ -62,23 +63,23 @@ const authenticationController = {
 
     logoutTeacher(Token) {
 
-      console.log('authenticationController handling logout');
+      winstonLogger.info('authenticationController handling logout');
 
       return teacherAdapter.logout(Token);
 
   },
   // SchoolAdmin
-  authenticateSchoolAdmin(email, password) {
+  authenticateSchoolAdmin(email, password, username) {
 
-    console.log('authenticationController handling login');
+    winstonLogger.info('authenticationController handling login');
 
-    return schoolAdminAdapter.authenticate(email, password);
+    return schoolAdminAdapter.authenticate(email, password, username);
 
 },
 
   logoutSchoolAdmin(Token) {
 
-    console.log('authenticationController handling logout');
+    winstonLogger.info('authenticationController handling logout');
 
     return schoolAdminAdapter.logout(Token);
 

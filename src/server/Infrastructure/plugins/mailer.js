@@ -15,19 +15,21 @@ import nodemailer from 'nodemailer';
 
 // Configure smtp transport machanism for password reset email
 const transporter = nodemailer.createTransport({
-    service: 'gmail',
-    port: 465,
+
+  service: 'gmail',
+  port: 465,
   secure: true,
-    auth: {
+  auth: {
     // Server|host gmail address
     user: config.gmailAddress,
     // Server|host gmail password
     pass: config.gmailPassword,
-  },
+  }
+
 });
 
 // 
-const mailer = (message) => {
+const mailer = (senderEmail,message) => {
 
     //
     transporter.sendMail(message).

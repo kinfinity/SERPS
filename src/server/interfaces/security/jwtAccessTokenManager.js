@@ -7,30 +7,37 @@
  *
  */
 
-import config from '../../Infrastructure/utils/config';
-import jwt from 'jsonwebtoken';
+import config from '../../Infrastructure/utils/config'
+import JWTR from 'jwt-redis'
+import Redis from 'ioredis'
+
+const redis = new Redis()
+const jwtr = new JWTR(redis)
+
+const privateKey = config.tokenPrivateKey
+const publicKey = config.tokenPublicKey
 
 export default class {
   
   // Generate a new access token for an authenticated user | from a client
   static generate(payload, options) {
-
+      
       //
-      return jwt.sign(payload, this.privateKey,options);
+      return jwtr.sign(payload, privateKey,options)
 
   }
 
   static verify(accessToken, options) {
 
-      //
-      return jwt.verify(accessToken, this.publicKey, options);
+      //equally decodes the token
+      return jwtr.verify(accessToken, publicKey, options)
 
   }
   
-  static decode(accessToken) {
+  static destroy(accessToken) {
 
-    return jwt.decode(accessToken, this.privateKey);
+    return jwtr.destroy()
 
   }
 
-};
+}

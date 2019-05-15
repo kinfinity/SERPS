@@ -20,11 +20,12 @@ export default class {
     execute(payload) {
 
       //
-      var options = {
+      const options = {
         issuer: config.serverID,
         subject: 'accessToken',
         expiresIn: '12h',
-   //     algorithm: 'RS256'
+   //     algorithm: 'RS256',
+        audience: 'serp'
         };
       options.audience = 'serps';// verify
 

@@ -20,35 +20,35 @@ import teacherAdapter from '../db/teacherAdapter';
 const authorisationController = {
 
   // Parent
-  authoriseParent(email, password, username) {
+  authoriseParent(accessToken) {
 
     console.log('authorisationController handling login');
 
-    return parentAdapter.authorise(email, password, username);
+    return parentAdapter.authorise(accessToken);
 
   },
   // schoolAdmin
-  authoriseSchoolAdmin(email, password) {
+  authoriseSchoolAdmin(accessToken) {
 
     console.log('authorisationController handling login');
 
-    return schoolAdminAdapter.authorise(email, password);
+    return schoolAdminAdapter.authorise(accessToken);
 
   },
   // student
-  authoriseStudent(email, password) {
+  authoriseStudent(accessToken) {
 
     console.log('authorisationController handling login');
 
-    return studentAdapter.authorise(email, password);
+    return studentAdapter.authorise(accessToken);
 
   },
   // teacher
-  authoriseTeacher(email, password) {
+  authoriseTeacher(accessToken) {
 
     console.log('authorisationController handling login');
 
-    return teacherAdapter.authorise(email, password);
+    return teacherAdapter.authorise(accessToken);
 
   }
 

@@ -1,64 +1,77 @@
 import schoolService from '../services/school'
-import {routerOptions,verifyToken,asyncMiddleware} from '../utils/routerOptions'
+import routeUtils from '../utils/routerOptions'
 import express from 'express'
 import bodyParser from 'body-parser'
 import authorisationService from '../../domains/services/authorisationService'
-import multerHandle from '../utils/multerHandle'
 import cloudinaryCon from '../plugins/cloudinaryCon'
-
+import winstonLogger from '../utils/winstonLogger'
 /**
      * 
      *  Build  school API call routes
      *  
      */
 
-  // school router for all school calls 
-  console.log(routerOptions)
-  const schoolRouter = express.Router([routerOptions])
+  // school router for all school calls
+  const schoolRouter = express.Router([routeUtils.routerOptions])
   schoolRouter.use(bodyParser.json())
 
+//   schoolRouter.use('/School',routeUtils.authSchool())
   // Authentication routes
-  schoolRouter.route('/SERPS/School/signUp').get(asyncMiddleware(async (req,res,next) => {
-
-    //multerHandle.single('Logo');
-    // cloudinaryCon.upload(req.file.path);
+  schoolRouter.route('/School/signUp').get(routeUtils.asyncMiddleware(async (req,res,next) => {
     
+    winstonLogger.profile('schoool_signup')
+    const profiler = winstonLogger.startTimer()
     try{
-      console.log(req.body);
-      const payload = await schoolService.signupSchool({
-        Name: req.body.Name,
-        email: req.body.email,
-        password: req.body.password,
-        motto: req.body.motto,
-        Address: req.body.Address,
-        // Logo: req.file.Logo,
-        Images: req.body.imagesLinks // 1-3
-      })
-      res.json(payload)
+
+        winstonLogger.info(req.body)
+        
+        const payload = await schoolService.signupSchool({
+            Name: req.body.Name,
+            schoolPrefix: req.body.schoolPrefix,
+            email: req.body.email,
+            password: req.body.password,
+            motto: req.body.motto,
+            Address: req.body.Address,
+            Images: req.body.imagesLinks // 1-3
+        })
+
+        // if it worked save the image to cloudinary with schoolName / profile
+        // cloudinaryCon.uploadSchoolLogo(req.body.Logo)
+        
+        // Send the payload to client
+        res.json(payload)
 
     }catch(e) {
-      // res.sendStatus(404).json(e)
-      console.log(e);
-      console.log('there is an error')
-    }
+      
+      winstonLogger.error(e)
 
+      payload = {
+          statusCode: 'SC102',
+          Token: null
+      }
+      res.json(payload)
+    }
+    
+    profiler.done({ message: 'End of school_signup' })
+    
+    
     next()
 
 }))
-  schoolRouter.route('/SERPS/School/login').get(asyncMiddleware(async (req,res,next) => {
+  schoolRouter.route('/School/login').get(routeUtils.asyncMiddleware(async (req,res,next) => {
       try {
           
           // *
-          console.log("xd let's go")
-          console.log(req.body)
+          winstonLogger.info("xd let's go")
+          winstonLogger.info(req.body)
 
           const payload = await schoolService.authenticate({
             email: req.body.email || null,
             password: req.body.password,
             username: req.body.username || null
           })
-          console.log("payload is here")
-          console.log(payload)
+          winstonLogger.info("payload is here")
+          winstonLogger.info(payload)
           res.json(payload)
           
       } catch (e) {
@@ -66,14 +79,14 @@ import cloudinaryCon from '../plugins/cloudinaryCon'
       }
       next()
 }))
-  schoolRouter.route('/SERPS/:School/logOut').get(asyncMiddleware (async (req,res, next) => {
+  schoolRouter.route('/:School/logOut').get(routeUtils.asyncMiddleware (async (req,res, next) => {
       try {
           //first authorize for this API
           const authResult = await authorisationService.authoriseToken(Token)
           if(!authResult){
               res.sendStatus(403).json()
           }
-          console.log(authResult)
+          winstonLogger.info(authResult)
 
           // *
           const payload = await schoolService.signout({Token: req.body.Token})
@@ -86,8 +99,8 @@ import cloudinaryCon from '../plugins/cloudinaryCon'
 }))
 
   // Info API routes
-  schoolRouter.route('/SERPS/:School')// profileInfo
-  .get(asyncMiddleware (async (req,res, next) => {
+  schoolRouter.route('/:School')// profileInfo
+  .get(routeUtils.asyncMiddleware (async (req,res, next) => {
     try {
         
         // *
@@ -102,8 +115,8 @@ import cloudinaryCon from '../plugins/cloudinaryCon'
     }
     next()
 }))
-  schoolRouter.route('/SERPS/:school/contactInfo')
-  .get(asyncMiddleware (async (req,res, next) => {
+  schoolRouter.route('/:school/contactInfo')
+  .get(routeUtils.asyncMiddleware (async (req,res, next) => {
     try {
         
         // *
@@ -115,8 +128,8 @@ import cloudinaryCon from '../plugins/cloudinaryCon'
     }
     next()
 }))
-  schoolRouter.route('/SERPS/:school/contactInfo/update')
-  .get(asyncMiddleware (async (req,res, next) => {
+  schoolRouter.route('/:school/contactInfo/update')
+  .get(routeUtils.asyncMiddleware (async (req,res, next) => {
     try {
       
         // *
@@ -130,8 +143,8 @@ import cloudinaryCon from '../plugins/cloudinaryCon'
     }
     next()
 }))
-  schoolRouter.route('/SERPS/:school/addressInfo')
-  .get(asyncMiddleware (async (req,res, next) => {
+  schoolRouter.route('/:school/addressInfo')
+  .get(routeUtils.asyncMiddleware (async (req,res, next) => {
     try {
         
         // *
@@ -143,8 +156,8 @@ import cloudinaryCon from '../plugins/cloudinaryCon'
     }
     next()
 }))
-  schoolRouter.route('/SERPS/:school/addressInfo/update')
-  .get(asyncMiddleware (async (req,res, next) => {
+  schoolRouter.route('/:school/addressInfo/update')
+  .get(routeUtils.asyncMiddleware (async (req,res, next) => {
     try {
         
         // *
@@ -157,8 +170,8 @@ import cloudinaryCon from '../plugins/cloudinaryCon'
     next()
 }))
   // payment API routes
-  schoolRouter.route('/SERPS/:school/paymentInfo')
-  .get(asyncMiddleware (async (req,res, next) => {
+  schoolRouter.route('/:school/paymentInfo')
+  .get(routeUtils.asyncMiddleware (async (req,res, next) => {
     try {
         
         // *
@@ -173,8 +186,8 @@ import cloudinaryCon from '../plugins/cloudinaryCon'
     }
     next()
 }))
-  schoolRouter.route('/SERPS/:school/paymentInfo/update')
-  .get(asyncMiddleware (async (req,res, next) => {
+  schoolRouter.route('/:school/paymentInfo/update')
+  .get(routeUtils.asyncMiddleware (async (req,res, next) => {
     try {
         
         // *
@@ -190,8 +203,8 @@ import cloudinaryCon from '../plugins/cloudinaryCon'
     }
     next()
 }))
-  schoolRouter.route('/SERPS/:school/paymentInfo/transactionHistory')
-  .get(asyncMiddleware (async (req,res, next) => {
+  schoolRouter.route('/:school/paymentInfo/transactionHistory')
+  .get(routeUtils.asyncMiddleware (async (req,res, next) => {
     try {
         // *
         const transactionHistory = await schoolService.viewSchoolPaymentTransactionHistory(
@@ -207,8 +220,8 @@ import cloudinaryCon from '../plugins/cloudinaryCon'
 }))
 
   // notification API routes
-  schoolRouter.route('/SERPS/:school/notifications')
-  .get(asyncMiddleware (async (req,res, next) => {
+  schoolRouter.route('/:school/notifications')
+  .get(routeUtils.asyncMiddleware (async (req,res, next) => {
     try {
       
         // *
@@ -220,8 +233,8 @@ import cloudinaryCon from '../plugins/cloudinaryCon'
     }
     next()
 }))
-  schoolRouter.route('/SERPS/:school/notifications/create')
-  .get(asyncMiddleware (async (req,res, next) => {
+  schoolRouter.route('/:school/notifications/create')
+  .get(routeUtils.asyncMiddleware (async (req,res, next) => {
     try {
       
         // *
@@ -237,8 +250,8 @@ import cloudinaryCon from '../plugins/cloudinaryCon'
     }
     next()
 }))
-  schoolRouter.route('/SERPS/:school/notifications/update')
-  .get(asyncMiddleware (async (req,res, next) => {
+  schoolRouter.route('/:school/notifications/update')
+  .get(routeUtils.asyncMiddleware (async (req,res, next) => {
     try {
         
         // *
@@ -250,8 +263,8 @@ import cloudinaryCon from '../plugins/cloudinaryCon'
     }
     next()
 }))
-  schoolRouter.route('/SERPS/:school/notifications/delete')
-  .get(asyncMiddleware (async (req,res, next) => {
+  schoolRouter.route('/:school/notifications/delete')
+  .get(routeUtils.asyncMiddleware (async (req,res, next) => {
     try {
         
         // *
@@ -268,8 +281,8 @@ import cloudinaryCon from '../plugins/cloudinaryCon'
 }))
 
   // timetable API routes
-  schoolRouter.route('/SERPS/:school/:class/createTimetable')
-  .get(asyncMiddleware (async (req,res, next) => {
+  schoolRouter.route('/:school/:class/createTimetable')
+  .get(routeUtils.asyncMiddleware (async (req,res, next) => {
     try {
         
         // *
@@ -283,8 +296,8 @@ import cloudinaryCon from '../plugins/cloudinaryCon'
     }
     next()
 }))
-  schoolRouter.route('/SERPS/:school/:class/getTimetable')
-  .get(asyncMiddleware (async (req,res, next) => {
+  schoolRouter.route('/:school/:class/getTimetable')
+  .get(routeUtils.asyncMiddleware (async (req,res, next) => {
     try {
       
         // *
@@ -298,8 +311,8 @@ import cloudinaryCon from '../plugins/cloudinaryCon'
     }
     next()
 }))
-  schoolRouter.route('/SERPS/:school/:class/updateTimetable')
-  .get(asyncMiddleware (async (req,res, next) => {
+  schoolRouter.route('/:school/:class/updateTimetable')
+  .get(routeUtils.asyncMiddleware (async (req,res, next) => {
     try {
         
         // *
@@ -315,8 +328,8 @@ import cloudinaryCon from '../plugins/cloudinaryCon'
     }
     next()
 }))
-  schoolRouter.route('/SERPS/:school/:class/deleteTimetable')
-  .get(asyncMiddleware (async (req,res, next) => {
+  schoolRouter.route('/:school/:class/deleteTimetable')
+  .get(routeUtils.asyncMiddleware (async (req,res, next) => {
     try {
         
         // *
@@ -331,8 +344,8 @@ import cloudinaryCon from '../plugins/cloudinaryCon'
     }
     next()
 }))
-  schoolRouter.route('/SERPS/:school/:class/archiveTimetable')
-  .get(asyncMiddleware (async (req,res, next) => {
+  schoolRouter.route('/:school/:class/archiveTimetable')
+  .get(routeUtils.asyncMiddleware (async (req,res, next) => {
     try {
         
         // *
@@ -348,8 +361,8 @@ import cloudinaryCon from '../plugins/cloudinaryCon'
     next()
 }))
   // class API call routes
-  schoolRouter.route('/SERPS/:school/createClass')
-  .get(asyncMiddleware (async (req,res, next) => {
+  schoolRouter.route('/:school/createClass')
+  .get(routeUtils.asyncMiddleware (async (req,res, next) => {
     try {
         // *
         const result = await schoolService.createClass(
@@ -363,8 +376,8 @@ import cloudinaryCon from '../plugins/cloudinaryCon'
     }
     next()
 }))
-  schoolRouter.route('/SERPS/:school/createClassSequence')
-  .get(asyncMiddleware (async (req,res, next) => {
+  schoolRouter.route('/:school/createClassSequence')
+  .get(routeUtils.asyncMiddleware (async (req,res, next) => {
     try {
       
         // *
@@ -376,8 +389,8 @@ import cloudinaryCon from '../plugins/cloudinaryCon'
     }
     next()
 }))
-  schoolRouter.route('/SERPS/:school/:class')
-  .get(asyncMiddleware (async (req,res, next) => {
+  schoolRouter.route('/:school/:class')
+  .get(routeUtils.asyncMiddleware (async (req,res, next) => {
     try{
         
         // *
@@ -391,8 +404,8 @@ import cloudinaryCon from '../plugins/cloudinaryCon'
     }
     next()
 }))
-  schoolRouter.route('/SERPS/:school/:class/createSubject')
-  .get(asyncMiddleware (async (req,res, next) => {
+  schoolRouter.route('/:school/:class/createSubject')
+  .get(routeUtils.asyncMiddleware (async (req,res, next) => {
     try {
       
         // *
@@ -407,8 +420,8 @@ import cloudinaryCon from '../plugins/cloudinaryCon'
     }
     next()
 }))
-  schoolRouter.route('/SERPS/:school/:class/:subject')
-  .get(asyncMiddleware (async (req,res, next) => {
+  schoolRouter.route('/:school/:class/:subject')
+  .get(routeUtils.asyncMiddleware (async (req,res, next) => {
     try {
       
         // *
@@ -423,8 +436,8 @@ import cloudinaryCon from '../plugins/cloudinaryCon'
     }
     next()
 }))
-  schoolRouter.route('/SERPS/:school/:class/update')
-  .get(asyncMiddleware (async (req,res, next) => {
+  schoolRouter.route('/:school/:class/update')
+  .get(routeUtils.asyncMiddleware (async (req,res, next) => {
     try {
       
         // *
@@ -436,8 +449,8 @@ import cloudinaryCon from '../plugins/cloudinaryCon'
     }
     next()
 }))
-  schoolRouter.route('/SERPS/:school/:class/:subject')
-  .get(asyncMiddleware (async (req,res, next) => {
+  schoolRouter.route('/:school/:class/:subject')
+  .get(routeUtils.asyncMiddleware (async (req,res, next) => {
     try {
 
         // *
@@ -452,8 +465,8 @@ import cloudinaryCon from '../plugins/cloudinaryCon'
     }
     next()
 }))
-  schoolRouter.route('/SERPS/:school/:class/remove')
-  .get(asyncMiddleware (async (req,res, next) => {
+  schoolRouter.route('/:school/:class/remove')
+  .get(routeUtils.asyncMiddleware (async (req,res, next) => {
     try {
       
         // *
@@ -467,8 +480,8 @@ import cloudinaryCon from '../plugins/cloudinaryCon'
     }
     next()
 }))
-  schoolRouter.route('/SERPS/:school/:class/:subject/remove')
-  .get(asyncMiddleware (async (req,res, next) => {
+  schoolRouter.route('/:school/:class/:subject/remove')
+  .get(routeUtils.asyncMiddleware (async (req,res, next) => {
     try {
       
         // *
@@ -483,8 +496,8 @@ import cloudinaryCon from '../plugins/cloudinaryCon'
     }
     next()
 }))
-  schoolRouter.route('/SERPS/:school/:class/assignTeacher')
-  .get(asyncMiddleware (async (req,res, next) => {
+  schoolRouter.route('/:school/:class/assignTeacher')
+  .get(routeUtils.asyncMiddleware (async (req,res, next) => {
     try {
       
         //*
@@ -499,8 +512,8 @@ import cloudinaryCon from '../plugins/cloudinaryCon'
     }
     next()
 }))
-  schoolRouter.route('/SERPS/:school/:class/reassignTeacher')
-  .get(asyncMiddleware (async (req,res, next) => {
+  schoolRouter.route('/:school/:class/reassignTeacher')
+  .get(routeUtils.asyncMiddleware (async (req,res, next) => {
     try {
       
         // *
@@ -512,8 +525,8 @@ import cloudinaryCon from '../plugins/cloudinaryCon'
     }
     next()
 }))
-  schoolRouter.route('/SERPS/:school/activity/create')
-  .get(asyncMiddleware (async (req,res, next) => {
+  schoolRouter.route('/:school/activity/create')
+  .get(routeUtils.asyncMiddleware (async (req,res, next) => {
     try {
       
         // *
@@ -530,8 +543,8 @@ import cloudinaryCon from '../plugins/cloudinaryCon'
 }))
 
   // activity API call routes
-  schoolRouter.route('/SERPS/:school/:activity')
-  .get(asyncMiddleware (async (req,res, next) => {
+  schoolRouter.route('/:school/:activity')
+  .get(routeUtils.asyncMiddleware (async (req,res, next) => {
     try {
       
         // *
@@ -545,8 +558,8 @@ import cloudinaryCon from '../plugins/cloudinaryCon'
     }
     next()
 }))
-  schoolRouter.route('/SERPS/:school/:activity/update')
-  .get(asyncMiddleware (async (req,res, next) => {
+  schoolRouter.route('/:school/:activity/update')
+  .get(routeUtils.asyncMiddleware (async (req,res, next) => {
     try {
     
         // *
@@ -561,8 +574,8 @@ import cloudinaryCon from '../plugins/cloudinaryCon'
     }
     next()
 }))
-  schoolRouter.route('/SERPS/:school/:activity/remove')
-  .get(asyncMiddleware (async (req,res, next) => {
+  schoolRouter.route('/:school/:activity/remove')
+  .get(routeUtils.asyncMiddleware (async (req,res, next) => {
     try {
     
         // *
@@ -576,8 +589,8 @@ import cloudinaryCon from '../plugins/cloudinaryCon'
     }
     next()
 }))
-  schoolRouter.route('/SERPS/:school/:activity/assignTeacher')
-  .get(asyncMiddleware (async (req,res, next) => {
+  schoolRouter.route('/:school/:activity/assignTeacher')
+  .get(routeUtils.asyncMiddleware (async (req,res, next) => {
     try {
       
         // *
@@ -592,8 +605,8 @@ import cloudinaryCon from '../plugins/cloudinaryCon'
     }
     next()
 }))
-  schoolRouter.route('/SERPS/:school/:activity/reassignTeacher')
-  .get(asyncMiddleware (async (req,res, next) => {
+  schoolRouter.route('/:school/:activity/reassignTeacher')
+  .get(routeUtils.asyncMiddleware (async (req,res, next) => {
     try {
       
         // *
@@ -611,8 +624,8 @@ import cloudinaryCon from '../plugins/cloudinaryCon'
 }))
 
   // results API call routes
-  schoolRouter.route('/SERPS/:school/results/pending')
-  .get(asyncMiddleware (async (req,res, next) => {
+  schoolRouter.route('/:school/results/pending')
+  .get(routeUtils.asyncMiddleware (async (req,res, next) => {
     try {
       
         // *
@@ -624,8 +637,8 @@ import cloudinaryCon from '../plugins/cloudinaryCon'
     }
     next()
 }))
-  schoolRouter.route('/SERPS/:school/results/validate')
-  .get(asyncMiddleware (async (req,res, next) => {
+  schoolRouter.route('/:school/results/validate')
+  .get(routeUtils.asyncMiddleware (async (req,res, next) => {
     try {
     
         // *
@@ -642,8 +655,8 @@ import cloudinaryCon from '../plugins/cloudinaryCon'
 }))
 
   // student API call routes
-  schoolRouter.route('/SERPS/:school/registeredStudents')
-  .get(asyncMiddleware (async (req,res, next) => {
+  schoolRouter.route('/:school/registeredStudents')
+  .get(routeUtils.asyncMiddleware (async (req,res, next) => {
     try {
     
         // *
@@ -655,8 +668,8 @@ import cloudinaryCon from '../plugins/cloudinaryCon'
     }
     next()
 }))
-  schoolRouter.route('/SERPS/:school/registeredStudents/:student')
-  .get(asyncMiddleware (async (req,res, next) => {
+  schoolRouter.route('/:school/registeredStudents/:student')
+  .get(routeUtils.asyncMiddleware (async (req,res, next) => {
     try {
     
         // *
@@ -670,8 +683,8 @@ import cloudinaryCon from '../plugins/cloudinaryCon'
     }
     next()
 }))
-  schoolRouter.route('/SERPS/:school/registeredStudents/:student/validate')
-  .get(asyncMiddleware (async (req,res, next) => {
+  schoolRouter.route('/:school/registeredStudents/:student/validate')
+  .get(routeUtils.asyncMiddleware (async (req,res, next) => {
     try {
       
     } catch (e) {
@@ -683,8 +696,8 @@ import cloudinaryCon from '../plugins/cloudinaryCon'
 }))
 
   // lectureNote API call routes
-  schoolRouter.route('/SERPS/:school/:class/:subject/')
-  .get(asyncMiddleware (async (req,res, next) => {
+  schoolRouter.route('/:school/:class/:subject/')
+  .get(routeUtils.asyncMiddleware (async (req,res, next) => {
     try {
     
         // *
@@ -699,8 +712,8 @@ import cloudinaryCon from '../plugins/cloudinaryCon'
     }
     next()
 }))
-  schoolRouter.route('/SERPS/:school/:class/:subject/:lectureNoteID')
-  .get(asyncMiddleware (async (req,res, next) => {
+  schoolRouter.route('/:school/:class/:subject/:lectureNoteID')
+  .get(routeUtils.asyncMiddleware (async (req,res, next) => {
     try {
     
         // *
@@ -716,8 +729,8 @@ import cloudinaryCon from '../plugins/cloudinaryCon'
     }
     next()
 }))
-  schoolRouter.route('/SERPS/:school/:class/:subject/:lectureNote/validate')
-  .get(asyncMiddleware (async (req,res, next) => {
+  schoolRouter.route('/:school/:class/:subject/:lectureNote/validate')
+  .get(routeUtils.asyncMiddleware (async (req,res, next) => {
     try {
     
         // *
@@ -735,8 +748,8 @@ import cloudinaryCon from '../plugins/cloudinaryCon'
 }))
 
   //
-  schoolRouter.route('/SERPS/:school/createClassSequence')
-  .get(asyncMiddleware (async (req,res, next) => {
+  schoolRouter.route('/:school/createClassSequence')
+  .get(routeUtils.asyncMiddleware (async (req,res, next) => {
     try {
     
         // *
@@ -748,8 +761,8 @@ import cloudinaryCon from '../plugins/cloudinaryCon'
     }
     next()
 }))
-  schoolRouter.route('/SERPS/:school/createGradeRanges')
-  .get(asyncMiddleware (async (req,res, next) => {
+  schoolRouter.route('/:school/createGradeRanges')
+  .get(routeUtils.asyncMiddleware (async (req,res, next) => {
     try {
     
         // *

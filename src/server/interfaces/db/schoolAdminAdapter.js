@@ -11,8 +11,10 @@
  */
 
 
-import authorisationService from '../../domains/services/authorisationService';
-import schoolAdminService from '../../domains/services/schoolService';
+import authorisationService from '../../domains/services/authorisationService'
+import schoolAdminService from '../../domains/services/schoolService'
+import shortid from 'shortid'
+import winstonLogger from '../../Infrastructure/utils/winstonLogger';
 
 
 const schoolAdminAdapter = {
@@ -20,9 +22,9 @@ const schoolAdminAdapter = {
   // Adds new school to the database
   async persist(params) {
 
-    
     /**
      *      Name: req.body.Name,
+     *      schoolPrefix: req.body.schoolPrefix,
      *      email: req.body.email
      *      password: req.body.password
             motto: req.body.motto,
@@ -30,10 +32,16 @@ const schoolAdminAdapter = {
             Logo: req.body.logoLink,
             Images: [req.body.imagesLinks] // 1-3
      */
-    let response = null;
+    
+    let response = null
+    const schoolID = params.schoolPrefix? params.schoolPrefix + shortid.generate() : params.Name
+    winstonLogger.info("generated schoolID ")
+    winstonLogger.info(schoolID)
+
 
     await schoolAdminService.createNewEmailUser(
         params.Name,
+        schoolID,
         params.email,
         params.password,
         params.motto, 
@@ -41,88 +49,120 @@ const schoolAdminAdapter = {
         params.Logo,
         params.Images
     ).
-    then((resolve) => {
+    then((result) => {
 
       // Creation Succeeded
-      response = Promise.resolve(resolve);
+      winstonLogger.info('Adapter Result')
+      winstonLogger.info(result)
+
+      response = Promise.resolve(result)
 
     }).
     catch((err) => {
 
-      response = {'result':false,'Token':null,'message':err.toString()};
+      response = null
       
-      return Promise.reject(response);
+      return Promise.reject(response)
 
-    });
+    })
 
-    return response;
+    return response
 
   },
   // Authenticates already existing user
   async authenticate(email, password, username) {
   
-    let response = null;
+    let response = null
 
     await schoolAdminService.authenticateUser({email, password, username}).
-    then((resolve) => {
+    then((result) => {
 
       // Authentication succeeded
-        response = Promise.resolve(resolve);
+      winstonLogger.info('authentication result')
+      winstonLogger.info(result)
+        response = Promise.resolve(result)
 
     }).
     catch((err) => {
 
-      response = {'result':false,'Token':null,'message':err.toString()};
+      winstonLogger.error('error authenticating')
+      winstonLogger.error(e)
 
-    });
+      response = {
+        'statusCode': 'SC101',
+        'Token':null
+      }
 
-    return response;
+    })
+
+    return response
 
   },
   // authorise an authenticated user
   async authorise(accessToken) {
   
-    let response = null;
+    let response = null
 
     // 
     await authorisationService.authoriseToken(accessToken).
     then((resolve) => {
 
       // Authorization succeeded
-        response = Promise.resolve(resolve);
+        response = Promise.resolve(resolve)
 
     }).
     catch((err) => {
 
-      response = {'result': false};
+      response = {'result': false}
 
-    });
+    })
 
-    return response;
+    return response
 
   },
   // Logout an authenticated user
   async logout(accessToken) {
   
-    let response = null;
+    let response = null
 
     await schoolAdminService.logoutParent(accessToken).
     then((resolve) => {
 
       // Lougout succeeded
-      response = Promise.resolve(resolve);
+      response = Promise.resolve(resolve)
 
     }).
     catch((err) => {
 
-      reponse = {'response': false};
+      reponse = {'response': false}
 
-    });
+    })
 
-    return response;
+    return response
+
+  },
+
+  async getSchoolInfo(schoolName,schoolID){
+
+    let response = null
+
+    await schoolAdminService.getSchoolInfo(schoolName,schoolID).
+    then((resolve) => {
+
+      // Lougout succeeded
+      response = Promise.resolve(resolve)
+
+    }).
+    catch((err) => {
+
+      reponse = {'response': false}
+
+    })
+
+    return response
 
   }
 
-};
+}
 
-export default schoolAdminAdapter;
+export default schoolAdminAdapter

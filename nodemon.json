@@ -3,7 +3,9 @@
     "delay": "1000",
     "ignore": [
       ".git",
-      "node_modules"
+      "node_modules",
+      "error.log",
+      "combined.log"
     ],
     "verbose": true,
     "execMap": {

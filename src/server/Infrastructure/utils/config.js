@@ -5,8 +5,18 @@
  *      load from .env with dotenv
  */
 const path = require('path');
+const fs = require('fs')
 
 require('dotenv').config({path: path.join(__dirname, '../../../../.env')});
+
+// try {
+  
+//   const _tokenPrivateKey = fs.readFileSync('../certs/token/private.key','utf-8') 
+//   const _tokenPublicKey = fs.readFileSync('../certs/token/public.key','utf-8')
+  
+// } catch (e) {
+//   console.log('error getting permission files' + e.toString())
+// }
 
 const config = {
 
@@ -24,7 +34,9 @@ const config = {
   cloudinaryAPIKey: process.env.CLOUDINARY_API_KEY,
   cloudinarySecret: process.env.CLOUDINARY_API_SECRET,
   cloudinaryName: process.env.CLOUDINARY_CLOUD_NAME,
-  serverID: process.env.serverID
+  serverID: process.env.serverID,
+  tokenPrivateKey:  process.env.TOKEN_PRIVATEKEY,
+  tokenPublicKey:  process.env.TOKEN_PUBLICKEY
 };
 
 export default config;

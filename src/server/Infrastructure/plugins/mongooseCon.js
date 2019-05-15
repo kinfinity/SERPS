@@ -1,4 +1,3 @@
-console.log('***./plugins/mongooseCon.js');
 
 /**
  * #k_infinityIII@Echwood

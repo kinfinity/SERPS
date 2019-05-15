@@ -15,15 +15,16 @@ export default class {
 
     }
 
-    execute(accessToken, clientID) {
+    execute(accessToken) {
 
-      const verified = this.accessTokenManager.verify(accessToken, clientID);
+      const verified = this.accessTokenManager.verify(accessToken);
 
       if (!verified) {
 
         return Promise.reject(new Error('Invalid access token'));
 
     }
+    return verified
 
   }
 

@@ -1,4 +1,3 @@
-console.log('***./plugins/schoolSchema.js');
 
 /*
  * Created by k_infinity3 <ksupro1@gmail.com>
@@ -28,6 +27,11 @@ const SchoolSchema = new TSchema({
         type: String,
         required: true,
         unique: true,
+    },
+    'schooolID':{
+        type: String,
+        required: false,
+        unique: true
     },
     'email': {
         type: String,

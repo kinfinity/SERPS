@@ -15,7 +15,7 @@ export default class {
   
       execute(payload) {
   
-        return this.accessTokenManager.decode(payload);
+        return this.accessTokenManager.destroy(payload);
   
     }
   

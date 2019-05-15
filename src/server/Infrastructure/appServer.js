@@ -16,12 +16,14 @@ import fs from 'fs';
 import path from 'path';
 import https from 'https';
 import throng from 'throng';
+import winstonLogger from './utils/winstonLogger'
 
 const cpus = require('os').cpus().length;
 
 
 // Log
-console.log('STARTING APPLICATION SERPS_SERVER');
+winstonLogger.info('SERPS SERVER')
+
 
 // permission certificate paths
 const certsPath = path.join(`${__dirname}`, 'certs', 'server');
@@ -46,7 +48,7 @@ const options = {
     server.on('request', app);
     server.listen(config.serverPort);
     server.on('listening', function() {
-        console.log('Listening on :' + JSON.stringify(server.address()));
+        winstonLogger.info('Listening on :' + server.address().port);
     });
 
 // };
