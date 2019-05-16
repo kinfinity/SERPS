@@ -213,7 +213,6 @@ const schoolService = {
 
     if (!res) {
 
-
       response = {
         statusCode: "SC101",
         Token: null
@@ -222,13 +221,29 @@ const schoolService = {
       return response
 
     }
+    
+    let Token = null
     // Return a boolean(true) and signed JWT
-    const Token = await Promise.resolve(tokenService.generateToken({
+    await Promise.resolve(tokenService.generateToken({
           email: tempData.email,
           Name: tempData.Name
-    }))
-    winstonLogger.info('GENERATED TOKEN')
-    winstonLogger.info(Token)
+    })).
+    then((tk) => {
+
+      winstonLogger.info('Generated Token')
+      winstonLogger.info(tk)
+      Token = tk
+
+    }).
+    catch((e) => {
+      
+      winstonLogger.error('error generating token')
+      winstonLogger.error(e)
+
+    })
+
+    winstonLogger.info('TOKEN')
+    winstonLogger.info(JSON.stringify(Token))
 
     // Resolve
     response = Promise.resolve({

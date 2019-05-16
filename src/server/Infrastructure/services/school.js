@@ -48,31 +48,27 @@ export default {
     if(Data == null){
 
         return payload = {
-            status: "SC101x",
+            status: "SC101",
             Token: null
         }
 
     }
     // done with SIGNUP
 
+    let payloadA = null
     // authenticate school -> creates token
-    const payloadA = await this.authenticate({
+     await this.authenticate({
         email: Data.email,
         password: Data.password,
         username: Data.username || null
-    }).then((result) => {
-
-        winstonLogger.info("authenticating SIGNUP DATA")
-        winstonLogger.info(result)
-
-    })
+    }).then((result) => payloadA = result)
     .catch((err) => {
         winstonLogger.error('authentication Error')
         winstonLogger.error(err)
     })
 
     winstonLogger.info("SIGNUP PAYLOAD")
-    winstonLogger.info(payloadA)
+    winstonLogger.info(JSON.stringify(payloadA))
 
 
     return payloadA
@@ -109,7 +105,7 @@ export default {
 
     })
     winstonLogger.info('AUTHENTICATION PAYLOAD:')
-    winstonLogger.info(payload)
+    winstonLogger.info(JSON.stringify(payload))
 
       return  payload
 

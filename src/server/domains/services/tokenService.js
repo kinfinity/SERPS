@@ -16,6 +16,7 @@ import DestroyAccessToken from '../../app/usecase/DestroyAccessToken'
 import GetAccessToken from '../../app/usecase/GetAccesToken'
 import jwtAccessTokenManager
   from '../../interfaces/security/jwtAccessTokenManager'
+import winstonLogger from '../../Infrastructure/utils/winstonLogger';
 
 
 const tokenService = {
@@ -25,6 +26,7 @@ const tokenService = {
    */
   async generateToken(payload) {
 
+    winstonLogger.info('Generate Token')
     // Return a boolean(true) and signed JWT
     const Token = new GetAccessToken(jwtAccessTokenManager).
     execute(payload)
