@@ -1,85 +1,28 @@
 import schoolService from '../services/school'
 import routeUtils from '../utils/routerOptions'
 import express from 'express'
-import bodyParser from 'body-parser'
 import authorisationService from '../../domains/services/authorisationService'
 import cloudinaryCon from '../plugins/cloudinaryCon'
 import winstonLogger from '../utils/winstonLogger'
-/**
-     * 
+import csurf from 'csurf'
+
+
+    /*      
      *  Build  school API call routes
      *  
      */
-
-  // school router for all school calls
-  const schoolRouter = express.Router([routeUtils.routerOptions])
-  schoolRouter.use(bodyParser.json())
-
-//   schoolRouter.use('/School',routeUtils.authSchool())
-  // Authentication routes
-  schoolRouter.route('/School/signUp').get(routeUtils.asyncMiddleware(async (req,res,next) => {
+    // school router for all school calls
+    const schoolRouter = express.Router([routeUtils.routerOptions])
     
-    winstonLogger.profile('schoool_signup')
-    const profiler = winstonLogger.startTimer()
-    try{
+    //Middleware
+    const csrfMiddleware = csurf({cookie: true})
 
-        winstonLogger.info(req.body)
-        
-        const payloadS = await schoolService.signupSchool({
-            Name: req.body.Name,
-            schoolPrefix: req.body.schoolPrefix,
-            email: req.body.email,
-            password: req.body.password,
-            motto: req.body.motto,
-            Address: req.body.Address,
-            Images: req.body.imagesLinks // 1-3
-        })
+    //
+    schoolRouter.use('/SERPS/:School',routeUtils.authSchool())
+    schoolRouter.use(csrfMiddleware)
 
-        // if it worked save the image to cloudinary with schoolName / profile
-        // cloudinaryCon.uploadSchoolLogo(req.body.Logo)
-        
-        // Send the payload to client
-        res.json(payloadS)
-
-    }catch(e) {
-      
-      winstonLogger.error(e)
-
-      const payloadE = {
-          statusCode: 'SC102',
-          Token: null
-      }
-      res.json(payloadE)
-    }
-    
-    profiler.done({ message: 'End of school_signup' })
-    
-    
-    next()
-
-}))
-  schoolRouter.route('/School/login').get(routeUtils.asyncMiddleware(async (req,res,next) => {
-      try {
-          
-          // *
-          winstonLogger.info("LOGIN")
-          winstonLogger.info(req.body)
-
-          const payload = await schoolService.authenticate({
-            email: req.body.email || null,
-            password: req.body.password,
-            username: req.body.username || null
-          })
-          winstonLogger.info("payload is here")
-          winstonLogger.info(payload)
-          res.json(payload)
-          
-      } catch (e) {
-          // res.sendStatus(500).json(e)
-      }
-      next()
-}))
-  schoolRouter.route('/:School/logOut').get(routeUtils.asyncMiddleware (async (req,res, next) => {
+// Non openAccess_Routes : require Access Token
+  schoolRouter.route('/SERPS/:School/logOut').get(routeUtils.asyncMiddleware (async (req,res, next) => {
       try {
           //first authorize for this API
           const authResult = await authorisationService.authoriseToken(Token)
@@ -87,6 +30,7 @@ import winstonLogger from '../utils/winstonLogger'
               res.sendStatus(403).json()
           }
           winstonLogger.info(authResult)
+          // authorisation should send back basic info to use for 
 
           // *
           const payload = await schoolService.signout({Token: req.body.Token})
@@ -99,11 +43,11 @@ import winstonLogger from '../utils/winstonLogger'
 }))
 
   // Info API routes
-  schoolRouter.route('/:School')// profileInfo
+  schoolRouter.route('/SERPS/:School')// profileInfo
   .get(routeUtils.asyncMiddleware (async (req,res, next) => {
     try {
         
-        // *
+        // * REVIEW to make sure schools can access only their school data when authorised
         const schoolProfileInfo = await schoolService.getProfileInfo(
           req.body.schoolName,
           req.body.schoolID
@@ -115,12 +59,15 @@ import winstonLogger from '../utils/winstonLogger'
     }
     next()
 }))
-  schoolRouter.route('/:school/contactInfo')
+  schoolRouter.route('/SERPS/:School/contactInfo')
   .get(routeUtils.asyncMiddleware (async (req,res, next) => {
     try {
         
         // *
-        const schoolContactInfo = await schoolService.getContactInfo()
+        const schoolContactInfo = await schoolService.getContactInfo(
+            req.body.schoolName,
+            req.body.schoolID
+        )
         res.json(schoolContactInfo)
         
     } catch (e) {
@@ -128,7 +75,7 @@ import winstonLogger from '../utils/winstonLogger'
     }
     next()
 }))
-  schoolRouter.route('/:school/contactInfo/update')
+  schoolRouter.route('/SERPS/:School/contactInfo/update')
   .get(routeUtils.asyncMiddleware (async (req,res, next) => {
     try {
       
@@ -143,7 +90,7 @@ import winstonLogger from '../utils/winstonLogger'
     }
     next()
 }))
-  schoolRouter.route('/:school/addressInfo')
+  schoolRouter.route('/SERPS/:School/addressInfo')
   .get(routeUtils.asyncMiddleware (async (req,res, next) => {
     try {
         
@@ -156,7 +103,7 @@ import winstonLogger from '../utils/winstonLogger'
     }
     next()
 }))
-  schoolRouter.route('/:school/addressInfo/update')
+  schoolRouter.route('/SERPS/:School/addressInfo/update')
   .get(routeUtils.asyncMiddleware (async (req,res, next) => {
     try {
         
@@ -170,7 +117,7 @@ import winstonLogger from '../utils/winstonLogger'
     next()
 }))
   // payment API routes
-  schoolRouter.route('/:school/paymentInfo')
+  schoolRouter.route('/SERPS/:School/paymentInfo')
   .get(routeUtils.asyncMiddleware (async (req,res, next) => {
     try {
         
@@ -186,7 +133,7 @@ import winstonLogger from '../utils/winstonLogger'
     }
     next()
 }))
-  schoolRouter.route('/:school/paymentInfo/update')
+  schoolRouter.route('/SERPS/:School/paymentInfo/update')
   .get(routeUtils.asyncMiddleware (async (req,res, next) => {
     try {
         
@@ -203,7 +150,7 @@ import winstonLogger from '../utils/winstonLogger'
     }
     next()
 }))
-  schoolRouter.route('/:school/paymentInfo/transactionHistory')
+  schoolRouter.route('/SERPS/:School/paymentInfo/transactionHistory')
   .get(routeUtils.asyncMiddleware (async (req,res, next) => {
     try {
         // *
@@ -220,7 +167,7 @@ import winstonLogger from '../utils/winstonLogger'
 }))
 
   // notification API routes
-  schoolRouter.route('/:school/notifications')
+  schoolRouter.route('/SERPS/:School/notifications')
   .get(routeUtils.asyncMiddleware (async (req,res, next) => {
     try {
       
@@ -233,7 +180,7 @@ import winstonLogger from '../utils/winstonLogger'
     }
     next()
 }))
-  schoolRouter.route('/:school/notifications/create')
+  schoolRouter.route('/SERPS/:School/notifications/create')
   .get(routeUtils.asyncMiddleware (async (req,res, next) => {
     try {
       
@@ -250,7 +197,7 @@ import winstonLogger from '../utils/winstonLogger'
     }
     next()
 }))
-  schoolRouter.route('/:school/notifications/update')
+  schoolRouter.route('/SERPS/:School/notifications/update')
   .get(routeUtils.asyncMiddleware (async (req,res, next) => {
     try {
         
@@ -263,7 +210,7 @@ import winstonLogger from '../utils/winstonLogger'
     }
     next()
 }))
-  schoolRouter.route('/:school/notifications/delete')
+  schoolRouter.route('/SERPS/:School/notifications/delete')
   .get(routeUtils.asyncMiddleware (async (req,res, next) => {
     try {
         
@@ -281,7 +228,7 @@ import winstonLogger from '../utils/winstonLogger'
 }))
 
   // timetable API routes
-  schoolRouter.route('/:school/:class/createTimetable')
+  schoolRouter.route('/SERPS/:School/:class/createTimetable')
   .get(routeUtils.asyncMiddleware (async (req,res, next) => {
     try {
         
@@ -296,7 +243,7 @@ import winstonLogger from '../utils/winstonLogger'
     }
     next()
 }))
-  schoolRouter.route('/:school/:class/getTimetable')
+  schoolRouter.route('/SERPS/:School/:class/getTimetable')
   .get(routeUtils.asyncMiddleware (async (req,res, next) => {
     try {
       
@@ -311,7 +258,7 @@ import winstonLogger from '../utils/winstonLogger'
     }
     next()
 }))
-  schoolRouter.route('/:school/:class/updateTimetable')
+  schoolRouter.route('/SERPS/:School/:class/updateTimetable')
   .get(routeUtils.asyncMiddleware (async (req,res, next) => {
     try {
         
@@ -328,7 +275,7 @@ import winstonLogger from '../utils/winstonLogger'
     }
     next()
 }))
-  schoolRouter.route('/:school/:class/deleteTimetable')
+  schoolRouter.route('/SERPS/:School/:class/deleteTimetable')
   .get(routeUtils.asyncMiddleware (async (req,res, next) => {
     try {
         
@@ -344,7 +291,7 @@ import winstonLogger from '../utils/winstonLogger'
     }
     next()
 }))
-  schoolRouter.route('/:school/:class/archiveTimetable')
+  schoolRouter.route('/SERPS/:School/:class/archiveTimetable')
   .get(routeUtils.asyncMiddleware (async (req,res, next) => {
     try {
         
@@ -361,7 +308,7 @@ import winstonLogger from '../utils/winstonLogger'
     next()
 }))
   // class API call routes
-  schoolRouter.route('/:school/createClass')
+  schoolRouter.route('/SERPS/:School/createClass')
   .get(routeUtils.asyncMiddleware (async (req,res, next) => {
     try {
         // *
@@ -376,7 +323,7 @@ import winstonLogger from '../utils/winstonLogger'
     }
     next()
 }))
-  schoolRouter.route('/:school/createClassSequence')
+  schoolRouter.route('/SERPS/:School/createClassSequence')
   .get(routeUtils.asyncMiddleware (async (req,res, next) => {
     try {
       
@@ -389,7 +336,7 @@ import winstonLogger from '../utils/winstonLogger'
     }
     next()
 }))
-  schoolRouter.route('/:school/:class')
+  schoolRouter.route('/SERPS/:School/:class')
   .get(routeUtils.asyncMiddleware (async (req,res, next) => {
     try{
         
@@ -404,7 +351,7 @@ import winstonLogger from '../utils/winstonLogger'
     }
     next()
 }))
-  schoolRouter.route('/:school/:class/createSubject')
+  schoolRouter.route('/SERPS/:School/:class/createSubject')
   .get(routeUtils.asyncMiddleware (async (req,res, next) => {
     try {
       
@@ -420,7 +367,7 @@ import winstonLogger from '../utils/winstonLogger'
     }
     next()
 }))
-  schoolRouter.route('/:school/:class/:subject')
+  schoolRouter.route('/SERPS/:School/:class/:subject')
   .get(routeUtils.asyncMiddleware (async (req,res, next) => {
     try {
       
@@ -436,7 +383,7 @@ import winstonLogger from '../utils/winstonLogger'
     }
     next()
 }))
-  schoolRouter.route('/:school/:class/update')
+  schoolRouter.route('/SERPS/:School/:class/update')
   .get(routeUtils.asyncMiddleware (async (req,res, next) => {
     try {
       
@@ -449,7 +396,7 @@ import winstonLogger from '../utils/winstonLogger'
     }
     next()
 }))
-  schoolRouter.route('/:school/:class/:subject')
+  schoolRouter.route('/SERPS/:School/:class/:subject')
   .get(routeUtils.asyncMiddleware (async (req,res, next) => {
     try {
 
@@ -465,7 +412,7 @@ import winstonLogger from '../utils/winstonLogger'
     }
     next()
 }))
-  schoolRouter.route('/:school/:class/remove')
+  schoolRouter.route('/SERPS/:School/:class/remove')
   .get(routeUtils.asyncMiddleware (async (req,res, next) => {
     try {
       
@@ -480,7 +427,7 @@ import winstonLogger from '../utils/winstonLogger'
     }
     next()
 }))
-  schoolRouter.route('/:school/:class/:subject/remove')
+  schoolRouter.route('/SERPS/:School/:class/:subject/remove')
   .get(routeUtils.asyncMiddleware (async (req,res, next) => {
     try {
       
@@ -496,7 +443,7 @@ import winstonLogger from '../utils/winstonLogger'
     }
     next()
 }))
-  schoolRouter.route('/:school/:class/assignTeacher')
+  schoolRouter.route('/SERPS/:School/:class/assignTeacher')
   .get(routeUtils.asyncMiddleware (async (req,res, next) => {
     try {
       
@@ -512,7 +459,7 @@ import winstonLogger from '../utils/winstonLogger'
     }
     next()
 }))
-  schoolRouter.route('/:school/:class/reassignTeacher')
+  schoolRouter.route('/SERPS/:School/:class/reassignTeacher')
   .get(routeUtils.asyncMiddleware (async (req,res, next) => {
     try {
       
@@ -525,7 +472,7 @@ import winstonLogger from '../utils/winstonLogger'
     }
     next()
 }))
-  schoolRouter.route('/:school/activity/create')
+  schoolRouter.route('/SERPS/:School/activity/create')
   .get(routeUtils.asyncMiddleware (async (req,res, next) => {
     try {
       
@@ -543,7 +490,7 @@ import winstonLogger from '../utils/winstonLogger'
 }))
 
   // activity API call routes
-  schoolRouter.route('/:school/:activity')
+  schoolRouter.route('/SERPS/:School/:activity')
   .get(routeUtils.asyncMiddleware (async (req,res, next) => {
     try {
       
@@ -558,7 +505,7 @@ import winstonLogger from '../utils/winstonLogger'
     }
     next()
 }))
-  schoolRouter.route('/:school/:activity/update')
+  schoolRouter.route('/SERPS/:School/:activity/update')
   .get(routeUtils.asyncMiddleware (async (req,res, next) => {
     try {
     
@@ -574,7 +521,7 @@ import winstonLogger from '../utils/winstonLogger'
     }
     next()
 }))
-  schoolRouter.route('/:school/:activity/remove')
+  schoolRouter.route('/SERPS/:School/:activity/remove')
   .get(routeUtils.asyncMiddleware (async (req,res, next) => {
     try {
     
@@ -589,7 +536,7 @@ import winstonLogger from '../utils/winstonLogger'
     }
     next()
 }))
-  schoolRouter.route('/:school/:activity/assignTeacher')
+  schoolRouter.route('/SERPS/:School/:activity/assignTeacher')
   .get(routeUtils.asyncMiddleware (async (req,res, next) => {
     try {
       
@@ -605,7 +552,7 @@ import winstonLogger from '../utils/winstonLogger'
     }
     next()
 }))
-  schoolRouter.route('/:school/:activity/reassignTeacher')
+  schoolRouter.route('/SERPS/:School/:activity/reassignTeacher')
   .get(routeUtils.asyncMiddleware (async (req,res, next) => {
     try {
       
@@ -624,7 +571,7 @@ import winstonLogger from '../utils/winstonLogger'
 }))
 
   // results API call routes
-  schoolRouter.route('/:school/results/pending')
+  schoolRouter.route('/SERPS/:School/results/pending')
   .get(routeUtils.asyncMiddleware (async (req,res, next) => {
     try {
       
@@ -637,7 +584,7 @@ import winstonLogger from '../utils/winstonLogger'
     }
     next()
 }))
-  schoolRouter.route('/:school/results/validate')
+  schoolRouter.route('/SERPS/:School/results/validate')
   .get(routeUtils.asyncMiddleware (async (req,res, next) => {
     try {
     
@@ -655,7 +602,7 @@ import winstonLogger from '../utils/winstonLogger'
 }))
 
   // student API call routes
-  schoolRouter.route('/:school/registeredStudents')
+  schoolRouter.route('/SERPS/:School/registeredStudents')
   .get(routeUtils.asyncMiddleware (async (req,res, next) => {
     try {
     
@@ -668,7 +615,7 @@ import winstonLogger from '../utils/winstonLogger'
     }
     next()
 }))
-  schoolRouter.route('/:school/registeredStudents/:student')
+  schoolRouter.route('/SERPS/:School/registeredStudents/:student')
   .get(routeUtils.asyncMiddleware (async (req,res, next) => {
     try {
     
@@ -683,7 +630,7 @@ import winstonLogger from '../utils/winstonLogger'
     }
     next()
 }))
-  schoolRouter.route('/:school/registeredStudents/:student/validate')
+  schoolRouter.route('/SERPS/:School/registeredStudents/:student/validate')
   .get(routeUtils.asyncMiddleware (async (req,res, next) => {
     try {
       
@@ -696,7 +643,7 @@ import winstonLogger from '../utils/winstonLogger'
 }))
 
   // lectureNote API call routes
-  schoolRouter.route('/:school/:class/:subject/')
+  schoolRouter.route('/SERPS/:School/:class/:subject/')
   .get(routeUtils.asyncMiddleware (async (req,res, next) => {
     try {
     
@@ -712,7 +659,7 @@ import winstonLogger from '../utils/winstonLogger'
     }
     next()
 }))
-  schoolRouter.route('/:school/:class/:subject/:lectureNoteID')
+  schoolRouter.route('/SERPS/:School/:class/:subject/:lectureNoteID')
   .get(routeUtils.asyncMiddleware (async (req,res, next) => {
     try {
     
@@ -729,7 +676,7 @@ import winstonLogger from '../utils/winstonLogger'
     }
     next()
 }))
-  schoolRouter.route('/:school/:class/:subject/:lectureNote/validate')
+  schoolRouter.route('/SERPS/:School/:class/:subject/:lectureNote/validate')
   .get(routeUtils.asyncMiddleware (async (req,res, next) => {
     try {
     
@@ -748,7 +695,7 @@ import winstonLogger from '../utils/winstonLogger'
 }))
 
   //
-  schoolRouter.route('/:school/createClassSequence')
+  schoolRouter.route('/SERPS/:School/createClassSequence')
   .get(routeUtils.asyncMiddleware (async (req,res, next) => {
     try {
     
@@ -761,7 +708,7 @@ import winstonLogger from '../utils/winstonLogger'
     }
     next()
 }))
-  schoolRouter.route('/:school/createGradeRanges')
+  schoolRouter.route('/SERPS/:School/createGradeRanges')
   .get(routeUtils.asyncMiddleware (async (req,res, next) => {
     try {
     

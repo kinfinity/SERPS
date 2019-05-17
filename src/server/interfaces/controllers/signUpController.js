@@ -15,7 +15,6 @@ const signUpController = {
 
   // Interface layer controller for creating User
   async createSchool(params) {
-
     
     let sData = null 
         await schoolAdminAdapter.persist(params).then((Data) => {
@@ -29,8 +28,8 @@ const signUpController = {
               return Data
             }
               // fire Events then send payload
-              schoolEvent.schoolSignUp
-                .emit(
+              schoolEvent.
+              emit(
                   'school-registered',
                   {
                     email: Data.email

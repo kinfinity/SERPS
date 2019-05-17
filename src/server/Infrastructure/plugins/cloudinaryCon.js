@@ -10,40 +10,94 @@
  */
 // Config settings
 import config from '../utils/config'
+import schoolEvent from '../../interfaces/Events/schoolEvents'
 import winstonLogger from '../utils/winstonLogger'
-// import cloudinary from 'cloudinary'
-const cloudinary = require('cloudinary').v2
+import cloudinary from 'cloudinary'
+// const cloudinary = require('cloudinary').v2
 
-// cloudinary.config({ 
-//     cloud_name: config.cloudinaryName,                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               
-//     api_key: config.cloudinaryAPIKey, 
-//     api_secret: config.cloudinarySecret 
-// })
+cloudinary.config({ 
+    cloud_name: config.cloudinaryName,                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               
+    api_key: config.cloudinaryAPIKey, 
+    api_secret: config.cloudinarySecret 
+})
 
 const cloudinaryCon = {
 
-    async uploadSchoolLogo(Logo){
+    async uploadSchoolLogo(Logo, Name, schoolID){
 
-        cloudinary.v2.upload(
+        let res = null 
+        const schoolID0 = schoolID + "Logo"
+
+        winstonLogger.info("CLOUDINARY")
+        winstonLogger.info(JSON.stringify(cloudinary.v2,null,4))
+
+        await cloudinary.v2.uploader.upload(
             Logo, 
             {
+                folder: Name,
+                public_id: schoolID0,
                 overwrite: true,
                 invalidate: true,
                 width: 810, height: 456, crop: "fill"
-            }, 
-            (e,res) => {
-                if( e != null ){
-                    
-                    winstonLogger.error(e)
 
-                }
-                winstonLogger.info(res)
-                return res
-            })
+        }).
+        then((result) => {
+            res = result
+        }).
+        catch((e) => {
+
+            winstonLogger.error('Error uploading  Image')
+            winstonLogger.error(JSON.stringify(e,null,4))
+
+            return res = false
+
+        })
+
+        // Emit event for LogoPersistence
+        try {
+            
+            winstonLogger.info('Upload Result')
+            winstonLogger.info(JSON.stringify(res.url, null,4))
+            
+            if(res !== null && res !== false){
+
+            }                
+                const schoolName = Name
+                const logoURL = res.url
+
+                winstonLogger.info('EVENT PARAMETERS')
+                winstonLogger.info(Name)
+                winstonLogger.info(schoolID)
+                winstonLogger.info(res.url)
+
+                // fire Events then send payload
+                schoolEvent.
+                emit('school-logoUploaded',
+                    {// send params
+                    schoolName,
+                    schoolID, 
+                    logoURL
+                })
+
+                return res = true
+
+
+        } catch (e) {
+        
+            winstonLogger.error('Error emitting event')
+            winstonLogger.error(JSON.stringify(e,null,4))
+
+            return res = false
+
+        }
+        // Check if the db url was updated else persist the picture to local storage[serialise] and try again later
+        
+
+        return res
 
     }, 
-    async uploadSchoolImage(Image){
-        cloudinary.v2.upload(
+    async uploadSchoolImages(Images){
+        cloudinary.v2.uploader.upload(
             Image,
             {
 

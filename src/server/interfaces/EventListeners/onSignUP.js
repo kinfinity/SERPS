@@ -18,7 +18,7 @@ const schoolWelcome = ""
     school: async (params) => {
         
         // send Welcome message by email
-        mailer(params.email,schoolWelcome)// ? senders Mail
+        // mailer(params.email,schoolWelcome)// ? senders Mail
 
     },
     teacher: async () => {},

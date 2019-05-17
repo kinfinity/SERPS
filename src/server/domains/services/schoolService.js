@@ -34,6 +34,7 @@ import Password from '../utils/password'
 import SchoolModel from '../models/SchoolModel'
 import tokenService from '../services/tokenService'
 import winstonLogger from '../../Infrastructure/utils/winstonLogger'
+import publicEnums from '../../app/publicEnums'
 
 const schoolService = {
 
@@ -191,7 +192,7 @@ const schoolService = {
       winstonLogger.info(`ERROR AUTHENTICATING :::`)
       // Return false and and empty object
       response = Promise.resolve({
-        statusCode: "Sc101",
+        statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_ERROR,
         Token: null
       })
 
@@ -214,7 +215,7 @@ const schoolService = {
     if (!res) {
 
       response = {
-        statusCode: "SC101",
+        statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_ERROR,
         Token: null
       }
 
@@ -247,7 +248,7 @@ const schoolService = {
 
     // Resolve
     response = Promise.resolve({
-      statusCode: "sc100",
+      statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_OK,
       Token
     })
 
@@ -487,14 +488,73 @@ const schoolService = {
         schoolID: schoolID
       }).then((schoolData) => {
 
-        return Promise.resolve(schoolData)
+        winstonLogger.info('schoolData')
+        winstonLogger.info(schoolData)
+
+        return Promise.resolve({
+          statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_OK,
+          Data: schoolData
+        })
         
       }).catch((e) => {
 
-        winstonLogger.info('error getting school Data')
-        return Promise.reject(e)
+        winstonLogger.error('error getting school Data')
+        winstonLogger.error(e)
+
+        return Promise.resolve({
+          statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_ERROR,
+          Data: false
+        })
 
       })
+
+    },
+
+    async updateSchoolInfo(schoolName,schoolID,schoolData){
+
+      let res = null 
+
+      const options = {
+        new: true
+      }
+
+      winstonLogger.info('schoolData:')
+      winstonLogger.info(JSON.stringify(schoolData,null,4))
+
+      // schoolID: schoolID
+      await schoolService._schoolModel.
+      findOneAndUpdate({
+        Name: schoolName
+        },
+        schoolData,
+        options
+      ).
+      then((updatedSchoolData) => {
+
+        winstonLogger.info('UPDATED data')
+        winstonLogger.info(updatedSchoolData)
+        
+        res = updatedSchoolData
+
+        return Promise.resolve({
+          statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_OK,
+          Data: true
+        })
+        
+      }).
+      catch((e) => {
+
+        winstonLogger.error('error getting school Data')
+        winstonLogger.error(e)
+
+        return Promise.resolve({
+          statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_ERROR,
+          Data: false
+        })
+
+      }) 
+
+      return res
 
     }
 

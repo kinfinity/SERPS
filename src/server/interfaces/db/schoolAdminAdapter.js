@@ -15,6 +15,7 @@ import authorisationService from '../../domains/services/authorisationService'
 import schoolAdminService from '../../domains/services/schoolService'
 import shortid from 'shortid'
 import winstonLogger from '../../Infrastructure/utils/winstonLogger';
+import publicEnums from '../../app/publicEnums';
 
 
 const schoolAdminAdapter = {
@@ -34,14 +35,10 @@ const schoolAdminAdapter = {
      */
     
     let response = null
-    const schoolID = params.schoolPrefix? params.schoolPrefix + shortid.generate() : params.Name
-    winstonLogger.info("generated schoolID ")
-    winstonLogger.info(schoolID)
-
 
     await schoolAdminService.createNewEmailUser(
         params.Name,
-        schoolID,
+        params.schoolID,
         params.email,
         params.password,
         params.motto, 
@@ -147,21 +144,56 @@ const schoolAdminAdapter = {
     let response = null
 
     await schoolAdminService.getSchoolInfo(schoolName,schoolID).
-    then((resolve) => {
+    then((result) => {
 
-      // Lougout succeeded
-      response = Promise.resolve(resolve)
+      // 
+      winstonLogger.info('schoolInfo')
+      winstonLogger.info(result)
+      response = Promise.resolve(result)
 
     }).
-    catch((err) => {
+    catch((e) => {
 
+      winstonLogger.error('Error getting schoolData')
+      winstonLogger.error(e)
       reponse = {'response': false}
 
     })
 
     return response
 
-  }
+  },
+
+  async updateSchool(schoolName,schoolID,SchoolData){
+
+    //
+    let response = null
+
+    await schoolAdminService.updateSchoolInfo(schoolName,schoolID,SchoolData).
+    then((result) => {
+
+      // 
+      winstonLogger.info('schoolInfo UPDATE?:')
+      winstonLogger.info(result)
+
+      response = Promise.resolve(result)
+
+    }).
+    catch((e) => {
+
+      winstonLogger.error('Error getting schoolData')
+      winstonLogger.error(e)
+
+      reponse = {
+        statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_ERROR,
+        Data: false
+      }
+
+    })
+
+    return response
+
+  },
 
 }
 

@@ -1,8 +1,13 @@
+
+import bodyParser from 'body-parser'
 import express from 'express'
 import fs from 'fs'
 import cors from 'cors'
+import cookieParser from 'cookie-parser'
 import helmet from 'helmet'
 import winstonLogger from '../utils/winstonLogger'
+import routeUtils from '../utils/routerOptions'
+
 
 // middle-ware options
 const corsOptions = {
@@ -13,9 +18,12 @@ const corsOptions = {
 }
 const helmetOptions = {}
 
-const app = express()
-            .use(cors(corsOptions))
-            .use(helmet(helmetOptions))
+
+const app = express().
+             use(cors(corsOptions)).
+             use(helmet(helmetOptions)).
+             use(cookieParser).
+             use(bodyParser.json())
             
   
 
@@ -60,9 +68,14 @@ routerList.forEach((routerName) => {
     routerName = `../routers/${routerName}`
     
     // Default route
-    // app.use('/SERPS/', async(req,res,next) => {
-    //     res.sendStatus(404).json({msg: 'WELCOME TO SERPS DEFAULT'})
-    // })
+    app.use('/', routeUtils.asyncMiddleware(async(req,res,next) => next()))
+
+    // csrfToken generation Route
+    app.use('/csrf/:id/gen', routeUtils.asyncMiddleware(async(req,res,next) => {
+
+        next()
+
+    }))
 
     const routerModule = wrapper.requireF(routerName)
     app.use(routerModule)
