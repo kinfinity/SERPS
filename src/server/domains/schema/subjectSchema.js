@@ -8,23 +8,52 @@
  * 
  */
 
-import mongoose from '../../Infrastructure/server/plugins/mongooseCon';
-const TSchema = mongoose.Schema;
+import mongoose from '../../Infrastructure/server/plugins/mongooseCon'
+const TSchema = mongoose.Schema
+
+const classSubject = TSchema({  
+
+    classID: {
+      type: TSchema.Types.ObjectId,
+      required: true
+    },
+    teacher: {
+      type: TSchema.Types.ObjectId,
+      required:true
+    },
+    lectureNotes: [{
+      type: TSchema.Types.ObjectId,
+      ref: 'lectureNotesModel'
+    }]},
+    {
+      timestamps: true,
+      strict: true
+})
 
 const SubjectSchema = new TSchema(
     {
-        'title': {
+      'SchoolName': {
         type: String,
-      required: true,
-      unique: true,
+        required: true,
+        unique: true,
+      },
+      'schoolID':{
+          type: String,
+          required: false,
+          unique: true
+      },
+      title: { // e.g BIOLOGY
+          type: String,
+          required: true,
+          unique: true,
+      },
+      classSubjects: [classSubject]
+      
     },
-    lectureNotes: {
-        type: TSchema.Types.ObjectId,
-        ref: 'lectureNotesModel'
-    },
-     
-    },
-  {strict: true}
-);
+    {
+      timestamps: true,
+      strict: true
+  }
+)
 
-export default SubjectSchema;
+export default SubjectSchema

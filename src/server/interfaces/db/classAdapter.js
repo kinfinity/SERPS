@@ -13,26 +13,26 @@ import classService from '../../domains/services/classService';
 const classAdapter = {
 
     // admin/school
-    async createClass(classAlias,classData){
+    async createClass(schoolName,schoolID,classAlias,classData){
 
-        return classService.createNewClass(classAlias,classData);
+        return classService.createNewClass(schoolName,schoolID,classAlias,classData);
     },
-    async getClass(classAlias){
+    async getClass(schoolName,schoolID,classAlias){
 
-        return classService.getClass();
+        return classService.getClass(schoolName,schoolID,classAlias);
     },
-    async updateClass(classAlias){
-        return classService.updateClass(classAlias);
+    async updateClass(schoolName,schoolID,classAlias){
+        return classService.updateClass(schoolName,schoolID,classAlias);
     },
-    async removeClass(classAlias){
-        return classService.removeClass(classAlias);
+    async removeClass(schoolName,schoolID,classAlias){
+        return classService.removeClass(schoolName,schoolID,classAlias);
     },
-    async assignClassTeacher(classAlias,TeacherID){
-        return classService.assignClassTeacher();
+    async assignClassTeacher(schoolName,schoolID,classAlias,TeacherID){
+        return classService.assignClassTeacher(schoolName,schoolID,classAlias,TeacherID);
     },
 
-    async createclassSequence(){
-        return classService.createclassSequence();
+    async createclassSequence(schoolName,schoolID){
+        return classService.createclassSequence(schoolName,schoolID)
     }
 
 };

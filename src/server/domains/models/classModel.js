@@ -13,7 +13,14 @@ const ClassSchema = require('../schema/classSchema');
 
 // Preparatory steps before save to model(pre-save)
 ClassSchema.default.pre('save', function(next) {
+    
+    this.updated_at = new Date() 
+    if (!this.created_at ) {
+        this.created_at = new Date()
+    }
+
     next();
+
 });
 
 export default mongoose.default.model('ClassModel', ClassSchema);

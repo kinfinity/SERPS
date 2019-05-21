@@ -1,6 +1,5 @@
 /*
- * Created by k_infinity3 <ksupro1@gmail.com>
- * Created on Tues Apr 15 2019
+ * Created by k_infinity3 <ksupro1@gmail.com> 
  *
  * Copyright (c) 2019 Echwood Inc.
  *
@@ -8,11 +7,21 @@
  * 
  */
 
-import mongoose from '../../Infrastructure/server/plugins/mongooseCon';
-const TSchema = mongoose.Schema;
+import mongoose from '../../Infrastructure/plugins/mongooseCon'
+const TSchema = mongoose.Schema
 
-const paymentInfoSchema = new TSchema(
+const PaymentInfoSchema = new TSchema(
     {
+        'Name': {
+            type: String,
+            required: true,
+            unique: true,
+        },
+        'schooolID':{
+            type: String,
+            required: false,
+            unique: true
+        },
         bankName: {
             type: String,
             required: true
@@ -21,9 +30,22 @@ const paymentInfoSchema = new TSchema(
             type: Number,
             min: 8,
             max: 10
+        },
+        created_at: { 
+            type: Date,
+             required: true, 
+             default: Date.now()
+        },
+        udpated_at: { 
+            type: Date, 
+            required: true, 
+            default: Date.now() 
         }
     },
-  {strict: true}
-);
+    {
+        timestamps: true,
+        strict: true
+    }
+)
 
-export default paymentInfoSchema;
+export default PaymentInfoSchema

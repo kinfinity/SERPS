@@ -16,16 +16,29 @@ import winstonLogger from '../../Infrastructure/utils/winstonLogger';
 
             //
             winstonLogger.info('Event Launched')
+            winstonLogger.info(JSON.stringify(params,null,4))
             profileManagementController.updateSchool(params.schoolName, params.schoolID, {Logo: params.logoURL}).
             then((res) => {
-                if(res.Data == false){
 
-                    // if it didn't persist try again Or serialize if DB is down ... 
-                    profileManagementController.updateSchool(params.schoolName, params.schoolID, {Logo: params.logoURL})
 
+                if(res !== null){
+
+                    winstonLogger.info('UPDATE: schoolLogoUrl')
+                    winstonLogger.info(res)
+                    //validated
+                    
                 }
-                //validated
+                // if it didn't persist try again Or serialize if DB is down ... 
+                // profileManagementController.updateSchool(params.schoolName, params.schoolID, {Logo: params.logoURL})
 
+            
+
+            }).
+            catch((e) =>{
+    
+                winstonLogger.error('ERROR: updating schoolLogoUrl')
+                winstonLogger.error(e)
+    
             })
 
         },
@@ -43,6 +56,12 @@ import winstonLogger from '../../Infrastructure/utils/winstonLogger';
                 }
                 //validated
 
+            }).
+            catch((e) =>{
+    
+                winstonLogger.error('ERROR: updating school images urls')
+                winstonLogger.error(e)
+    
             })
 
         },

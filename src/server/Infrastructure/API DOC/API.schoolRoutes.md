@@ -27,9 +27,8 @@ STATUSCODES : [CALL(2) :STATUS]
 
   **PAYLOAD:** ( Title [ Type: Description]) # comment
 
-      - statusCode [ String/Integer : determines the state of the transaction ]
-
-      - Token [ Token : temporarily authenticates user (15mins) ] # refresh Token
+    - statusCode [ String/Integer : determines the state of the transaction ]
+    - Token [ Token : temporarily authenticates user (15mins) ] # refresh Token
 
 - [ ] ## **LOGIN** <*/SERPS/School/activateAccount*>  ??? 
 
@@ -47,3 +46,31 @@ STATUSCODES : [CALL(2) :STATUS]
 
       - statusCode [ String/Integer : determines the state of the transaction ]
       - Token [ Token : authenticates user ] # Token
+
+- [ ] ## GET SCHOOL PROFILE <*/SERPS/:School*>
+
+  **PARAMS**:  ( Title [ Type: Description ] ) #comment
+
+  - JWT + CRSF TOKEN in authorization header
+
+  **PAYLOAD:** ( Title [ Type: Description]) # comment      
+
+  - statusCode [ String/Integer : determines the state of the transaction ]
+  - personalInfo [ JSON : school personalInfo from database  ] # Name,email,Logo,Images,motto,admissionStatus
+
+- [ ] ## GET SCHOOL CONTACT INFO<*/SERPS/:School*>
+
+  **PARAMS**:  ( Title [ Type: Description ] ) #comment
+
+  - JWT + CRSF TOKEN in authorization header
+
+  **PAYLOAD:** ( Title [ Type: Description]) # comment      
+
+  - statusCode [ String/Integer : determines the state of the transaction ]
+  - contactInfo [ JSON : school contactInfo from database  ] # email, address, 
+
+- [ ] ## GET SCHOOL PROFILE <*/SERPS/:School*>
+
+- [ ] ## GET SCHOOL PROFILE <*/SERPS/:School*>
+
+- [ ] ## GET SCHOOL PROFILE <*/SERPS/:School*>

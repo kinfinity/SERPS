@@ -8,12 +8,20 @@
  * 
  */
 
-const mongoose = require('../../Infrastructure/plugins/mongooseCon');
-const StudentSchema = require('../schema/studentSchema');
+const mongoose = require('../../Infrastructure/plugins/mongooseCon')
+const StudentSchema = require('../schema/studentSchema')
 
 // Preparatory steps before save to model(pre-save)
 StudentSchema.default.pre('save', function(next) {
-    next();
-});
 
-export default mongoose.default.model('StudentModel', StudentSchema.default);
+    now = new Date()
+    this.updated_at = now
+    if ( !this.created_at ) {
+        this.created_at = now
+    }
+
+    next()
+    
+})
+
+export default mongoose.default.model('StudentModel', StudentSchema.default)

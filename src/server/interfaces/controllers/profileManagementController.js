@@ -96,6 +96,15 @@ const   profileManagementController = {
     },
     async updateSchool(schoolName,schoolID,SchoolData){
         return schoolAdapter.updateSchool(schoolName,schoolID,SchoolData);
+    },
+    async getSchoolContactInfo(ParentName,ParentID){
+        return schoolAdapter.getSchoolContactInfo(ParentName,ParentID);
+    },
+    async updateSchoolContactInfo(contactInfo){
+        return schoolAdapter.updateSchoolContactInfo(contactInfo);
+    },
+    async removeNotification(schoolName,schoolID,notificationID){
+        return schoolAdapter.removeNotification(schoolName,schoolID,notificationID);
     }
 
 };

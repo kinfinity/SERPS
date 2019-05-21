@@ -20,9 +20,9 @@ const helmetOptions = {}
 
 
 const app = express().
-             use(cors(corsOptions)).
-             use(helmet(helmetOptions)).
-             use(cookieParser).
+            //  use(cors(corsOptions)).
+            //  use(helmet(helmetOptions)).
+            //  use(cookieParser).
              use(bodyParser.json())
             
   

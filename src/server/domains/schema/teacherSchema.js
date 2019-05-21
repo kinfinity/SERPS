@@ -8,29 +8,65 @@
  * 
  */
 
-import mongoose from '../../Infrastructure/plugins/mongooseCon';
-const TSchema = mongoose.Schema;
+import mongoose from '../../Infrastructure/plugins/mongooseCon'
+const TSchema = mongoose.Schema
 
 const TeacherSchema = new TSchema(
     {
-        '': {
-        type: TSchema.Types.ObjectId,
-        ref: 'floorPlanModel',
-      required: true,
-      unique: true,
-    },
-        '': {
-        type: TSchema.Types.ObjectId,
-        ref: 'waiterModel',
-        default: [],
-    },
-        '': {
-        type: TSchema.Types.ObjectId,
-        ref: 'mealModel',
-        default: [],
-    },
+        Name: {
+            first:{
+                type: String,
+                required: true,
+                unique: true
+            },
+            middle: {
+                type: String,
+                required: true,
+                unique: true
+            },
+            last: {
+                type: String,
+                required: true,
+                unique: true
+            }
+        },
+        birthDate: {
+            type: Date,
+            required: false
+        },
+        joinedOn: { type: Date, default: new Date() },
+        courseTimeTables: [{
+            classAlias: {
+              type: String,
+              required: true
+            },
+            subjectAlias: {
+              type: String,
+              required: true
+            },
+            allocation: [{
+              Day: {
+                type: String,
+                required: true
+              },
+              startTime: {
+                type: Date,
+                required: true
+              },
+              endTime: {
+                type: Date,
+                required: true
+              }
+            }]
+        }],
+        isActive: {
+          type: Boolean,
+          requried: false,
+          default: false
+        }
+
     },
   {strict: true}
-);
+)
 
-export default TeacherSchema;
+export default TeacherSchema

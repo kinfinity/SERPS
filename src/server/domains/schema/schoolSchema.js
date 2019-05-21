@@ -9,10 +9,10 @@
  * 
  */
 
-import mongoose from '../../Infrastructure/plugins/mongooseCon';
-require('mongoose-type-url');
+import mongoose from '../../Infrastructure/plugins/mongooseCon'
+require('mongoose-type-url')
 
-const TSchema = mongoose.Schema;
+const TSchema = mongoose.Schema
 /**
      * params.Name,
      * params.email,
@@ -23,52 +23,74 @@ const TSchema = mongoose.Schema;
      * params.Images
  */
 const SchoolSchema = new TSchema({
-    'Name': {
+    Name: {
         type: String,
         required: true,
-        unique: true,
+        unique: true
     },
-    'schooolID':{
+    schoolID:{
         type: String,
         required: false,
         unique: true
     },
-    'email': {
+    email: {
         type: String,
         required: true,
         unique: false
     },
-    'password': {
+    password: {
         type: String,
         required: true,
         unique: true
     },
-    'motto': {
+    motto: {
          type: String,
          required: false,
          unique: true
      },
-     "Images": [{
+     Images: [{
         type: TSchema.Types.Url,
         required:false,
       }],
-     'Logo': {
+     Logo: {
        type: TSchema.Types.Url,
        required:false,
 
      },
-     'Address': {
+     Address: {
        type: String,
        required: false,
        unique: false
      },
+     admissionStatus: {
+       type: Boolean,
+       required: false,
+       unique: false
+     },
+     currentSessionID: {
+        type: TSchema.Types.ObjectId,
+        ref: 'SchoolSessionModel' 
+     },
+     activeTerm:{
+         type: Number
+     },
      paymentInfo: {
         type: TSchema.Types.ObjectId,
-        ref: 'paymentInfoModel'
+        ref: 'PaymentInfoModel'
+     },
+     joinedOn: { type: Date, default: new Date() },
+     isActive: {
+       type: Boolean,
+       requried: false,
+       default: false
      }
 
-    },{strict: true}
+    },
+    {
+        timestamps: true,
+        strict: true
+    }
 
-);
+)
 
-export default SchoolSchema;
+export default SchoolSchema

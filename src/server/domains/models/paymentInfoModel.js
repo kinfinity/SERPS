@@ -5,15 +5,15 @@
  *
  * Copyright (c) 2019 Echwood Inc.
  *
- * SubjectModel: () : SubjectSchema
+ * SchoolModel: () : paymentInfoSchema
  * 
  */
 
-const mongoose = require('../../Infrastructure/server/plugins/mongooseCon')
-const SubjectSchema = require('../schema/subjectSchema')
+const mongoose = require('../../Infrastructure/plugins/mongooseCon')
+const paymentInfoSchema = require('../schema/paymentInfoSchema')
 
 // Preparatory steps before save to model(pre-save)
-SubjectSchema.pre('save', function(next) {
+paymentInfoSchema.default.pre('save', function(next) {
 
     now = new Date()
     this.updated_at = now
@@ -25,4 +25,4 @@ SubjectSchema.pre('save', function(next) {
     
 })
 
-export default mongoose.model('SubjectModel', SubjectSchema)
+export default mongoose.default.model('PaymentModel', paymentInfoSchema.default)

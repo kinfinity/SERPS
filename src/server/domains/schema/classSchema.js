@@ -8,8 +8,8 @@
  * 
  */
 
-import mongoose from '../../Infrastructure/plugins/mongooseCon';
-const TSchema = mongoose.Schema;
+import mongoose from '../../Infrastructure/plugins/mongooseCon'
+const TSchema = mongoose.Schema
 
 const ClassSchema = new TSchema({
     
@@ -25,19 +25,32 @@ const ClassSchema = new TSchema({
     },
     'subjects': [{
         type: TSchema.Types.ObjectId,
-        ref: 'subjectModel'    
+        ref: 'SubjectModel'    
     }],
+    created_at: { 
+        type: Date,
+         required: false, 
+         default: Date.now()
+    },
+    udpated_at: { 
+        type: Date, 
+        required: true, 
+        default: Date.now() 
+    },
     'teachers': [{
         type: TSchema.Types.ObjectId,
-        ref: 'teacherModel'
+        ref: 'TeacherModel'
     }],
     'students': [{
         type: TSchema.Types.ObjectId,
-        ref: 'studentModel'
+        ref: 'StudentModel'
     }]},
 
-    {strict: true}
+    {
+        timestamps: true,
+        strict: true
+    }
 
-);
+)
 
-export default ClassSchema;
+export default ClassSchema

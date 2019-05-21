@@ -1,6 +1,5 @@
 /*
  * Created by k_infinity3 <ksupro1@gmail.com>
- * Created on Wed Apr 17 2019
  *
  * Copyright (c) 2019 Echwood Inc.
  *
@@ -22,7 +21,9 @@ import paymentManagementController from '../../interfaces/controllers/paymentMan
 import profileManagementController from '../../interfaces/controllers/profileManagementController'
 import notificationController from '../../interfaces/controllers/notificationController'
 import educationManagementController from '../../interfaces/controllers/educationManagementController'
-import winstonLogger from '../utils/winstonLogger';
+import winstonLogger from '../utils/winstonLogger'
+import schoolSessionController from '../../interfaces/controllers/schoolSessionController';
+import publicEnums from '../../app/publicEnums';
 
 export default {
  
@@ -48,7 +49,7 @@ export default {
     if(Data == null){
 
         return payload = {
-            status: "SC101",
+            status: publicEnums.SERPS_STATUS_CODES.REQUEST_ERROR,
             Token: null
         }
 
@@ -63,13 +64,14 @@ export default {
         username: Data.username || null
     }).then((result) => payloadA = result)
     .catch((err) => {
-        winstonLogger.error('authentication Error')
+
+        winstonLogger.error('ERROR: authentication')
         winstonLogger.error(err)
+
     })
 
     winstonLogger.info("SIGNUP PAYLOAD")
     winstonLogger.info(JSON.stringify(payloadA))
-
 
     return payloadA
 
@@ -188,39 +190,30 @@ export default {
     async updateContactInfo(contactInfo){
         return profileManagementController.updateSchoolContactInfo(contactInfo)
     },
-    async getAddressInfo(SchoolName,SchoolID){
-        return profileManagementController.getSchoolAddressInfo(SchoolName,SchoolID)
-    },
-    async updateAddressInfo(addressInfo){
-        return profileManagementController.updateSchoolContactInfo(addressInfo)
-    },
     
     // paymentManagementController
-    async createSchoolPaymentInfo(SchoolPaymentInfoData){
-      return paymentManagementController.createSchoolPaymentInfo(SchoolPaymentInfoData)
+    async getSchoolPaymentInfo(SchoolName,SchoolID){
+        return paymentManagementController.getSchoolPaymentInfo(SchoolName,SchoolID)
     },
-    async getSchoolPaymentInfo(SchoolPaymentInfoName,SchoolPaymentInfoID){
-        return paymentManagementController.getSchoolPaymentInfo(SchoolPaymentInfoName,SchoolPaymentInfoID)
-    },
-    async updateSchoolPaymentInfo(TeacherPaymentInfoName,TeacherPaymentInfoID,TeacherPaymentInfoData){
-        return paymentManagementController.updateSchoolPaymentInfo(TeacherPaymentInfoName,TeacherPaymentInfoID,TeacherPaymentInfoData)
+    async updateSchoolPaymentInfo(SchoolName,schoolID,PaymentInfoData){
+        return paymentManagementController.updateSchoolPaymentInfo(SchoolName,schoolID,PaymentInfoData)
     },
     async viewSchoolPaymentTransactionHistory(SchoolName,SchoolID){// TransactionID month teacher bank[Teacher] accNo Receipt/Amount
         return paymentManagementController.viewSchoolPaymentTransactionHistory(SchoolName,SchoolID) 
     },
 
     // notificationController
-    getNotifications(){
-      return notificationController.getNotifications() // max=10
+    getNotifications(SchoolName,SchoolID){
+      return notificationController.getNotifications(SchoolName,SchoolID) // max=10
     },
-    createNotification(Note){
-        return notificationController.createNotification(Note)
+    createNotification(SchoolName,SchoolID,noteTitle,noteID,noteImage,noteText){
+        return notificationController.createNotification(SchoolName,SchoolID,noteTitle,noteID,noteImage,noteText)
     },
-    updateNotification(noteTitle,noteID,noteImage,noteText){
-        return notificationController.updateNotification(noteTitle,noteID,noteImage,noteText)
+    updateNotification(SchoolName,SchoolID,noteID,Data){
+        return notificationController.updateNotification(SchoolName,SchoolID,noteID,Data)
     },
-    deleteNotification(noteTitle,noteID){
-        return notificationController.deleteNotification(noteTitle,noteID)
+    deleteNotification(SchoolName,SchoolID,noteTitle,noteID){
+        return notificationController.deleteNotification(SchoolName,SchoolID,noteTitle,noteID)
     },
 
     // documentsController
@@ -235,25 +228,24 @@ export default {
     },
 
     // timetableController
-    getClassTimetable(ClassAlias){
-      return timeTableController.getClassTimetable(ClassAlias)
+    getClassTimetable(schoolName,schoolID,ClassAlias){
+      return timeTableController.getClassTimetable(schoolName,schoolID,ClassAlias)
     },
-    getSubjectTimetable(subjectAlias,Class){
-        return timeTableController.getSubjectTimetable(subjectAlias,Class)
+    getSubjectTimetable(schoolName,schoolID,subjectAlias,Class){
+        return timeTableController.getSubjectTimetable(schoolName,schoolID,subjectAlias,Class)
     },
-    createTimetable(timeTableData){
-        return timeTableController.createTimetable(timeTableData) // list or Datastructure [list of lists]
+    createTimetable(schoolName,schoolID,classAlias,timeTableData){
+        return timeTableController.createTimetable(schoolName,schoolID,classAlias,timeTableData) // list or Datastructure [list of lists]
     },
-    updateTimetable(ClassAlias,subject,timeSlot){ // timeSlot Enum for class ranges
-        return timeTableController.updateTimetable(ClassAlias,subject,timeSlot)
+    updateTimetable(schoolName,schoolID,ClassAlias,subject,timeSlot){ // timeSlot Enum for class ranges
+        return timeTableController.updateTimetable(schoolName,schoolID,ClassAlias,subject,timeSlot)
     },
-    deleteTimetable(ClassAlias,timeTableID){
-        return timeTableController.deleteTimetable(ClassAlias,timeTableID)
+    deleteTimetable(schoolName,schoolID,ClassAlias,timeTableID){
+        return timeTableController.deleteTimetable(schoolName,schoolID,ClassAlias,timeTableID)
     },
-    archiveTimetable(ClassAlias,timeTableID){
-        return timeTableController.archiveTimetable(ClassAlias,timeTableID)
+    archiveTimetable(schoolName,schoolID,ClassAlias,timeTableID){
+        return timeTableController.archiveTimetable(schoolName,schoolID,ClassAlias,timeTableID)
     },
-
     // educationManagementController
     async createClass(classAlias,classData){
       return educationManagementController.createClass(classAlias,classData)
@@ -326,5 +318,14 @@ export default {
     async createGradeRanges(gradeData){
         return educationManagementController.createGradeRanges(gradeData)
     },// holds grade Enum and lower and upper bounds
+
+
+    //schoolSessionController
+    async activateNextTerm(schoolName,schoolID,TermData){
+        return schoolSessionController.activateNextTerm(schoolName,schoolID,TermData)
+    },
+    async createSchoolSession(schoolName,schoolID,sessionData){
+        return schoolSessionController.createSchoolSession(schoolName,schoolID,sessionData)
+    }
 
 }

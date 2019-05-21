@@ -8,12 +8,20 @@
  * 
  */
 
-const mongoose = require('../../Infrastructure/plugins/mongooseCon');
-const ParentSchema = require('../schema/parentSchema');
+const mongoose = require('../../Infrastructure/plugins/mongooseCon')
+const ParentSchema = require('../schema/parentSchema')
 
 // Preparatory steps before save to model(pre-save)
 ParentSchema.default.pre('save', function (next) {
-  next();
-});
 
-export default mongoose.default.model('ParentModel', ParentSchema.default);
+  now = new Date()
+    this.updated_at = now
+    if ( !this.created_at ) {
+        this.created_at = now
+    }
+
+  next()
+  
+})
+
+export default mongoose.default.model('ParentModel', ParentSchema.default)

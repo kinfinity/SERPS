@@ -31,7 +31,11 @@ const resultSchema = new TSchema({
         ref: 'teacherModel'
     }],
 
-    },{strict: true}
+    },
+    {
+        timestamps: true,
+        strict: true
+    }
 
 );
 

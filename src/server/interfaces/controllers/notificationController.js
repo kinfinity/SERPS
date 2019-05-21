@@ -10,23 +10,23 @@
  */
 
 
-import notificationAdapter from '../db/notificationAdapter';
+import notificationAdapter from '../db/notificationAdapter'
 
 const notificationController = {
 
-    getNotifications(){
-        return notificationAdapter.getLatest(); // max=10
+    getNotifications(SchoolName,SchoolID){
+        return notificationAdapter.getNotifications(SchoolName,SchoolID) // max=10
     },
-    createNotification(Note){
-        return notificationAdapter.createNotification(Note);
+    createNotification(SchoolName,SchoolID,noteID,Data){
+        return notificationAdapter.createNotification(SchoolName,SchoolID,noteID,Data)
     },
-    updateNotification(noteTitle,noteID,noteImage,noteText){
-        return notificationAdapter.update(noteTitle,noteID,noteImage,noteText);
+    updateNotification(SchoolName,SchoolID,noteID,Data){
+        return notificationAdapter.updateNotification(SchoolName,SchoolID,noteID,Data)
     },
-    deleteNotification(noteTitle,noteID){
-        return notificationAdapter.delete(noteTitle,noteID);
+    deleteNotification(SchoolName,SchoolID,noteTitle,noteID){
+        return notificationAdapter.deleteNotification(SchoolName,SchoolID,noteTitle,noteID)
     }, 
     
-};
+}
 
-export default notificationController;
+export default notificationController

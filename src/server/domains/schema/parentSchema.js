@@ -8,8 +8,8 @@
  * 
  */
 
-import mongoose from '../../Infrastructure/plugins/mongooseCon';
-const TSchema = mongoose.Schema;
+import mongoose from '../../Infrastructure/plugins/mongooseCon'
+const TSchema = mongoose.Schema
 
 const ParentSchema = new TSchema(
     {
@@ -36,15 +36,24 @@ const ParentSchema = new TSchema(
         gender: {
             type: String,
         required: false,
-        },  
+        },
+        joinedOn: { type: Date, default: new Date() },  
+        isActive: {
+          type: Boolean,
+          requried: false,
+          default: false
+        },
         children:    [{
             'child': {
                 type: TSchema.Types.ObjectId,
                 ref: 'studentModel'
-        }
-    }],
+        }}]
     },
-  {strict: true}
-);
+  
+    {
+        timestamps: true,
+        strict: true
+    }
+)
 
-export default ParentSchema;
+export default ParentSchema

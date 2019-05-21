@@ -13,9 +13,8 @@
 
 import authorisationService from '../../domains/services/authorisationService'
 import schoolAdminService from '../../domains/services/schoolService'
-import shortid from 'shortid'
-import winstonLogger from '../../Infrastructure/utils/winstonLogger';
-import publicEnums from '../../app/publicEnums';
+import winstonLogger from '../../Infrastructure/utils/winstonLogger'
+import publicEnums from '../../app/publicEnums'
 
 
 const schoolAdminAdapter = {
@@ -49,7 +48,7 @@ const schoolAdminAdapter = {
     then((result) => {
 
       // Creation Succeeded
-      winstonLogger.info('Adapter Result')
+      winstonLogger.info('PERSIST: Result')
       winstonLogger.info(result)
 
       response = Promise.resolve(result)
@@ -75,18 +74,19 @@ const schoolAdminAdapter = {
     then((result) => {
 
       // Authentication succeeded
-      winstonLogger.info('authentication result')
+      winstonLogger.info('AUTHENTICATION: result')
       winstonLogger.info(result)
-        response = Promise.resolve(result)
+
+      response = Promise.resolve(result)
 
     }).
     catch((err) => {
 
-      winstonLogger.error('error authenticating')
+      winstonLogger.error('ERROR: authenticating')
       winstonLogger.error(e)
 
       response = {
-        'statusCode': 'SC101',
+        'statusCode': publicEnums.SERPS_STATUS_CODES.REQUEST_ERROR,
         'Token':null
       }
 
@@ -104,13 +104,19 @@ const schoolAdminAdapter = {
     await authorisationService.authoriseToken(accessToken).
     then((resolve) => {
 
-      // Authorization succeeded
+        // Authorization succeeded
+        winstonLogger.info('AUTHORISATION: result')
+        winstonLogger.info(resolve)
+
         response = Promise.resolve(resolve)
 
     }).
     catch((err) => {
 
-      response = {'result': false}
+      response = {
+          statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_ERROR,
+          Data :null
+      }
 
     })
 
@@ -126,12 +132,17 @@ const schoolAdminAdapter = {
     then((resolve) => {
 
       // Lougout succeeded
+      winstonLogger.info('LOGOUT: result')
+      winstonLogger.info(resolve)
       response = Promise.resolve(resolve)
 
     }).
     catch((err) => {
 
-      reponse = {'response': false}
+      response = {
+          statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_ERROR,
+          Data :null
+      }
 
     })
 
@@ -147,16 +158,21 @@ const schoolAdminAdapter = {
     then((result) => {
 
       // 
-      winstonLogger.info('schoolInfo')
+      winstonLogger.info('GET: schoolInfo')
       winstonLogger.info(result)
+
       response = Promise.resolve(result)
 
     }).
     catch((e) => {
 
-      winstonLogger.error('Error getting schoolData')
+      winstonLogger.error('ERROR: getting schoolInfo')
       winstonLogger.error(e)
-      reponse = {'response': false}
+
+      response = {
+          statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_ERROR,
+          Data :null
+      }
 
     })
 
@@ -173,7 +189,45 @@ const schoolAdminAdapter = {
     then((result) => {
 
       // 
-      winstonLogger.info('schoolInfo UPDATE?:')
+      if(result !== null){
+
+        winstonLogger.info('UPDATE: schoolInfo')
+        winstonLogger.info(result)
+
+        response = Promise.resolve(result)
+        
+      }else{
+        response = Promise.resolve(null)
+      }
+      
+
+    }).
+    catch((e) => {
+
+      winstonLogger.error('ERROR: updating schoolInfo')
+      winstonLogger.error(e)
+
+      reponse = {
+        statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_ERROR,
+        Data: null
+      }
+
+    })
+
+    return response
+
+  },
+  
+  // getSchoolContactInfo
+  async getSchoolContactInfo(schoolName,schoolID){
+
+    let response = null
+
+    await schoolAdminService.getSchoolContactInfo(schoolName,schoolID).
+    then((result) => {
+
+      // 
+      winstonLogger.info('GET: schoolContactInfo')
       winstonLogger.info(result)
 
       response = Promise.resolve(result)
@@ -181,7 +235,99 @@ const schoolAdminAdapter = {
     }).
     catch((e) => {
 
-      winstonLogger.error('Error getting schoolData')
+      winstonLogger.error('ERROR: getting schoolData')
+      winstonLogger.error(e)
+
+      reponse = {
+        statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_ERROR,
+        Data: null
+      }
+
+    })
+
+    return response
+
+  },
+
+  async updateSchoolContactInfo(schoolName,schoolID,SchoolData){
+
+    //
+    let response = null
+
+    await schoolAdminService.updateSchoolContactInfo(schoolName,schoolID,SchoolData).
+    then((result) => {
+
+      // 
+      winstonLogger.info('UPDATE: schoolContactInfo')
+      winstonLogger.info(result)
+
+      response = Promise.resolve(result)
+
+    }).
+    catch((e) => {
+
+      winstonLogger.error('ERROR: getting schoolContactInfo')
+      winstonLogger.error(e)
+
+      reponse = {
+        statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_ERROR,
+        Data: null
+      }
+
+    })
+
+    return response
+
+  },
+
+  // getSchoolPaymentInfo
+  async getSchoolPaymentInfo(schoolName,schoolID){
+
+    let response = null
+
+    await schoolAdminService.getSchoolPaymentInfo(schoolName,schoolID).
+    then((result) => {
+
+      // 
+      winstonLogger.info('GET: schoolPayemntInfo')
+      winstonLogger.info(result)
+
+      response = Promise.resolve(result)
+
+    }).
+    catch((e) => {
+
+      winstonLogger.error('ERROR: getting schoolPaymentInfo')
+      winstonLogger.error(e)
+
+      reponse = {
+        statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_ERROR,
+        Data: null
+      }
+
+    })
+
+    return response
+
+  },
+  async updateSchoolPaymentInfo(schoolName,schoolID,SchoolData){
+
+    //
+    let response = null
+
+    await schoolAdminService.updateSchoolPaymentInfo(schoolName,schoolID,SchoolData).
+    then((result) => {
+
+      // 
+      winstonLogger.info('UPDATE: schoolPaymentInfo ')
+      winstonLogger.info(result)
+
+      response = Promise.resolve(result)
+
+    }).
+    catch((e) => {
+
+      winstonLogger.error('ERROR: updating schoolPaymentInfo')
       winstonLogger.error(e)
 
       reponse = {
@@ -194,6 +340,38 @@ const schoolAdminAdapter = {
     return response
 
   },
+
+  //remove
+  async removeNotification(schoolName,schoolID,notificationID){
+
+    //
+    let response = null
+
+    await schoolAdminService.removeNotification(schoolName,schoolID,notificationID).
+    then((result) => {
+
+      // 
+      winstonLogger.info('REMOVE:  ')
+      winstonLogger.info(result)
+
+      response = Promise.resolve(result)
+
+    }).
+    catch((e) => {
+
+      winstonLogger.error('ERROR: removing data')
+      winstonLogger.error(e)
+
+      reponse = {
+        statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_ERROR,
+        Data: false
+      }
+
+    })
+
+    return response
+
+  }
 
 }
 

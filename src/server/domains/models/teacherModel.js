@@ -8,12 +8,20 @@
  * 
  */
 
-const mongoose = require('../../Infrastructure/plugins/mongooseCon');
-const TeacherSchema = require('../schema/teacherSchema');
+const mongoose = require('../../Infrastructure/plugins/mongooseCon')
+const TeacherSchema = require('../schema/teacherSchema')
 
 // Preparatory steps before save to model(pre-save)
 TeacherSchema.default.pre('save', function(next) {
-    next();
-});
 
-export default mongoose.default.model('TeacherModel', TeacherSchema.default);
+    now = new Date()
+    this.updated_at = now
+    if ( !this.created_at ) {
+        this.created_at = now
+    }
+
+    next()
+    
+})
+
+export default mongoose.default.model('TeacherModel', TeacherSchema.default)

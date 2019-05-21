@@ -28,11 +28,15 @@ const signUpController = {
               return Data
             }
               // fire Events then send payload
+              winstonLogger.info('FIRING_EVENT: school-registered')
+              winstonLogger.info(Data)
+              
               schoolEvent.
               emit(
                   'school-registered',
                   {
-                    email: Data.email
+                    email: Data.email,
+                    schoolID: Data.schoolID
                   }
                 )// send a few params
 

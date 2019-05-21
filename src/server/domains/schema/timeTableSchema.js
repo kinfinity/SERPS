@@ -5,8 +5,9 @@
  * 
  */
 
-import mongoose from '../../Infrastructure/plugins/mongooseCon';
-const TSchema = mongoose.Schema;
+import mongoose from '../../Infrastructure/plugins/mongooseCon'
+const TSchema = mongoose.Schema
+
 
 const timeTableSchema = new TSchema(
   {
@@ -18,28 +19,127 @@ const timeTableSchema = new TSchema(
         },
         classID: {
             type: TSchema.Types.ObjectId,
-            required: true,
-        },
-        Data: [{
-            type: TSchema.Types.ObjectId,// subject
-            required: false,
-            ref: 'subjectModel'
-        },{
-            type: TSchema.Types.ObjectId,//teacher
-            required: false,
-            ref: 'teacherModel'
-        },{
-            type: Date, // find time object for mongoose - start time
-            required: true,
-        },{
-            type: Date, // - stop time 
             required: true
-        }]
+        },
+        noPeriods:{
+            type: Number
+        },
+        MONDAY: {
+            allocation: [{
+                subject:{
+                    type: TSchema.Types.ObjectId,// subject
+                    required: false,
+                    ref: 'SubjectModel'
+                },
+                teacher:{
+                    type: TSchema.Types.ObjectId,// subject
+                    required: false,
+                    ref: 'TeacherModel'
+                },
+                startTime: {
+                    type:  String
+                },
+                endTime: {
+                    type: String
+                }
+            }]
+        },
+        TUESDAY: {
+            allocation: [{
+                subject:{
+                    type: TSchema.Types.ObjectId,// subject
+                    required: false,
+                    ref: 'SubjectModel'
+                },
+                teacher:{
+                    type: TSchema.Types.ObjectId,// subject
+                    required: false,
+                    ref: 'TeacherModel'
+                },
+                startTime: {
+                    type:  String
+                },
+                endTime: {
+                    type: String
+                }
+            }]
+        },
+        WEDNESSDAY: {
+            allocation: [{
+                subject:{
+                    type: TSchema.Types.ObjectId,// subject
+                    required: false,
+                    ref: 'SubjectModel'
+                },
+                teacher:{
+                    type: TSchema.Types.ObjectId,// subject
+                    required: false,
+                    ref: 'TeacherModel'
+                },
+                startTime: {
+                    type:  String
+                },
+                endTime: {
+                    type: String
+                }
+            }]
+        },
+        THURSDAY: {
+            allocation: [{
+                subject:{
+                    type: TSchema.Types.ObjectId,// subject
+                    required: false,
+                    ref: 'SubjectModel'
+                },
+                teacher:{
+                    type: TSchema.Types.ObjectId,// subject
+                    required: false,
+                    ref: 'TeacherModel'
+                },
+                startTime: {
+                    type:  String
+                },
+                endTime: {
+                    type: String
+                }
+            }]
+        },
+        FRIDAY: {
+            allocation: [{
+                subject:{
+                    type: TSchema.Types.ObjectId,// subject
+                    required: false,
+                    ref: 'SubjectModel'
+                },
+                teacher:{
+                    type: TSchema.Types.ObjectId,// subject
+                    required: false,
+                    ref: 'TeacherModel'
+                },
+                startTime: {
+                    type:  String
+                },
+                endTime: {
+                    type: String
+                }
+            }]
+        },
+        
+     created_at: { 
+        type: Date,
+         required: false, 
+         default: Date.now()
+    },
+    udpated_at: { 
+        type: Date, 
+        required: true, 
+        default: Date.now() 
+    }
 
     },{
     strict: true,
     runSettersOnQuery: true,
     }
-);
+)
 
-export default timeTableSchema;
+export default timeTableSchema

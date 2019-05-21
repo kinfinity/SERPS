@@ -8,8 +8,8 @@
  * 
  */
 
-import mongoose from '../../Infrastructure/server/plugins/mongooseCon';
-const TSchema = mongoose.Schema;
+import mongoose from '../../Infrastructure/server/plugins/mongooseCon'
+const TSchema = mongoose.Schema
 
 const LectureNotesSchema = new TSchema(
     {
@@ -23,18 +23,19 @@ const LectureNotesSchema = new TSchema(
         },
 
         createdAt: {
-            type: Date.now(),
-            required: false,
+            type: Date,
+            required: false
         },
         updatedAt: {
             type: Date,
-            required: false,
-        },
+            required: false
+        }
     },
     {
-    strict: true,
-    runSettersOnQuery: true,
+        timestamps: true,
+        strict: true,
+        runSettersOnQuery: true,
     }
-);
+)
 
-export default LectureNotesSchema;
+export default LectureNotesSchema

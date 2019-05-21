@@ -4,15 +4,15 @@
  *
  * Copyright (c) 2019 Echwood Inc.
  *
- * SchoolModel: () : SchoolSchema
+ * SchoolSessionModel: () : SchoolSessionSchema
  * 
  */
 
 const mongoose = require('../../Infrastructure/plugins/mongooseCon')
-const SchoolSchema = require('../schema/schoolSchema')
+const SchoolSessionSchema = require('../schema/SchoolSessionSchema')
 
 // Preparatory steps before save to model(pre-save)
-SchoolSchema.default.pre('save', function(next) {
+SchoolSessionSchema.default.pre('save', function(next) {
 
     this.updated_at = new Date() 
     if (!this.created_at ) {
@@ -23,4 +23,4 @@ SchoolSchema.default.pre('save', function(next) {
 
 })
 
-export default mongoose.default.model('SchoolModel', SchoolSchema.default)
+export default mongoose.default.model('SchoolSessionModel', SchoolSessionSchema.default)

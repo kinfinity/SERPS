@@ -1,10 +1,12 @@
-import schoolService from '../services/school'
-import routeUtils from '../utils/routerOptions'
+import schoolService from '../../services/school'
+import routeUtils from '../../utils/routerOptions'
 import express from 'express'
-import authorisationService from '../../domains/services/authorisationService'
-import cloudinaryCon from '../plugins/cloudinaryCon'
-import winstonLogger from '../utils/winstonLogger'
+import authorisationService from '../../../domains/services/authorisationService'
+import cloudinaryCon from '../../plugins/cloudinaryCon'
+import winstonLogger from '../../utils/winstonLogger'
 import shortid from 'shortid'
+
+winstonLogger.info('::::openAccessRouter')
 /**
      * 
      *  Build  school API call routes

@@ -8,23 +8,36 @@
  * 
  */
 
-import mongoose from '../../Infrastructure/plugins/mongooseCon';
-const TSchema = mongoose.Schema;
+import mongoose from '../../Infrastructure/plugins/mongooseCon'
+const TSchema = mongoose.Schema
 
 const StudentSchema = new TSchema(
     {
-        fullname: {
-            type: String,
-            required: false,
-            trim: false,
-        },username: {
+        Name: {
+            firstName: {
+                type: String,
+                required: false,
+                trim: false,
+            },
+            surName: {
+                type: String,
+                required: false,
+                trim: false,
+            },
+            lastName: {
+                type: String,
+                required: false,
+                trim: false,
+            }
+        },
+        username: {
             type: String,
             required: true,
             trim: true,
             unique: true
         },
-            email: {
-        type: String,
+        email: {
+            type: String,
             required: false,
             trim: true,
             unique: true
@@ -32,10 +45,10 @@ const StudentSchema = new TSchema(
         password: {
                 type: String,
                 required: true,
-            },
-            gender: {
+        },
+        gender: {
             type: String,
-        required: false,
+            required: false,
         },
         birthdate: {
             type: Date,
@@ -44,42 +57,47 @@ const StudentSchema = new TSchema(
         parents: [{
             parent: {
                 type: TSchema.Types.ObjectId,
-                ref: 'parentModel',
-                default: [],
+                ref: 'ParentModel'
             }
         }],
+        activity: {
+            type: TSchema.Types.ObjectId,
+            ref: 'ActivityModel'
+        },
         class: {
             type: TSchema.Types.ObjectId,
-            ref: 'classModel'
+            ref: 'ClassModel'
         },
         School: {
             type: TSchema.Types.ObjectId,
-            ref: 'schoolModel'
+            ref: 'SchoolModel'
         },
-        bio: {
-            type: String,
-
+        bioData: {
+            type: TSchema.Types.ObjectId,
+            ref: 'BioDataModel'
         },
         admission_status: {
-            type: Boolean,
+            type: Boolean
         },
-
-
-        verificationCode: String,
-            verificationCodeExpiration: Number,
-        createdAt: {
-            type: Date,
-            required: false,
+        verificationCode:{
+            type: String,
+            verificationCodeExpiration: {
+                type:  Number,
+                default: 15
+            }
         },
-        updatedAt: {
-            type: Date,
-            required: false,
-        },
+        joinedOn: { type: Date, default: new Date() },
+        isActive: {
+          type: Boolean,
+          requried: false,
+          default: false
+        }
     },
     {
-    strict: true,
-    runSettersOnQuery: true,
+        timestamps: true,
+        strict: true,
+        runSettersOnQuery: true,
     }
-);
+)
 
-export default StudentSchema;
+export default StudentSchema
