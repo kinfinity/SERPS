@@ -5,24 +5,23 @@
  *
  */
 
-import schoolSessionController from '../../interfaces/controllers/schoolSessionController'
-import notificationController from '../../interfaces/controllers/notificationController'
+import educationManagementController from '../../interfaces/controllers/educationManagementController'
 import winstonLogger from '../../Infrastructure/utils/winstonLogger'
 
- const onNotification =  {
-
-     imageUploaded: async(params) => {//params.notificationID, notificationURL,schoolName,schoolID
+ const onClass =  {
+    teacherUpdate: async(params) => { //schoolName, schoolID, notificationID
 
         winstonLogger.info('Event Launched')
         winstonLogger.info(JSON.stringify(params,null,4))
 
-        notificationController.updateNotification(params.schoolName, params.schoolID, params.notificationID, params.notificationURL).
+        // classID to teacher document
+        educationManagementController.assignClassIDtoTeacher(params.schoolName, params.schoolID, params.clasasAlias, params.classID,params.teacherRef).
         then((res) => {
 
 
                 if(res !== null){
 
-                    winstonLogger.info('UPDATE: notificationID to schoolSession document')
+                    winstonLogger.info('UPDATE: class data to school document')
                     winstonLogger.info(res)
                     //validated
                     
@@ -32,25 +31,25 @@ import winstonLogger from '../../Infrastructure/utils/winstonLogger'
         }).
         catch((e) =>{
 
-            winstonLogger.error('ERROR: appending notificationID to schoolSession document')
+            winstonLogger.error('ERROR: adding class data to school document')
             winstonLogger.error(e)
 
         })
 
-     },
-
+    },
+    //
     created: async(params) => { //schoolName, schoolID, notificationID
 
         winstonLogger.info('Event Launched')
         winstonLogger.info(JSON.stringify(params,null,4))
 
-        schoolSessionController.addNotification(params.schoolName, params.schoolID, params.notificationID).
+        educationManagementController.addClasstoSchool(params.schoolName, params.schoolID, params.classData).
         then((res) => {
 
 
                 if(res !== null){
 
-                    winstonLogger.info('UPDATE: notificationID to schoolSession document')
+                    winstonLogger.info('UPDATE: class data to school document')
                     winstonLogger.info(res)
                     //validated
                     
@@ -60,7 +59,7 @@ import winstonLogger from '../../Infrastructure/utils/winstonLogger'
         }).
         catch((e) =>{
 
-            winstonLogger.error('ERROR: appending notificationID to schoolSession document')
+            winstonLogger.error('ERROR: adding class data to school document')
             winstonLogger.error(e)
 
         })
@@ -72,13 +71,13 @@ import winstonLogger from '../../Infrastructure/utils/winstonLogger'
         winstonLogger.info('Event Launched')
         winstonLogger.info(JSON.stringify(params,null,4))
         
-        schoolSessionController.removeNotification(params.schoolName, params.schoolID, params.notificationID).
+        educationManagementController.removeClassfromSchool(params.schoolName, params.schoolID, params.classData).
         then((res) => {
 
 
                 if(res !== null){
 
-                    winstonLogger.info('UPDATE: notificationID to school document')
+                    winstonLogger.info('UPDATE: class data from school document')
                     winstonLogger.info(res)
                     //validated
                     
@@ -88,7 +87,7 @@ import winstonLogger from '../../Infrastructure/utils/winstonLogger'
         }).
         catch((e) =>{
 
-            winstonLogger.error('ERROR: appending notificationID to school document')
+            winstonLogger.error('ERROR: class data from school document')
             winstonLogger.error(e)
 
         })
@@ -97,4 +96,4 @@ import winstonLogger from '../../Infrastructure/utils/winstonLogger'
 
 }
 
-export default onNotification
+export default onClass

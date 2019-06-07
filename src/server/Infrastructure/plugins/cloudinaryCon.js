@@ -111,6 +111,168 @@ const cloudinaryCon = {
                 winstonLogger.info(res)
                 return res
             })
+    },
+    //uploadNotificationImages
+    async uploadNotificationImages(noteTitle,notificationID,notificationImage, Name, schoolID){
+
+        let res = null 
+
+        winstonLogger.info("CLOUDINARY")
+        winstonLogger.info(noteTitle)
+        winstonLogger.info(notificationID)
+        winstonLogger.info(notificationImage)
+        winstonLogger.info(schoolID)
+        winstonLogger.info(Name)
+    
+        await cloudinary.v2.uploader.upload(
+            notificationImage, 
+            {
+                folder: Name+"/"+"notifications",
+                public_id: noteTitle,
+                overwrite: true,
+                invalidate: true,
+                // width: 810, height: 456, crop: "fill"
+        }).
+        then((result) => {
+            winstonLogger.info('UPLOADING...')
+            winstonLogger.info(JSON.stringify(result,null,4))
+            res = result
+        }).
+        catch((e) => {
+
+            winstonLogger.error('Error uploading  Image')
+            winstonLogger.error(JSON.stringify(e,null,4))
+
+            return res = false
+
+        })
+
+        // Emit event for Persistence
+        try {
+            
+            winstonLogger.info('Upload Result')
+            winstonLogger.info(JSON.stringify(res.url, null,4))
+            
+            if(res !== null && res !== false){
+
+            }                
+                const schoolName = Name
+                const notificationURL = res.url
+
+                winstonLogger.info('EVENT PARAMETERS')
+                winstonLogger.info(Name)
+                winstonLogger.info(schoolID)
+                winstonLogger.info(res.url)
+
+                // fire Events then send payload
+                schoolEvent.
+                emit('school-notificationImageUploaded',
+                    {// send params
+                    schoolName,
+                    schoolID,
+                    notificationID, 
+                    notificationURL
+                })
+
+                return res = true
+
+
+        } catch (e) {
+        
+            winstonLogger.error('Error emitting event')
+            winstonLogger.error(JSON.stringify(e,null,4))
+
+            return res = false
+
+        }
+        // Check if the db url was updated else persist the picture to local storage[serialise] and try again later
+
+        return res
+
+    },
+    //
+    async uploadLectureNote(schoolName,schoolID,subjectName,lectureNoteTitle,lectureNoteData,teacherID,classAlias){
+
+        let res = null 
+
+        winstonLogger.info("CLOUDINARY")
+        winstonLogger.info(schoolName)
+        winstonLogger.info(schoolID)
+        winistsonLogger.info(subjectName)
+        winstonLogger.info(lectureNoteTitle)
+        winstonLogger.info(lectureNoteData)
+        winstonLogger.info(teacherID)
+        winstonLogger.info(classAlias)
+        
+        await cloudinary.v2.uploader.upload(// PDF
+            lectureNoteData, 
+            {
+                folder: schoolName+"/"+classAlias+"/"+subjectName,
+                public_id: lectureNoteTitle,
+                overwrite: true,
+                invalidate: true,
+                // width: 810, height: 456, crop: "fill"
+        }).
+        then((result) => {
+            winstonLogger.info('UPLOADING...')
+            winstonLogger.info(JSON.stringify(result,null,4))
+            res = result
+        }).
+        catch((e) => {
+
+            winstonLogger.error('Error uploading  Image')
+            winstonLogger.error(JSON.stringify(e,null,4))
+
+            return res = false
+
+        })
+
+        // Emit event for Persistence
+        try {
+            
+            winstonLogger.info('Upload Result')
+            winstonLogger.info(JSON.stringify(res.url, null,4))
+            
+            if(res){
+          
+                const lectureNoteURL = res.url
+
+                winstonLogger.info('EVENT PARAMETERS')
+                winstonLogger.info(schoolName)
+                winstonLogger.info(schoolID)
+                winstonLogger.info(lectureNoteTitle)
+                winstonLogger.info(lectureNoteData)
+                winstonLogger.info(teacherID)
+                winstonLogger.info(classAlias)
+
+                // fire Events then send payload
+                schoolEvent.
+                emit('school-lectureNoteUpdloaded',
+                    {// send params
+                    schoolName,
+                    schoolID,
+                    classAlias,
+                    teacherID,
+                    subjectName,
+                    lectureNoteTitle,
+                    lectureNoteUrl
+                })
+
+                return res = true
+            }
+
+        } catch (e) {
+        
+            winstonLogger.error('Error emitting event')
+            winstonLogger.error(JSON.stringify(e,null,4))
+
+            return res = false
+
+        }
+        // Check if the db url was updated else persist the picture to local storage[serialise] and try again later
+
+        return res
+
     }
 
 }

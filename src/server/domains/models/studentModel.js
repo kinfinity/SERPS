@@ -19,6 +19,8 @@ StudentSchema.default.pre('save', function(next) {
     if ( !this.created_at ) {
         this.created_at = now
     }
+    this.birthmonth = this.birthdate.getMonth() + 1
+    this.birthday = this.birthdate.getDate()
 
     next()
     

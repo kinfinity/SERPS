@@ -31,8 +31,8 @@ const paymentManagementController = {
     async getSchoolPaymentInfo(SchoolName,SchoolID){
         return schoolAdapter.getSchoolPaymentInfo(SchoolName,SchoolID)
     },
-    async updateSchoolPaymentInfo(SchoolName,SchoolID,PaymentInfoData){
-        return schoolAdapter.updateSchoolPaymentInfo(SchoolName,SchoolID,PaymentInfoData)
+    async updateSchoolPaymentInfo(SchoolName,SchoolID,paymentInfo){
+        return schoolAdapter.updateSchoolPaymentInfo(SchoolName,SchoolID,paymentInfo)
     },
     async viewSchoolPaymentTransactionHistory(SchoolName,SchoolID){// TransactionID month teacher bank[Teacher] accNo Receipt/Amount
         return schoolAdapter.viewSchoolPaymentTransactionHistory(SchoolName,SchoolID) 

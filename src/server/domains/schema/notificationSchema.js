@@ -31,6 +31,11 @@ const NotificationSchema = new TSchema({
         required: true,
         unique: false,
     },
+    noteID: {
+        type: String,
+        required: true,
+        unique: true
+    },
     noteText: {
         type: String,
         required: true,
@@ -40,16 +45,6 @@ const NotificationSchema = new TSchema({
         type: TSchema.Types.Url,
         required:false
     }],
-    created_at: { 
-        type: Date,
-         required: true, 
-         default: Date.now()
-    },
-    udpated_at: { 
-        type: Date, 
-        required: true, 
-        default: Date.now() 
-    },
     meta: {
         nViews: {
             type: Number

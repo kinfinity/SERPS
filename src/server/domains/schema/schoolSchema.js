@@ -57,6 +57,17 @@ const SchoolSchema = new TSchema({
        required:false,
 
      },
+     private_ACCESS_CODE: {
+       type: String,
+       required: false,
+       unique: true
+     },
+     public_ACCESS_CODE: {
+       type: String,
+       required: false,
+       unique: true,
+       default: ''
+     },
      Address: {
        type: String,
        required: false,
@@ -65,19 +76,84 @@ const SchoolSchema = new TSchema({
      admissionStatus: {
        type: Boolean,
        required: false,
-       unique: false
+       unique: false,
+       default: false
      },
      currentSessionID: {
         type: TSchema.Types.ObjectId,
         ref: 'SchoolSessionModel' 
      },
      activeTerm:{
-         type: Number
+        type: String,
+        required: false,
+        default: ''
      },
      paymentInfo: {
-        type: TSchema.Types.ObjectId,
-        ref: 'PaymentInfoModel'
+        bankName:{
+            type: String,
+            required: false,
+            unique: false
+        },
+        AccountNumber: {
+          type: Number,
+          min: 8 ,
+          max: 12
+        }
      },
+     Teachers: [{
+        Name:{
+            type: String,
+            required: false,
+            unique: true
+        },
+        teacherID:{
+          type: String,
+          required: false,
+          unique: true
+        },
+        teacherRef: {
+          type: TSchema.Types.ObjectId,
+          ref: 'TeacherModel'
+        }
+     }],
+     subjects: [{
+      subjectName:{
+          type: String,
+          required: false,
+          unique: true
+      },
+      subjectID: {
+        type: TSchema.Types.ObjectId,
+        ref: 'SubjectHolderModel'
+      }
+    }],
+    activities: [{
+     Name:{
+         type: String,
+         required: false,
+         unique: true
+     },
+     activityID: {
+       type: TSchema.Types.ObjectId,
+       ref: 'ActivityModel'
+     }
+   }],
+     classList: [{
+        className: {
+          type: String,
+          required: true,
+          unique:true
+        },
+        classAlias: {
+          type: String,
+          required: false,
+          unique:true
+        },
+        classRef: {
+          type: TSchema.Types.ObjectId,
+          ref: 'ClassModel'
+        }
+     }],
      joinedOn: { type: Date, default: new Date() },
      isActive: {
        type: Boolean,

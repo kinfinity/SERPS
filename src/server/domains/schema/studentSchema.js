@@ -30,11 +30,15 @@ const StudentSchema = new TSchema(
                 trim: false,
             }
         },
-        username: {
+        fullName:{
             type: String,
-            required: true,
-            trim: true,
+            required: false,
             unique: true
+        },
+        studentID:{
+            type: String,
+            required: false,
+            uniique: true
         },
         email: {
             type: String,
@@ -50,27 +54,53 @@ const StudentSchema = new TSchema(
             type: String,
             required: false,
         },
+        Address: {
+            type: String,
+            required: false
+        },
         birthdate: {
             type: Date,
             required: false,
         },
         parents: [{
-            parent: {
+            Name: {
+                type: String,
+                required: false
+            },
+            parentRef: {
                 type: TSchema.Types.ObjectId,
                 ref: 'ParentModel'
             }
         }],
         activity: {
-            type: TSchema.Types.ObjectId,
-            ref: 'ActivityModel'
+            Name: {
+                type: String,
+                required: false
+            },
+            activityRef: {
+                type: TSchema.Types.ObjectId,
+                ref: 'ClassModel'
+            }
         },
         class: {
-            type: TSchema.Types.ObjectId,
-            ref: 'ClassModel'
+            Alias: {
+                type: String,
+                required: false
+            },
+            classRef: {
+                type: TSchema.Types.ObjectId,
+                ref: 'ClassModel'
+            }
         },
         School: {
-            type: TSchema.Types.ObjectId,
-            ref: 'SchoolModel'
+            Name: {
+                type: String,
+                required: false
+            },
+            schoolRef: {
+                type: TSchema.Types.ObjectId,
+                ref: 'SchoolModel'
+            }
         },
         bioData: {
             type: TSchema.Types.ObjectId,

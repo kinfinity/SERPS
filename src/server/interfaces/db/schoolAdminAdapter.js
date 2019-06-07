@@ -21,17 +21,6 @@ const schoolAdminAdapter = {
 
   // Adds new school to the database
   async persist(params) {
-
-    /**
-     *      Name: req.body.Name,
-     *      schoolPrefix: req.body.schoolPrefix,
-     *      email: req.body.email
-     *      password: req.body.password
-            motto: req.body.motto,
-            Address: req.body.Address,
-            Logo: req.body.logoLink,
-            Images: [req.body.imagesLinks] // 1-3
-     */
     
     let response = null
 
@@ -159,7 +148,7 @@ const schoolAdminAdapter = {
 
       // 
       winstonLogger.info('GET: schoolInfo')
-      winstonLogger.info(result)
+      winstonLogger.info(JSON.stringify(result,null,4))
 
       response = Promise.resolve(result)
 
@@ -223,12 +212,13 @@ const schoolAdminAdapter = {
 
     let response = null
 
+    winstonLogger.info('GOING FOR CONTACTINFO')
     await schoolAdminService.getSchoolContactInfo(schoolName,schoolID).
     then((result) => {
 
       // 
       winstonLogger.info('GET: schoolContactInfo')
-      winstonLogger.info(result)
+      winstonLogger.info(JSON.stringify(result,null,4))
 
       response = Promise.resolve(result)
 
@@ -249,17 +239,17 @@ const schoolAdminAdapter = {
 
   },
 
-  async updateSchoolContactInfo(schoolName,schoolID,SchoolData){
+  async updateSchoolContactInfo(schoolName,schoolID,contactInfo){
 
     //
     let response = null
 
-    await schoolAdminService.updateSchoolContactInfo(schoolName,schoolID,SchoolData).
+    await schoolAdminService.updateSchoolContactInfo(schoolName,schoolID,contactInfo).
     then((result) => {
 
       // 
       winstonLogger.info('UPDATE: schoolContactInfo')
-      winstonLogger.info(result)
+      winstonLogger.info(JSON.stringify(result,null,4))
 
       response = Promise.resolve(result)
 
@@ -310,17 +300,17 @@ const schoolAdminAdapter = {
     return response
 
   },
-  async updateSchoolPaymentInfo(schoolName,schoolID,SchoolData){
+  async updateSchoolPaymentInfo(schoolName,schoolID,paymentInfo){
 
     //
     let response = null
 
-    await schoolAdminService.updateSchoolPaymentInfo(schoolName,schoolID,SchoolData).
+    await schoolAdminService.updateSchoolPaymentInfo(schoolName,schoolID,paymentInfo).
     then((result) => {
 
       // 
       winstonLogger.info('UPDATE: schoolPaymentInfo ')
-      winstonLogger.info(result)
+      winstonLogger.info(JSON.stringify(result,null,4))
 
       response = Promise.resolve(result)
 
@@ -340,29 +330,26 @@ const schoolAdminAdapter = {
     return response
 
   },
-
-  //remove
-  async removeNotification(schoolName,schoolID,notificationID){
-
+  async getAdmissionStatus(schoolName,schoolID){
     //
     let response = null
 
-    await schoolAdminService.removeNotification(schoolName,schoolID,notificationID).
+    await schoolAdminService.getAdmissionStatus(schoolName,schoolID).
     then((result) => {
 
       // 
-      winstonLogger.info('REMOVE:  ')
-      winstonLogger.info(result)
+      winstonLogger.info('GET: admission status ')
+      winstonLogger.info(JSON.stringify(result,null,4))
 
       response = Promise.resolve(result)
 
     }).
     catch((e) => {
 
-      winstonLogger.error('ERROR: removing data')
+      winstonLogger.error('ERROR: getting admission status')
       winstonLogger.error(e)
 
-      reponse = {
+      response = {
         statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_ERROR,
         Data: false
       }
@@ -370,6 +357,64 @@ const schoolAdminAdapter = {
     })
 
     return response
+
+  },  
+  async openAdmission(schoolName,schoolID){
+    //
+    let response = null
+
+    await schoolAdminService.openAdmission(schoolName,schoolID).
+    then((result) => {
+
+      // 
+      winstonLogger.info('UPDATE: open admission ')
+      winstonLogger.info(JSON.stringify(result,null,4))
+
+      response = Promise.resolve(result)
+
+    }).
+    catch((e) => {
+
+      winstonLogger.error('ERROR: openning admission')
+      winstonLogger.error(e)
+
+      response = {
+        statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_ERROR,
+        Data: false
+      }
+
+    })
+
+    return response
+
+  },
+  async closeAdmission(schoolName,schoolID){
+        //
+        let response = null
+
+        await schoolAdminService.closeAdmission(schoolName,schoolID).
+        then((result) => {
+    
+          // 
+          winstonLogger.info('UPDATE: close admission ')
+          winstonLogger.info(JSON.stringify(result,null,4))
+    
+          response = Promise.resolve(result)
+    
+        }).
+        catch((e) => {
+    
+          winstonLogger.error('ERROR: closing admission')
+          winstonLogger.error(e)
+    
+          response = {
+            statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_ERROR,
+            Data: false
+          }
+    
+        })
+    
+        return response
 
   }
 

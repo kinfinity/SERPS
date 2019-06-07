@@ -1,7 +1,7 @@
 version: "3"
 services:
     nodeServer:
-        image: "node:8"
+        image: "node:10.15.3-alphine"
         build: ./
         command: npm run serve
         ports: ["50051:50051"]

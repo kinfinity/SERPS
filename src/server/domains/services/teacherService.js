@@ -30,9 +30,11 @@
  *
  */
 
-import Password from '../utils/password';
-import TeacherModel from '../models/TeacherModel';
-import tokenService from './tokenService';
+import Password from '../utils/password'
+import TeacherModel from '../models/TeacherModel'
+import tokenService from './tokenService'
+import winstonLogger from '../../Infrastructure/utils/winstonLogger'
+import publicEnums from '../../app/publicEnums';
 
 
 const teacherService = {
@@ -42,38 +44,38 @@ const teacherService = {
   // Create new user
   async createNewEmailUser(email, ipassword, username, clientID) {
 
-    console.log('inside teacherService');
+    winstonLogger.info('inside teacherService')
     // Holds return data for this fucntion
-    let response = null;
+    let response = null
     // Check if user exists first returns promise resolved to true or false
     await teacherService.teacherExists({email, username}).
     then((result) => {
 
       // Email exists in database
-        response = result;
+        response = result
 
     }).
-    catch((err) => Promise.resolve({'result': false, 'Token': null, 'message': err.toString()}));
+    catch((err) => Promise.resolve({'result': false, 'Token': null, 'message': err.toString()}))
     // Becomes true if user already exists and we kick out of function
     if (response) {
 
       // Return to higher scope if there's a user
-      return Promise.resolve({'result': false, 'Token': null, 'message': err.toString()});
+      return Promise.resolve({'result': false, 'Token': null, 'message': err.toString()})
 
     }
     // Create static Data for user
       const teacherData = {
         email,
         username
-    };
+    }
     // Hash user password on first save
     await Password.hash(ipassword).
     then((hashedPassword) => {
 
       // Append Hashed password to static user Data
-      teacherData.password = hashedPassword;
+      teacherData.password = hashedPassword
       // Create new user model
-      const student = new TeacherModel(teacherData);
+      const student = new TeacherModel(teacherData)
     
       // Save new user
       student.
@@ -81,41 +83,41 @@ const teacherService = {
       then(() => {
 
         // Succeeded in saving new user to DB
-        console.log('USER CREATED:::');
+        winstonLogger.info('USER CREATED:::')
 
       }).
       catch((err) => {
 
-        console.log(`USER NOT CREATED:::${err}`);
+        winstonLogger.info(`USER NOT CREATED:::${err}`)
 
         return Promise.resolve({
           result: false,
           Token: {},
           message: err.toString()
-        });
+        })
 
-      });
+      })
 
     }).catch((err) => {
 
-      console.log(`USER PASSWORD NOT HASHED:::${err}`);
+      winstonLogger.info(`USER PASSWORD NOT HASHED:::${err}`)
         
       response = Promise.resolve({
           result: false,
           Token: {},
           message: err.toString()
-      });
+      })
 
-      return response;
+      return response
 
-    });
+    })
 
     // Create and use timeout
-    const timeout = (ms) => new Promise((res) => setTimeout(res, ms));
+    const timeout = (ms) => new Promise((res) => setTimeout(res, ms))
 
-    await timeout(1000);
+    await timeout(1000)
     // Swap back in unhashedPassword for authentication
-    teacherData.password = ipassword;
+    teacherData.password = ipassword
     // Authenticate user after signup
     await teacherService.authenticateUser(teacherData, clientID).
     then((us) => {
@@ -124,25 +126,25 @@ const teacherService = {
       Promise.resolve(us).then((result) => {
 
         // Set response
-        response = result;
+        response = result
 
-      });
+      })
 
-      return response;
+      return response
 
-    });
+    })
 
-    return response;
+    return response
 
   },
   // Authenticate an already existing user
   async authenticateUser(teacherData, clientID) {
 
-    let response = null;
-    let response1 = null;
-    let response2 = null;
-    let tempData = null;
-    let id = null;
+    let response = null
+    let response1 = null
+    let response2 = null
+    let tempData = null
+    let id = null
 
     // Try email
     await teacherService.
@@ -153,11 +155,11 @@ const teacherService = {
       // Get data from DB
       if(Data) {
 
-        console.log('email found');
-        tempData = Data;
-        console.log(Data);
-        response1 = true;
-        id = teacherData.email;
+        winstonLogger.error('Email found')
+        tempData = Data
+        winstonLogger.info(Data)
+        response1 = true
+        id = teacherData.email
 
       }
 
@@ -167,7 +169,7 @@ const teacherService = {
       //
       response1 = false
 
-    });
+    })
 
     // Try username
     await teacherService.
@@ -178,11 +180,11 @@ const teacherService = {
       // Get data from DB
       if(Data) {
 
-        console.log('username found');
-        tempData = Data;
-        console.log(Data);
-        response2 = true;
-        id = teacherData.username;
+        winstonLogger.info('username found')
+        tempData = Data
+        winstonLogger.info(Data)
+        response2 = true
+        id = teacherData.username
 
       }
 
@@ -190,36 +192,36 @@ const teacherService = {
     catch((err) => {
 
       //
-      response2 = false;
+      response2 = false
 
-    });
+    })
 
     if (response1 == null && response2 == null) {
 
       // Break out
-      console.log(`ERROR AUTHENTICATING :::`);
+      winstonLogger.info(`ERROR AUTHENTICATING :::`)
       // Return false and and empty object
       response = Promise.resolve({
         result: false,
         Token: null,
         message: 'username +/- email does not exist'
-      });
+      })
 
-      return response;
+      return response
 
     }
     // User exists -> check password correspondence with bcrypt
-    let res = null;
+    let res = null
   
     await Password.compare(teacherData.password, tempData.password).
     then((matched) => {
     
       // Password matched
-      console.log(`password matched ? ${matched}`);
-      res = Promise.resolve(matched);
+      winstonLogger.info(`password matched ? ${matched}`)
+      res = Promise.resolve(matched)
 
     }).
-    catch((err) => Promise.reject(err));
+    catch((err) => Promise.reject(err))
 
     if (!res) {
 
@@ -228,9 +230,9 @@ const teacherService = {
         result: false,
         Token: null,
          message: 'we got garbbage from password comparism'
-      };
+      }
 
-      return response;
+      return response
 
     }
     // Return a boolean(true) and signed JWT
@@ -239,16 +241,16 @@ const teacherService = {
           username: tempData.username
     },
     clientID
-    ));
+    ))
 
     // Resolve
     response = Promise.resolve({
       result: true,
       Token,
       message: 'authentication success'
-    });
+    })
 
-    return response;
+    return response
 
   },
 
@@ -258,9 +260,9 @@ const teacherService = {
    */
   async teacherExists(teacherE) {
 
-    let eeResult = null;
-    let eeResult1 = null;
-    let eeResult2 = null;
+    let eeResult = null
+    let eeResult1 = null
+    let eeResult2 = null
 
     // Check email
     await teacherService.
@@ -268,58 +270,58 @@ const teacherService = {
     findOne({email: teacherE.email}).
     then((Data) => {
 
-      console.log(`checking data base for user`);
+      winstonLogger.info(`checking data base for user`)
       if(Data){
   
         if (Data.length === 0) {
 
-          console.log('no user exists');
-          eeResult1 = Promise.resolve(false);
+          winstonLogger.info('no user exists')
+          eeResult1 = Promise.resolve(false)
 
 
         }
 
-        console.log(`FOUND: ${Data}`);
-        eeResult1 = Promise.resolve(true);
+        winstonLogger.info(`FOUND: ${Data}`)
+        eeResult1 = Promise.resolve(true)
       }
 
     }).
     catch((err) => {
 
-      console.log('error checking database');
-      console.log(err);
-      eeResult1 = Promise.resolve(false);
+      winstonLogger.error('Error checking database')
+      winstonLogger.info(err)
+      eeResult1 = Promise.resolve(false)
 
-    });
+    })
     // Check username
     await teacherService.
     _teacherModel.
     findOne({username: teacherE.username}).
     then((Data) => {
 
-      console.log(`checking data base for user`);
+      winstonLogger.info(`checking data base for user`)
       if(Data) {
 
         if (Data.length === 0) {
 
-          console.log('no user exists');
-          eeResult2 = Promise.resolve(false);
+          winstonLogger.info('no user exists')
+          eeResult2 = Promise.resolve(false)
 
         }
 
-        console.log(`FOUND: ${Data}`);
-        eeResult2 = Promise.resolve(true);
+        winstonLogger.info(`FOUND: ${Data}`)
+        eeResult2 = Promise.resolve(true)
       }
     }).
     catch((err) => {
 
-      console.log('error checking database');
-      console.log(err);
-      eeResult2 = Promise.resolve(false);
+      winstonLogger.error('Error checking database')
+      winstonLogger.info(err)
+      eeResult2 = Promise.resolve(false)
 
-    });
+    })
 
-    return eeResult = eeResult1 || eeResult2;
+    return eeResult = eeResult1 || eeResult2
 
   },
 
@@ -331,64 +333,64 @@ const teacherService = {
   async initPasswordReset(teacherE) {
 
     // Email exists result
-    let response0 = null;
+    let response0 = null
 
     // Ensure email exists in database
     await teacherService.teacherExists(teacherE).
     then((result) => {
 
       // Boolean result
-      response0 = result;
+      response0 = result
 
     }).
-    catch((err) => console.log(err));
+    catch((err) => winstonLogger.info(err))
     // If no return failure if yes continue
     if (!response0) {
 
-      console.log(`${user} does not belongs to a user in database`);
+      winstonLogger.info(`${user} does not belongs to a user in database`)
 
-      return Promise.reject(response0);
+      return Promise.reject(response0)
 
     }
     // Initialize and get resetDetails
       const verificationPack = await Password.initReset(email)
       .then((verPack) => {
 
-          Promise.resolve(verPack);
+          Promise.resolve(verPack)
 
       })
       .catch((err) => {
 
-          Promise.reject(err);
+          Promise.reject(err)
 
-      });
+      })
 
     // Add email to verificationPack
-      console.log('this is the RESET data');
-    console.log(verificationPack);
-      verificationPack.email = email;
+      winstonLogger.info('this is the RESET data')
+    winstonLogger.info(verificationPack)
+      verificationPack.email = email
 
     // Add temporaryData(verificationPack) to user's data in DB
     await teacherService
       ._teacherModel.update(verificationPack)
       .then((response) => {
 
-        console.log('updated: ');
-          console.log(response);
+        winstonLogger.info('updated: ')
+          winstonLogger.info(response)
 
       })
       .catch((err) => {
 
-          console.log('error updating the user data with reset data ');
-          console.log(err);
+          winstonLogger.error('Error updating the user data with reset data ')
+          winstonLogger.info(err)
         // Return false and and empty object
 
-          Promise.reject(err);
+          Promise.reject(err)
 
-      });
+      })
 
     // Return value
-    return Promise.resolve();
+    return Promise.resolve()
 
   },
 
@@ -397,7 +399,7 @@ const teacherService = {
    */
     async validatePasswordResetEmail(email, verificationCode, newPassword) {
 
-      console.log('ENTERED VALIDATEPASSWORDRESETEMAIL FUNCTION');
+      winstonLogger.error('ENTERED VALIDATEPASSWORDRESETEMAIL FUNCTION')
     // Find email and verificationCode combination
     await teacherService._teacherModel.findOne({
             email,
@@ -405,32 +407,32 @@ const teacherService = {
         })
       .then((teacherData) => {
 
-        console.log('teacherData : ');
-        console.log(teacherData);
+        winstonLogger.info('teacherData : ')
+        winstonLogger.info(teacherData)
         // Update passwordfied
-          teacherData.password = newPassword;
+          teacherData.password = newPassword
         // Delete the temporaryData
-        teacherData.verificationCode = null;
-        teacherData.verificationCodeExpiration = null;
-        console.log('new teacherData : ');
+        teacherData.verificationCode = null
+        teacherData.verificationCodeExpiration = null
+        winstonLogger.info('new teacherData : ')
         teacherData.save()
           .catch((err) => {
 
-              console.log('error updating password');
-              console.log(err);
+              winstonLogger.error('Error updating password')
+              winstonLogger.info(err)
 
-          });
-        console.log(teacherData);
+          })
+        winstonLogger.info(teacherData)
 
 
       })
       .catch((err) => {
 
-          console.log('ERROR updating PASSWORD');
+          winstonLogger.error('ERROR updating PASSWORD')
 
-        return Promise.reject(err);
+        return Promise.reject(err)
 
-      });
+      })
 
   },
 
@@ -439,27 +441,27 @@ const teacherService = {
    */
     async validatePasswordResetToken(resetToken, newPassword) {
 
-      console.log('ENTERED VALIDATEPASSWORDRESETTOKEN FUNCTION');
+      winstonLogger.error('ENTERED VALIDATEPASSWORDRESETTOKEN FUNCTION')
     // Find email and verificationCode combination
       await teacherService._teacherModel.findOne(resetToken)
       .then((teacherData) => {
 
-        console.log('teacherData : ');
-          console.log(teacherData);
+        winstonLogger.info('teacherData : ')
+          winstonLogger.info(teacherData)
         // Update passwordfied
-          teacherData.password = newPassword;
+          teacherData.password = newPassword
         // Delete the temporaryData
-          teacherData.verificationCode = null;
-          teacherData.verificationCodeExpiration = null;
+          teacherData.verificationCode = null
+          teacherData.verificationCodeExpiration = null
 
       })
       .catch((err) => {
 
-          console.log('ERROR updating PASSWORD');
+          winstonLogger.error('ERROR updating PASSWORD')
 
-          return Promise.reject(err);
+          return Promise.reject(err)
 
-      });
+      })
 
   },
 
@@ -469,11 +471,134 @@ const teacherService = {
     async logoutUser(Token) {
 
     // Destroy the token from database
-    console.log('destroy token');
-    await Promise.resolve(tokenService.killToken(Token));
+    winstonLogger.info('destroy token')
+    await Promise.resolve(tokenService.killToken(Token))
 
   },
 
-};
 
-export default teacherService;
+  //
+  async assignClassIDtoTeacher(classAlias,classID,teacherRef){
+
+    //
+    let response = null
+
+    const options = {
+      new: true,
+      safe: true,
+      upsert: true
+    }
+
+    teacherService._teacherModel.
+    findOneAndUpdate({
+        _id: teacherRef
+      },{
+        class: {
+          Alias: classAlias,
+          classRef: classID
+        }
+      },
+      options
+    ).
+    then((res) => {
+
+      winstonLogger.info('UPDATE: classID to teacher document')
+      winstonLogger.info(JSON.stringify(res,null,4))
+      // check if update worked
+
+    }).
+    catch((e) => {
+
+      winstonLogger.error('ERROR: adding classID to teacher document')
+      return Promise.resolve({
+        statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_ERROR,
+        Data: false
+      })
+
+    })
+
+    return Promise.resolve({
+      statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_OK,
+      Data: true
+    })
+
+  },
+
+  async updateActivityTeacher(activityAlias, activityID, teacherRef, oldteacherRef){
+
+    let response = null
+
+    const options = {
+      new: true,
+      safe: true,
+      upsert: true
+    }
+
+    if(oldteacherRef){
+
+      await teacherService._teacherModel.
+      findOneAndRemove({
+          _id: oldteacherRef
+        },{
+          activity: {
+            Name: activityAlias,
+            activityRef: activityID 
+          }
+        },
+        options
+      ).
+      then((res) => {
+
+        winstonLogger.info('UPDATE: activityID from teacher document')
+        winstonLogger.info(JSON.stringify(res,null,4))
+        // check if update worked
+
+      }).
+      catch((e) => {
+        winstonLogger.error('ERROR: removing activity from teacher document')
+        return Promise.resolve({
+          statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_ERROR,
+          Data: false
+        })
+      })
+
+    }
+
+    await teacherService._teacherModel.
+    findOneAndUpdate({
+        _id: teacherRef
+      },{
+        activity: {
+          Name: activityAlias,
+          activityRef: activityID
+        }
+      },
+      options
+    ).
+    then((res) => {
+
+      winstonLogger.info('UPDATE: activityID to teacher document')
+      winstonLogger.info(JSON.stringify(res,null,4))
+      // check if update worked
+
+    }).
+    catch((e) => {
+
+      winstonLogger.error('ERROR: adding activityID to teacher document')
+      return Promise.resolve({
+        statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_ERROR,
+        Data: false
+      })
+
+    })
+
+    return Promise.resolve({
+      statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_OK,
+      Data: true
+    })
+
+  }
+
+}
+
+export default teacherService

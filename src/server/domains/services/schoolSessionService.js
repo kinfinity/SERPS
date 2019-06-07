@@ -15,7 +15,8 @@ import SchoolSessionModel from '../models/SchoolSessionModel'
 import SchoolModel from '../models/schoolModel'
 import winstonLogger from '../../Infrastructure/utils/winstonLogger'
 import publicEnums from '../../app/publicEnums'
-import schoolEvent from '../../interfaces/Events/schoolEvents';
+import schoolEvent from '../../interfaces/Events/schoolEvents'
+import password from '../utils/password'
 
 const schoolSessionService = {
 
@@ -37,17 +38,18 @@ const schoolSessionService = {
     winstonLogger.info(`sessionID: ${schoolSession}`)        
         
         //
-    await schoolService._schoolSessionModel.
+    await schoolSessionService._schoolSessionModel.
     findAll({
         _id: schoolSession.sessionObjectID
     }).
-    sort({ _id: -1 }).
-    limit(10).
-    then((notifications) => {
+    // sort({ _id: -1 }).
+    // limit(10).
+    then((schoolSession) => {
 
       winstonLogger.info('GET: notifications')
-      response = notifications
-      winstonLogger.info(response)
+      response = schoolSession.notifications
+      winstonLogger.info(JSON.stringify(response,null,4))
+
     }).
     catch((e) => {
 
@@ -67,7 +69,6 @@ const schoolSessionService = {
     })
 
   },
-  //
   // getAll
   async getLatestNotification(SchoolName,SchoolID) {
 
@@ -83,7 +84,7 @@ const schoolSessionService = {
     winstonLogger.info(`sessionID: ${schoolSession}`)        
         
         //
-    await schoolService._schoolSessionModel.
+    await schoolSessionService._schoolSessionModel.
     findAll({
         _id: schoolSession.sessionObjectID
     }).
@@ -131,34 +132,45 @@ const schoolSessionService = {
   },
 
   //
-  async createSchoolSession(SchoolName,SchoolID,sessionData) {
+  async createSchoolSession(SchoolName,SchoolID,notifications,sessionData) {
 
     winstonLogger.info('::schoolSessionService')
 
     // Holds return data for this fucntion
     let response,schoolSessionID,activeTerm = null
+    winstonLogger.info('HERE WE ARE')
+    winstonLogger.info(sessionData.firstTerm.termTitle)
+    winstonLogger.info(JSON.stringify(sessionData,null,4))
 
+    const sessionData1 = {
+      SchoolName,
+      schoolID: SchoolID,
+      name: sessionData.name,
+      academicYear: sessionData.academicYear,
+      notifications: notifications,
+        firstTerm: {
+          termTitle: sessionData.firstTerm.termTitle,
+          startDate: sessionData.firstTerm.startDate,
+          endDate: sessionData.firstTerm.endDate
+        }
+    }
+  
     //create schoolSession Document
-    await schoolSessionService._schoolSessionModel.save(sessionData).
+    const ssM = new SchoolSessionModel(sessionData1)
+    await ssM.save().
     then((schoolSessionData) => {
 
-        if(schoolSessionData === null){
-            return Promise.resolve({
-                statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_ERROR,
-                Data: false
-              })
-        }
-      winstonLogger.info('CREATE: schoolSession')
-      winstonLogger.info(schoolSessionData)
+      winstonLogger.info('CREATE: schoolSession  B')
+      winstonLogger.info(JSON.stringify(schoolSessionData,null,4))
 
-      schoolSessionID = ObjectId(schoolSessionData._id)
-      activeTerm = schoolSessionData.Terms[0].termTitle
+      schoolSessionID = schoolSessionData._id
+      activeTerm = schoolSessionData.firstTerm.termTitle
       
     }).
     catch((e) => {
 
       winstonLogger.error('ERROR: creating schoolSession')
-      winstonLogger.error(e)
+      winstonLogger.error(JSON.stringify(e,null,4))
 
       return Promise.resolve({
         statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_ERROR,
@@ -167,6 +179,11 @@ const schoolSessionService = {
 
     }) 
 
+    winstonLogger.info('FIRING EVENTS')
+    winstonLogger.info(SchoolName)
+    winstonLogger.info(SchoolID)
+    winstonLogger.info(schoolSessionID)
+    winstonLogger.info(activeTerm)
     // fire event with schoolSessionID as param to save objectID to school document as current Session
     schoolEvent.
     emit(
@@ -177,18 +194,6 @@ const schoolSessionService = {
           schoolSessionID
         }
     )// send a few params
-    
-    // fire event with activeTermIndex  as param to save to school document as activeTermIndex
-    schoolEvent.
-    emit(
-        'school-termCreated',
-        {
-          SchoolName,
-          schoolID: SchoolID,
-          activeTerm
-        }
-      )// send a few params
-
 
     return Promise.resolve({
       statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_OK,
@@ -196,68 +201,58 @@ const schoolSessionService = {
     })// return objectId
 
   },
-  async activateNextTerm(SchoolName,SchoolID,TermData){// or create new term
-    
-    let schoolSession = null
+
+  //
+  async getSchoolSession(SchoolName,SchoolID) {
+
+    winstonLogger.info('::schoolSessionService')
+
+    let schoolSession = null,res = null
 
     const options = {
-        new: true
+      new: true
     }
 
     schoolSession = await this.getSchoolSessionID(SchoolName,SchoolID)
     winstonLogger.info(`sessionID: ${JSON.stringify(schoolSession,null,4)}`)
+   
+      // query and update schoolsesion document
+      await schoolSessionService._schoolSessionModel.
+      findOne({
+          _id: schoolSession.sessionObjectID
+      }).
+      then((xsessionData) => {
 
-    await schoolSessionService._schoolSessionModel.
-    findOneAndUpdate({
-        _id: schoolSession.sessionObjectID
-        },{
-            $push: {Terms: TermData}
-        },
-        options
-    ).
-    then((schoolSessionData) => {
+          if(xsessionData === null ){
+              return Promise.resolve({
+                  statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_ERROR,
+                  Data: false
+                })
+          }
 
-        if(schoolSessionData === null){
-            return Promise.resolve({
-                statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_ERROR,
-                Data: false
-              })
-        }
-      winstonLogger.info('CREATE: new schoolTerm')
-      winstonLogger.info(schoolSessionData)
+          winstonLogger.info('GET: schoolSession')
+          winstonLogger.info(JSON.stringify(schoolSession,null,4)) 
+          res = xsessionData
+      }).
+      catch((e) => {
 
-    }).
-    catch((e) => {
+        winstonLogger.error('ERROR: getting schoolSession')
+        winstonLogger.error(e)
 
-      winstonLogger.error('ERROR: creating schoolTerm')
-      winstonLogger.error(e)
+        return Promise.resolve({
+          statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_ERROR,
+          Data: null
+        })
 
-      return Promise.resolve({
-        statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_ERROR,
-        Data: false
-      })
+      }) 
 
-    }) 
-
-    // fire event with activeTermIndex  as param to save to school document as activeTermIndex
-    schoolEvent.
-    emit(
-        'school-termCreated',
-        {
-          SchoolName,
-          schoolID: SchoolID,
-          activeTerm:termData.termTitle
-        }
-      )// send a few params
 
       return Promise.resolve({
-        statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_ERROR,
-        Data: true
+        statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_OK,
+        Data: res
       })
 
   },
-
-  //updateNotification
   async updateSchoolSession(SchoolName,SchoolID,sessionData) {
 
     winstonLogger.info('::schoolSessionService')
@@ -269,46 +264,54 @@ const schoolSessionService = {
     }
 
     schoolSession = await this.getSchoolSessionID(SchoolName,SchoolID)
-    winstonLogger.info(`sessionID: ${schoolSession}`)
-    
-    // query and update schoolsesion document
-    await schoolSessionService._schoolSessionModel.
-    findOneAndUpdate({
-        _id: schoolSession.sessionObjectID
-        },
-        sessionData,
-        options
-    ).
-    then((xsessionData) => {
+    winstonLogger.info(`sessionID: ${JSON.stringify(schoolSession,null,4)}`)
 
-        if(xsessionData === null ){
-            return Promise.resolve({
-                statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_ERROR,
-                Data: false
-              })
-        }
+    if(!schoolSession.sessionObjectID){
+        winstonLogger.info('CREATE: NEW SESSION')
+        return Promise.resolve(this.createSchoolSession(SchoolName,SchoolID,sessionData))
+    }else{
+          
+      // query and update schoolsesion document
+      await schoolSessionService._schoolSessionModel.
+      findOneAndUpdate({
+          _id: schoolSession.sessionObjectID,
 
-        winstonLogger.info('UPDATE: schoolSession')
-        winstonLogger.info(xsessionData) 
+          },
+          sessionData,
+          options
+      ).
+      then((xsessionData) => {
 
-    }).
-    catch((e) => {
+          if(xsessionData === null ){
+              return Promise.resolve({
+                  statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_ERROR,
+                  Data: false
+                })
+          }
 
-      winstonLogger.error('ERROR: updating schoolSession')
-      winstonLogger.error(e)
+          winstonLogger.info('UPDATE: schoolSession')
+          winstonLogger.info(JSON.stringify(xsessionData,null,4)) 
+
+      }).
+      catch((e) => {
+
+        winstonLogger.error('ERROR: updating schoolSession')
+        winstonLogger.error(e)
+
+        return Promise.resolve({
+          statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_ERROR,
+          Data: null
+        })
+
+      }) 
+
 
       return Promise.resolve({
-        statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_ERROR,
-        Data: null
+        statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_OK,
+        Data: true
       })
-
-    }) 
-
-
-    return Promise.resolve({
-      statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_OK,
-      Data: true
-    })
+      
+    }
 
   },
 
@@ -316,6 +319,9 @@ const schoolSessionService = {
 
     let sessionObjectID = null ,activeTerm = null
 
+    winstonLogger.info('WHAT I WANT')
+    winstonLogger.info(SchoolName)
+    winstonLogger.info(SchoolID)
     // get the current schoolsessionID from the schoool document
     await schoolSessionService._schoolModel.
     findOne({
@@ -324,10 +330,8 @@ const schoolSessionService = {
     }).
     then((schoolInfo) => {
 
-        winstonLogger.info('GET: current sessionID')
-        winstonLogger.info(schoolInfo.currentSessionID)
-        winstonLogger.info('GET: activeTerm')
-        winstonLogger.info(schoolInfo.activeTerm)
+      winstonLogger.info('schoolInfo:')
+      winstonLogger.info(schoolInfo)
         sessionObjectID = schoolInfo.currentSessionID 
         activeTerm = schoolInfo.activeTerm
 
@@ -352,24 +356,21 @@ const schoolSessionService = {
         let schoolSession = null
 
         const options = {
-          new: true,
-          safe: true, 
-          upsert: true
+          new: true
         }
   
-        winstonLogger.info('ADD: notification')
-        winstonLogger.info(JSON.stringify(paymentData,null,4))
+        winstonLogger.info('REMOVE: notification')
 
         schoolSession = await this.getSchoolSessionID(schoolName,schoolID)
-        winstonLogger.info(`sessionID: ${schoolSession}`)        
+        winstonLogger.info(`sessionID: ${JSON.stringify(schoolSession,null,4)}`)        
         
         //
-        await schoolService._schoolSessionModel.
+        await schoolSessionService._schoolSessionModel.
         findOneAndUpdate({
             _id: schoolSession.sessionObjectID
           },
           {
-            $pull: {'Terms[schoolSession.activeTerm].notifications': notificationID} // REVIEW
+            $pull: {notifications: notificationID} // REVIEW
           },
           options
         ).
@@ -377,7 +378,6 @@ const schoolSessionService = {
   
           winstonLogger.info('RESULT: remove notification ')
           winstonLogger.info(result)
-          res = result
   
         }).
         catch((e) => {
@@ -387,14 +387,14 @@ const schoolSessionService = {
   
           return Promise.resolve({
             statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_ERROR,
-            Data: null
+            Data: false
           })
     
         }) 
   
         return Promise.resolve({
           statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_OK,
-          Data: res
+          Data: true
         })// return objectId
   
       },
@@ -403,29 +403,30 @@ const schoolSessionService = {
     async addNotification(schoolName,schoolID,notificationID){
 
         //
-        let schoolSession = null
+        let schoolSession = null, res = null
 
         const options = {
           new: true,
-          safe: true, 
+          safe: true,
           upsert: true
         }
   
         winstonLogger.info('ADD: notification')
-        winstonLogger.info(JSON.stringify(paymentData,null,4))
+        winstonLogger.info(JSON.stringify(notificationID,null,4))
 
         schoolSession = await this.getSchoolSessionID(schoolName,schoolID)
-        winstonLogger.info(`sessionID: ${schoolSession}`)        
+        winstonLogger.info(`sessionID: ${JSON.stringify(schoolSession,null,4)}`)  
+        winstonLogger.info(`notificationID: ${JSON.stringify(notificationID,null,4)}`)
         
         //
-        await schoolService._schoolSessionModel.
+        await schoolSessionService._schoolSessionModel.
         findOneAndUpdate({
-            _id: schoolSession.sessionObjectID
-          },
-          {
-            $push: {'Terms[schoolSession.activeTerm].notifications': notificationID} // REVIEW
-          },
-          options
+            _id: schoolSession.sessionObjectID,
+            },
+            {
+              $push: {notifications: notificationID}
+            },
+            options
         ).
         then((result) => {
   
@@ -436,8 +437,8 @@ const schoolSessionService = {
         }).
         catch((e) => {
   
-          winstonLogger.error('ERROR: removing notification from school')
-          winstonLogger.error(e)
+          winstonLogger.error('ERROR: adding notification to school')
+          winstonLogger.error(e.stack)
   
           return Promise.resolve({
             statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_ERROR,
@@ -451,7 +452,54 @@ const schoolSessionService = {
           Data: res
         })// return objectId
   
-      }    
+      },  
+      //
+      async update_AccessCode(schoolName,schoolID,sessionName){
+
+        //
+        const options = {
+          new: true,
+          safe: true, 
+          upsert: true
+        }
+
+        const h_accessCode = await password.hash(schoolID+sessionName)
+  
+        //
+        await schoolSessionService._schoolModel.
+        findOneAndUpdate({
+            Name: schoolName,
+            schoolID
+          },
+          {
+            public_ACCESS_CODE: h_accessCode
+          },
+          options
+        ).
+        then((result) => {
+  
+          winstonLogger.info('UPDATE: public_ACCESS_CODE ')
+          winstonLogger.info(result)
+  
+        }).
+        catch((e) => {
+  
+          winstonLogger.error('ERROR: updating public_ACCESS_CODE')
+          winstonLogger.error(e)
+  
+          return Promise.resolve({
+            statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_ERROR,
+            Data: false
+          })
+    
+        }) 
+  
+        return Promise.resolve({
+          statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_OK,
+          Data: true
+        })// return objectId
+  
+      },
 
 
 }

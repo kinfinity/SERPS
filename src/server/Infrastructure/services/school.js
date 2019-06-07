@@ -21,9 +21,9 @@ import paymentManagementController from '../../interfaces/controllers/paymentMan
 import profileManagementController from '../../interfaces/controllers/profileManagementController'
 import notificationController from '../../interfaces/controllers/notificationController'
 import educationManagementController from '../../interfaces/controllers/educationManagementController'
+import schoolSessionController from '../../interfaces/controllers/schoolSessionController'
 import winstonLogger from '../utils/winstonLogger'
-import schoolSessionController from '../../interfaces/controllers/schoolSessionController';
-import publicEnums from '../../app/publicEnums';
+import publicEnums from '../../app/publicEnums'
 
 export default {
  
@@ -187,16 +187,16 @@ export default {
     async getContactInfo(SchoolName,SchoolID){
       return profileManagementController.getSchoolContactInfo(SchoolName,SchoolID)
     },
-    async updateContactInfo(contactInfo){
-        return profileManagementController.updateSchoolContactInfo(contactInfo)
+    async updateContactInfo(shoolName,schoolID,contactInfo){
+        return profileManagementController.updateSchoolContactInfo(shoolName,schoolID,contactInfo)
     },
     
     // paymentManagementController
     async getSchoolPaymentInfo(SchoolName,SchoolID){
         return paymentManagementController.getSchoolPaymentInfo(SchoolName,SchoolID)
     },
-    async updateSchoolPaymentInfo(SchoolName,schoolID,PaymentInfoData){
-        return paymentManagementController.updateSchoolPaymentInfo(SchoolName,schoolID,PaymentInfoData)
+    async updateSchoolPaymentInfo(SchoolName,schoolID,paymentInfo){
+        return paymentManagementController.updateSchoolPaymentInfo(SchoolName,schoolID,paymentInfo)
     },
     async viewSchoolPaymentTransactionHistory(SchoolName,SchoolID){// TransactionID month teacher bank[Teacher] accNo Receipt/Amount
         return paymentManagementController.viewSchoolPaymentTransactionHistory(SchoolName,SchoolID) 
@@ -247,55 +247,61 @@ export default {
         return timeTableController.archiveTimetable(schoolName,schoolID,ClassAlias,timeTableID)
     },
     // educationManagementController
-    async createClass(classAlias,classData){
-      return educationManagementController.createClass(classAlias,classData)
+    async createClass(schoolName,schoolID,classAlias,classData){
+      return educationManagementController.createClass(schoolName,schoolID,classAlias,classData)
     },
-    async createSubject(classAlias,subjectData){
-        return educationManagementController.createSubject(classAlias,subjectData)
+    async createSubjectHolder(schoolName,schoolID,subjctName,subjectDescription){
+        return educationManagementController.createSubjectHolder(schoolName,schoolID,subjctName,subjectDescription)
     },
-    async getClass(classAlias){
-        return educationManagementController.getClass(classAlias)
+    async removeSubjectHolder(schoolName,schoolID,subjctName){
+        return educationManagementController.removeSubjectHolder(schoolName,schoolID,subjctName)
     },
-    async getSubject(classAlias,subjectTitle){
-        return educationManagementController.getSubject(classAlias,subjectTitle)
+    async createSubject(schoolName,schoolID,classAlias,subjectName,subjectData){
+        return educationManagementController.createSubject(schoolName,schoolID,classAlias,subjectName,subjectData)
     },
-    async updateClass(classAlias){
-        return educationManagementController.updateClass(classAlias)
+    async getClass(schoolName, schoolID, classAlias){
+        return educationManagementController.getClass(schoolName, schoolID, classAlias)
+    },
+    async getSubject(schoolName,schoolID,classAlias,subjectName){
+        return educationManagementController.getSubject(schoolName,schoolID,classAlias,subjectName)
+    },
+    async updateClass(schoolName,schoolID,classAlias,classData){
+        return educationManagementController.updateClass(schoolName,schoolID,classAlias,classData)
     },
     async updateSubject(classAlias,subjectTitle){
         return educationManagementController.updateSubject(classAlias,subjectTitle)
     },
-    async removeClass(classAlias){
-        return educationManagementController.removeClass(classAlias)
+    async removeClass(schoolName,schoolID,classAlias){
+        return educationManagementController.removeClass(schoolName,schoolID,classAlias)
     },
-    async removeSubject(classAlias,subjectTitle){
-        return educationManagementController.removeSubject(classAlias,subjectTitle)
+    async removeSubject(schoolName,schoolID,classAlias,subjectName){
+        return educationManagementController.removeSubject(schoolName,schoolID,classAlias,subjectName)
     },
-    async assignClassTeacher(classAlias,TeacherID){
-        return educationManagementController.assignClassTeacher(classAlias,TeacherID)
+    async assignClassTeacher(schoolName,schoolID,classAlias,TeacherID){
+        return educationManagementController.assignClassTeacher(schoolName,schoolID,classAlias,TeacherID)
     },
     async reassignClassTeacher(classAlias,TeacherID){
         return educationManagementController.removeSubject(classAlias,TeacherID)
     },
-    async createActivity(activityAlias,activityData){
-      return educationManagementController.createActivity(activityAlias,activityData)
+
+    // Activity
+    async createActivity(schoolName,schoolID,activityAlias,activityData){
+      return educationManagementController.createActivity(schoolName,schoolID,activityAlias,activityData)
     },
-    async getActivity(activityAlias){
-        return educationManagementController.removeSubject(activityAlias)
+    async getActivity(schoolName,schoolID,activityAlias){
+        return educationManagementController.getActivity(schoolName,schoolID,activityAlias)
     },
-    async updateActivity(activityAlias,activityData){
-        return educationManagementController.removeClass(activityAlias,activityData)
+    async updateActivity(schoolName,schoolID,activityAlias,activityData){
+        return educationManagementController.updateActivity(schoolName,schoolID,activityAlias,activityData)
     },
-    async removeActivity(activityAlias){
-        return educationManagementController.removeSubject(activityAlias)
+    async removeActivity(schoolName,schoolID,activityAlias){
+        return educationManagementController.removeActivity(schoolName,schoolID,activityAlias)
     },
-    async assignActivityTeacher(activityAlias,TeacherID){
-        return educationManagementController.removeClass(activityAlias,TeacherID)
-    },
-    async reassignActivityTeacher(activityAlias,oldTeacherID,newTeacherID){
-        return educationManagementController.removeSubject(activityAlias,oldTeacherID,newTeacherID)
+    async assignActivityTeacher(schoolName,schoolID,activityAlias,TeacherID){
+        return educationManagementController.assignActivityTeacher(schoolName,schoolID,activityAlias,TeacherID)
     },
 
+    // Results
     async viewPendingResults(){
       return educationManagementController.viewPendingResults()
     },
@@ -303,6 +309,7 @@ export default {
         return educationManagementController.validatePendingResult(SubjectID,classAlias)
     },
 
+    // Students
     async viewRegisteredStudents(){
         return educationManagementController.viewRegisteredStudents()
     },
@@ -312,20 +319,30 @@ export default {
     async validateRegisteredStudent(studentID){
         return educationManagementController.validateRegisteredStudent(studentID)
     },
-    async createclassSequence(){
-        return educationManagementController.createclassSequence()
-    },
-    async createGradeRanges(gradeData){
-        return educationManagementController.createGradeRanges(gradeData)
-    },// holds grade Enum and lower and upper bounds
-
 
     //schoolSessionController
     async activateNextTerm(schoolName,schoolID,TermData){
         return schoolSessionController.activateNextTerm(schoolName,schoolID,TermData)
     },
-    async createSchoolSession(schoolName,schoolID,sessionData){
-        return schoolSessionController.createSchoolSession(schoolName,schoolID,sessionData)
+    async updateSchoolSession(schoolName,schoolID,sessionData){
+        return schoolSessionController.updateSchoolSession(schoolName,schoolID,sessionData)
+    },
+    async getSchoolSession(schoolName,schoolID){
+        return schoolSessionController.getSchoolSession(schoolName,schoolID)
+    },
+    async createSchoolSession(schoolName,schoolID,notifications,sessionData){
+        return schoolSessionController.createSchoolSession(schoolName,schoolID,notifications,sessionData)
+    },
+
+    // 
+    async getAdmissionStatus(schoolName,schoolID){
+        return schoolSessionController.getAdmissionStatus(schoolName,schoolID)
+    },
+    async openAdmission(schoolName,schoolID){
+        return schoolSessionController.openAdmission(schoolName,schoolID)
+    },
+    async closeAdmission(schoolName,schoolID){
+        return schoolSessionController.closeAdmission(schoolName,schoolID)
     }
 
 }

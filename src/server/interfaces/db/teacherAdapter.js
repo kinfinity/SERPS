@@ -11,8 +11,8 @@
  */
 
 
-import authorisationService from '../../domains/services/authorisationService';
-import teacherService from '../../domains/services/teacherService';
+import authorisationService from '../../domains/services/authorisationService'
+import teacherService from '../../domains/services/teacherService'
 
 
 const teacherAdapter = {
@@ -20,91 +20,97 @@ const teacherAdapter = {
   // Adds new user to the database with email and password
   async persist(email, password, username, clientID) {
 
-    let response = null;
+    let response = null
 
     await teacherService.createNewEmailUser(email, password, username, clientID).
     then((resolve) => {
 
       // Creation Succeeded
-      response = Promise.resolve(resolve);
+      response = Promise.resolve(resolve)
 
     }).
     catch((err) => {
 
-      response = {'result':false,'Token':null,'message':err.toString()};
+      response = {'result':false,'Token':null,'message':err.toString()}
       
-      return Promise.reject(response);
+      return Promise.reject(response)
 
-    });
+    })
 
-    return response;
+    return response
 
   },
   // Authenticates already existing user
   async authenticate(email, password, username, clientID) {
   
-    let response = null;
+    let response = null
 
     await teacherService.authenticateTeacher({email, password, username}, clientID).
     then((resolve) => {
 
       // Authentication succeeded
-        response = Promise.resolve(resolve);
+        response = Promise.resolve(resolve)
 
     }).
     catch((err) => {
 
-      response = {'result':false,'Token':null,'message':err.toString()};
+      response = {'result':false,'Token':null,'message':err.toString()}
 
-    });
+    })
 
-    return response;
+    return response
 
   },
   // authorise an authenticated user
   async authorise(accessToken) {
   
-    let response = null;
+    let response = null
 
     // 
     await authorisationService.authoriseToken(accessToken).
     then((resolve) => {
 
       // Authorization succeeded
-        response = Promise.resolve(resolve);
+        response = Promise.resolve(resolve)
 
     }).
     catch((err) => {
 
-      response = {'result': false};
+      response = {'result': false}
 
-    });
+    })
 
-    return response;
+    return response
 
   },
   // Logout an authenticated user
   async logout(accessToken) {
   
-    let response = null;
+    let response = null
 
     await teacherService.logoutTeacher(accessToken).
     then((resolve) => {
 
       // Lougout succeeded
-      response = Promise.resolve(resolve);
+      response = Promise.resolve(resolve)
 
     }).
     catch((err) => {
 
-      reponse = {'response': false};
+      reponse = {'response': false}
 
-    });
+    })
 
-    return response;
+    return response
 
+  },
+
+
+  //
+  async assignClassIDtoTeacher(schoolName,schoolID,classAlias,classID,teacherRef){
+    return teacherService.assignClassIDtoTeacher(schoolName,schoolID,classAlias,classID,teacherRef) 
   }
 
-};
+}
 
-export default teacherAdapter;
+export default teacherAdapter

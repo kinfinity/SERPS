@@ -43,7 +43,7 @@ const wrapper = {
 
             winstonLogger.log({
                 level: 'error',
-                message: `requireF(): The file ${modulePath} could not be loaded :: ${err}`
+                message: `requireF(): The file ${modulePath} could not be loaded :: ${err.stack}`
             })
 
             return false

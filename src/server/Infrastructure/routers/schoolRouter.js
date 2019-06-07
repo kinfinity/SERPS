@@ -7,6 +7,14 @@ import winstonLogger from '../utils/winstonLogger'
 import shortid from 'shortid'
 import csurf from 'csurf'
 import publicEnums from '../../app/publicEnums'
+import jsStringCompression from 'js-string-compression'
+
+/**
+ * base64 image strings are compress b4 sent to server
+ * so we decompress them first 
+ * 
+ */
+const hm = new jsStringCompression.Hauffman()
 
 winstonLogger.info('::::schoolRouter')
 
@@ -22,163 +30,13 @@ winstonLogger.info('::::schoolRouter')
     // const csrfMiddleware = csurf({cookie: true})
 
     //
-    // schoolRouter.use('/SERPS/School',routeUtils.authSchool())
+    // schoolRouter.use('/SERPS/School',routeUtils.asyncMiddleware(routeUtils.authSchool))
     // schoolRouter.use(csrfMiddleware)
-//
-schoolRouter.route('/SERPS/School/signUp').get(routeUtils.asyncMiddleware(async (req,res,next) => {
-  
-    winstonLogger.info('SCHOOL-SIGNUP')
-    
-    if(req.body === null) {
 
-        winstonLogger.error('ERROR: WRONG REQUEST PARAMS')
-
-        res.json({
-            state: 'failure',
-            statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_PARAM_ERROR,
-            Data: null
-        })
-
-    }
-
-    winstonLogger.info('REQUEST BODY')
-    winstonLogger.info(JSON.stringify(req.body,null,4))
-   
-    const profiler = winstonLogger.startTimer()
-
-    try{
-
-        winstonLogger.info('REQUEST BODY')
-        winstonLogger.info(JSON.stringify(req.body,null,4))
-        
-        const schoolID = req.body.schoolPrefix// + shortid.generate()
-
-        winstonLogger.info("generated schoolID ")
-        winstonLogger.info(schoolID)
-        
-        const payloadS = await schoolService.signupSchool({
-            Name: req.body.Name,
-            schoolID,
-            email: req.body.email,
-            password: req.body.password,
-            motto: req.body.motto,
-            Address: req.body.Address,
-            Logo: 'tempURL',// Gets updated on Logo upload to cloudinary
-            Images: req.body.imagesLinks // 1-3
-        })
-
-        // Persist Logo and images if school was created 
-        if(payloadS.Token !== null ){
-
-            winstonLogger.info('SAVE LOGO TO CLOUDINARY')
-            // if it worked save the image to cloudinary with schoolName / profile
-            const result = await cloudinaryCon.uploadSchoolLogo(req.body.Logo, req.body.Name, req.body.schoolPrefix).
-            catch((e) => {
-
-                winstonLogger.error('Error uploading Logo')
-                winstonLogger.error(e)
-
-            })
-
-            winstonLogger.info('COUDLINARY RESULTS')
-            winstonLogger.info(result)
-            winstonLogger.info('END')
-
-        }
-
-        // Send the payload to client
-        payloadS.state = 'success'
-        res.json(payloadS)
-
-    }catch(e) {
-      
-      winstonLogger.error(e)
-
-      const payloadE = {
-          statusCode: publicEnums.SERPS_STATUS_CODES.INTERNAL_SERVER_ERROR,
-          Token: null
-      }
-
-      payloadE.state = 'failure'
-       res.json(payloadE)
-
-    }
-    
-    profiler.done({ message: 'End of school_signup'})
-    
-    next()
-
-}))
-  
-schoolRouter.route('/SERPS/School/login').get(routeUtils.asyncMiddleware(async (req,res,next) => {
-
-    winstonLogger.info('SCHOOL-LOGIN')
-    
-    if(req.body === null) {
-
-        winstonLogger.error('ERROR: WRONG REQUEST PARAMS')
-
-        res.json({
-            state: 'failure',
-            statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_PARAM_ERROR,
-            Data: null
-        })
-
-    }
-
-    winstonLogger.info('REQUEST BODY')
-    winstonLogger.info(JSON.stringify(req.body,null,4))
-   
-      try {
-          
-          // *
-
-          const payload = await schoolService.authenticate({
-            email: req.body.email || null,
-            password: req.body.password,
-            username: req.body.username || null
-          })
-          winstonLogger.info("PAYLOAD")
-          winstonLogger.info(payload)
-
-          payload.state = 'success'
-          res.json(payload)
-          
-      } catch (e) {
-
-        winstonLogger.error(e)
-
-        const payloadE = {
-            statusCode: publicEnums.SERPS_STATUS_CODES.INTERNAL_SERVER_ERROR,
-            Token: null
-        }
-
-        payloadE.state = 'failure'
-        res.json(payloadE)
-
-      }
-
-      next()
-
-}))
-  
 // Non openAccess_Routes : require Access Token
-  schoolRouter.route('/SERPS/School/logOut').get(routeUtils.asyncMiddleware (async (req,res, next) => {
+  schoolRouter.route('/SERPS/School/logOut').get(routeUtils.asyncMiddleware(async (req,res, next) => {
 
-        
     winstonLogger.info('SCHOOL-LOGOUT')
-    
-    if(req.body !== null) {
-
-        winstonLogger.error('ERROR: WRONG REQUEST PARAMS')
-
-        res.json({
-            state: 'failure',
-            statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_PARAM_ERROR,
-            Data: null
-        })
-
-    }
 
     winstonLogger.info('REQUEST BODY')
     winstonLogger.info(JSON.stringify(req.body,null,4))
@@ -202,19 +60,18 @@ schoolRouter.route('/SERPS/School/login').get(routeUtils.asyncMiddleware(async (
 
       } catch (e) {
 
+        winstonLogger.error('ERROR: signing out')
         winstonLogger.error(e)
 
-        const payloadE = {
+        res.json({
+            state: 'failure',
             statusCode: publicEnums.SERPS_STATUS_CODES.INTERNAL_SERVER_ERROR,
             Token: null
-        }
-
-        payloadE.state = 'failure'
-        res.json(payloadE)
+        })
 
       }
 
-      next()
+    next()
 
 }))
 
@@ -223,18 +80,6 @@ schoolRouter.route('/SERPS/School/login').get(routeUtils.asyncMiddleware(async (
   .get(routeUtils.asyncMiddleware (async (req,res, next) => {
 
     winstonLogger.info('GET: SCHOOL PROFILE')
-    
-    if(req.body !== null) {
-
-        winstonLogger.error('ERROR: WRONG REQUEST PARAMS')
-
-        res.json({
-            state: 'failure',
-            statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_PARAM_ERROR,
-            Data: null
-        })
-
-    }
 
     winstonLogger.info('REQUEST BODY')
     winstonLogger.info(JSON.stringify(req.body,null,4))
@@ -248,12 +93,12 @@ schoolRouter.route('/SERPS/School/login').get(routeUtils.asyncMiddleware(async (
           req.body.schoolID
         )
         winstonLogger.info('PAYLOAD')
-        winstonLogger.info(schoolProfileInfo)
+        winstonLogger.info(JSON.stringify(schoolProfileInfo,null,4))
 
         res.json({
             state: 'success',
-            statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_OK,
-            Data: schoolProfileInfo
+            statusCode: schoolProfileInfo.statusCode,
+            Data: schoolProfileInfo.Data
         })
 
     } catch (e) {
@@ -269,25 +114,13 @@ schoolRouter.route('/SERPS/School/login').get(routeUtils.asyncMiddleware(async (
 
     }
 
-    next()
+    // next()
 
 }))
   schoolRouter.route('/SERPS/School/contactInfo')
   .get(routeUtils.asyncMiddleware (async (req,res, next) => {
 
     winstonLogger.info('GET: SCHOOL CONTACT_INFO')
-    
-    if(req.body !== null) {
-
-        winstonLogger.error('ERROR: WRONG REQUEST PARAMS')
-
-        res.json({
-            state: 'failure',
-            statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_PARAM_ERROR,
-            Data: null
-        })
-
-    }
 
     winstonLogger.info('REQUEST BODY')
     winstonLogger.info(JSON.stringify(req.body,null,4))
@@ -295,17 +128,18 @@ schoolRouter.route('/SERPS/School/login').get(routeUtils.asyncMiddleware(async (
     try {
         
         // *
+        winstonLogger.info('SCHOOL')
         const schoolContactInfo = await schoolService.getContactInfo(
-            Name = req.body.schoolName,
-            schooolID = req.body.schoolID
+            req.body.schoolName,
+            req.body.schoolID
         )
         winstonLogger.info('PAYLOAD')
-        winstonLogger.info(schoolContactInfo)
+        winstonLogger.info(JSON.stringify(schoolContactInfo,null,4))
 
         res.json({
             state: 'success',
-            statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_OK,
-            Data: schoolContactInfo
+            statusCode: schoolContactInfo.statusCode,
+            Data: schoolContactInfo.Data
         })
         
     } catch (e) {
@@ -321,23 +155,11 @@ schoolRouter.route('/SERPS/School/login').get(routeUtils.asyncMiddleware(async (
 
     }
 
-    next()
+    // next()
 
 }))
   schoolRouter.route('/SERPS/School/contactInfo/update')
   .get(routeUtils.asyncMiddleware (async (req,res, next) => {
-
-    if(req.body === null ) {
-
-        winstonLogger.error('ERROR: WRONG REQUEST PARAMS')
-
-        res.json({
-            state: 'failure',
-            statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_PARAM_ERROR,
-            Data: null
-        })
-
-    }
 
     winstonLogger.info('REQUEST BODY')
     winstonLogger.info(JSON.stringify(req.body,null,4))
@@ -346,15 +168,17 @@ schoolRouter.route('/SERPS/School/login').get(routeUtils.asyncMiddleware(async (
       
         // *
         const result = await schoolService.updateContactInfo(
-          ContactInfo = req.body.ContactInfo
+            req.body.schoolName,
+            req.body.schoolID,
+            req.body.contactInfo
         )
         winstonLogger.info('PAYLOAD')
-        winstonLogger.info(result)
+        winstonLogger.info(JSON.stringify(result,null,4))
 
         res.json({
             state: 'success',
-            statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_OK,
-            Data: result
+            statusCode: result.statusCode,
+            Data: result.Data
         })
         
     } catch (e) {
@@ -370,7 +194,7 @@ schoolRouter.route('/SERPS/School/login').get(routeUtils.asyncMiddleware(async (
 
     }
 
-    next()
+    // next()
 
 }))
 
@@ -380,18 +204,6 @@ schoolRouter.route('/SERPS/School/login').get(routeUtils.asyncMiddleware(async (
 
     winstonLogger.info('GET: SCHOOL PAYMENT_INFO')
     
-    if(req.body !== null) {
-
-        winstonLogger.error('ERROR: WRONG REQUEST PARAMS')
-
-        res.json({
-            state: 'failure',
-            statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_PARAM_ERROR,
-            Data: null
-        })
-
-    }
-
     winstonLogger.info('REQUEST BODY')
     winstonLogger.info(JSON.stringify(req.body,null,4))
 
@@ -400,16 +212,16 @@ schoolRouter.route('/SERPS/School/login').get(routeUtils.asyncMiddleware(async (
         
         // *
         const paymentInfo = await schoolService.getSchoolPaymentInfo(
-            Name = req.body.SchoolName,
-            schoolID = req.body.SchoolID
+            req.body.schoolName,
+            req.body.schoolID
         )
         winstonLogger.info('PAYLOAD')
-        wintsonLogger.info(paymentInfo)
+        winstonLogger.info(JSON.stringify(paymentInfo,null,4))
 
         res.json({
             state: 'success',
-            statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_OK,
-            Data: paymentInfo
+            statusCode: paymentInfo.statusCode,
+            Data: paymentInfo.Data
         })
         
     } catch (e) {
@@ -425,25 +237,13 @@ schoolRouter.route('/SERPS/School/login').get(routeUtils.asyncMiddleware(async (
 
     }
 
-    next()
+    // next()
 
 }))
   schoolRouter.route('/SERPS/School/paymentInfo/update')
   .get(routeUtils.asyncMiddleware (async (req,res, next) => {
 
     winstonLogger.info('UPDATE: SCHOOL PAYMENT_INFO')
-    
-    if(req.body === null) {
-
-        winstonLogger.error('ERROR: WRONG REQUEST PARAMS')
-
-        res.json({
-            state: 'failure',
-            statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_PARAM_ERROR,
-            Data: null
-        })
-
-    }
 
     winstonLogger.info('REQUEST BODY')
     winstonLogger.info(JSON.stringify(req.body,null,4))
@@ -454,18 +254,15 @@ schoolRouter.route('/SERPS/School/login').get(routeUtils.asyncMiddleware(async (
         const result = await schoolService.updateSchoolPaymentInfo(
             req.body.schoolName,
             req.body.schoolID,
-            PaymentInfoData = {
-                bankName: req.body.bankName,
-                AccountNumber: req.body.AccountNumber
-            }
+            req.body.paymentInfo
         )
         winstonLogger.info('PAYLOAD')
-        winstonLogger.info(result)
+        winstonLogger.info(JSON.stringify(result,null,4))
 
         res.json({
             state: 'success',
-            statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_OK,
-            Data: result
+            statusCode: result.statusCode,
+            Data: result.Data
         })
           
     } catch (e) {
@@ -481,25 +278,13 @@ schoolRouter.route('/SERPS/School/login').get(routeUtils.asyncMiddleware(async (
 
     }
 
-    next()
+    // next()
 
 }))
   schoolRouter.route('/SERPS/School/paymentInfo/transactionHistory') // REVIEW SEND BY DATE
   .get(routeUtils.asyncMiddleware (async (req,res, next) => {
 
     winstonLogger.info('GET: SCHOOL TRANSACTION_HISTORY')
-    
-    if(req.body !== null) {
-
-        winstonLogger.error('ERROR: WRONG REQUEST PARAMS')
-
-        res.json({
-            state: 'failure',
-            statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_PARAM_ERROR,
-            Data: null
-        })
-
-    }
 
     winstonLogger.info('REQUEST BODY')
     winstonLogger.info(JSON.stringify(req.body,null,4))
@@ -537,23 +322,146 @@ schoolRouter.route('/SERPS/School/login').get(routeUtils.asyncMiddleware(async (
 
 }))
 
+
+    // schoolSession API routes
+    schoolRouter.route('/SERPS/School/Session') // REVIEW SEND BY DATE
+    .get(routeUtils.asyncMiddleware (async (req,res, next) => {
+  
+      winstonLogger.info('GET: SCHOOL SESSION')
+  
+      winstonLogger.info('REQUEST BODY')
+      winstonLogger.info(JSON.stringify(req.body,null,4))
+  
+      try {
+          // *
+          const result = await schoolService.getSchoolSession(
+            req.body.schoolName,
+            req.body.schoolID
+          )
+          winstonLogger.info('PAYLOAD')
+          winstonLogger.info(JSON.stringify(result,null,4))
+  
+          
+          res.json({
+              state: 'success',
+              statusCode: result.statusCode,
+              Data: result.Data
+          })
+      
+      } catch (e) {
+          
+          winstonLogger.error('ERROR: updating Session')
+          winstonLogger.error(e)
+  
+          res.json({
+              state: 'failure',
+              statusCode: publicEnums.SERPS_STATUS_CODES.INTERNAL_SERVER_ERROR,
+              Data: null
+          })
+  
+      }
+  
+      // next()
+  
+  }))
+
+  schoolRouter.route('/SERPS/School/Session/create') // REVIEW SEND BY DATE
+  .get(routeUtils.asyncMiddleware (async (req,res, next) => {
+
+    winstonLogger.info('CREATE: SCHOOL SESSION')
+
+    winstonLogger.info('REQUEST BODY')
+    winstonLogger.info(JSON.stringify(req.body,null,4))
+
+    try {
+        // *
+        const result = await schoolService.createSchoolSession(
+          req.body.schoolName,
+          req.body.schoolID,
+          req.body.notifications,
+            {
+                firstTerm: req.body.firstTerm,
+                name: req.body.name,
+                academicYear: req.body.academicYear
+            }
+        )
+        winstonLogger.info('PAYLOAD')
+        winstonLogger.info(JSON.stringify(result,null,4))
+
+        
+        res.json({
+            state: 'success',
+            statusCode: result.statusCode,
+            Data: result.Data
+        })
+    
+    } catch (e) {
+        
+        winstonLogger.error('ERROR: creating Session')
+        winstonLogger.error(e)
+
+        res.json({
+            state: 'failure',
+            statusCode: publicEnums.SERPS_STATUS_CODES.INTERNAL_SERVER_ERROR,
+            Data: null
+        })
+
+    }
+
+    // next()
+
+}))
+
+schoolRouter.route('/SERPS/School/Session/update') // REVIEW
+  .get(routeUtils.asyncMiddleware (async (req,res, next) => {
+
+    winstonLogger.info('UPDATE: SCHOOL SESSION')
+
+    winstonLogger.info('REQUEST BODY')
+    winstonLogger.info(JSON.stringify(req.body,null,4))
+
+    try {
+        // *
+        const result = await schoolService.updateSchoolSession(
+          req.body.schoolName,
+          req.body.schoolID,{
+              name:req.body.name,
+              academicYear:req.body.academicYear,
+              term: req.body.term
+          }
+        )
+        winstonLogger.info('PAYLOAD')
+        winstonLogger.info(JSON.stringify(result,null,4))
+
+        
+        res.json({
+            state: 'success',
+            statusCode: result.statusCode,
+            Data: result.Data
+        })
+    
+    } catch (e) {
+        
+        winstonLogger.error('ERROR: updating Session')
+        winstonLogger.error(e)
+
+        res.json({
+            state: 'failure',
+            statusCode: publicEnums.SERPS_STATUS_CODES.INTERNAL_SERVER_ERROR,
+            Data: null
+        })
+
+    }
+
+    // next()
+
+}))
+
   // notification API routes
   schoolRouter.route('/SERPS/School/notifications')
   .get(routeUtils.asyncMiddleware (async (req,res, next) => {
       
     winstonLogger.info('GET: SCHOOL NOTIFICATIONS')
-    
-    if(req.body !== null) {
-
-        winstonLogger.error('ERROR: WRONG REQUEST PARAMS')
-
-        res.json({
-            state: 'failure',
-            statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_PARAM_ERROR,
-            Data: null
-        })
-
-    }
 
     winstonLogger.info('REQUEST BODY')
     winstonLogger.info(JSON.stringify(req.body,null,4))
@@ -588,26 +496,15 @@ schoolRouter.route('/SERPS/School/login').get(routeUtils.asyncMiddleware(async (
 
     }
 
-    next()
+    // next()
 
 }))
   schoolRouter.route('/SERPS/School/notifications/create')
   .get(routeUtils.asyncMiddleware (async (req,res, next) => {
 
     winstonLogger.info('CREATE: SCHOOL NOTIFICATION')
+    let payload = null
     
-    if(req.body === null) {
-
-        winstonLogger.error('ERROR: WRONG REQUEST PARAMS')
-
-        res.json({
-            state: 'failure',
-            statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_PARAM_ERROR,
-            Data: null
-        })
-
-    }
-
     winstonLogger.info('REQUEST BODY')
     winstonLogger.info(JSON.stringify(req.body,null,4))
 
@@ -615,18 +512,20 @@ schoolRouter.route('/SERPS/School/login').get(routeUtils.asyncMiddleware(async (
       
         // *
         const result = await schoolService.createNotification(//noteTitle,noteID,noteImage,noteText
-            schoolName = req.body.schoolName,
-            schoolID = req.body.schoolID,
-            noteTitle = req.body.noteTitle,
-            noteID = req.body.imageLink,
-            noteImage = req.body.Note,
-            noteText = req.body.noteText
+            req.body.schoolName,
+            req.body.schoolID,
+            req.body.noteTitle,
+            req.body.noteID,
+            'tempImage',
+            req.body.noteText
         )
 
+        winstonLogger.info('PAYLOAD')
+        winstonLogger.info(JSON.stringify(result,null,4))
         res.json({
             state: 'success',
-            statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_PARAM_ERROR,
-            Data: result
+            statusCode: result.statusCode,
+            Data: result.Data
         })
         
     } catch (e) {
@@ -641,8 +540,33 @@ schoolRouter.route('/SERPS/School/login').get(routeUtils.asyncMiddleware(async (
         })
 
     }
+    // Persist Logo and images if notification was created 
+    if(payload.Data === null){
+        //
+    }else{
 
-    next()
+        winstonLogger.info('SAVE NOTIFICATION IMAGE TO CLOUDINARY')
+        /**
+         * if it worked save the image to cloudinary with noteTitle in school/notifications folder
+         * payload.Data = notificationID
+         * hm.decompress(req.body.noteImage)
+         */
+        const result = await cloudinaryCon.uploadNotificationImages(req.body.noteTitle,payload.Data,req.body.noteImage, req.body.schoolName,req.body.schoolID ).
+        catch((e) => {
+
+            winstonLogger.error('Error uploading notificationImage')
+            winstonLogger.error(e)
+
+        })
+
+        winstonLogger.info('COUDLINARY RESULTS')
+        winstonLogger.info(result)
+        winstonLogger.info('END')
+        payload.state = 'success'  
+        
+    }
+
+    // next()
 
 }))
   schoolRouter.route('/SERPS/School/notifications/update')
@@ -696,20 +620,8 @@ schoolRouter.route('/SERPS/School/login').get(routeUtils.asyncMiddleware(async (
     next()
 
 }))
-  schoolRouter.route('/SERPS/School/notifications/delete')
+  schoolRouter.route('/SERPS/School/notifications/remove')
   .get(routeUtils.asyncMiddleware (async (req,res, next) => {
-   
-    if(req.body === null) {
-
-        winstonLogger.error('ERROR: WRONG REQUEST PARAMS')
-
-        res.json({
-            state: 'failure',
-            statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_PARAM_ERROR,
-            Data: null
-        })
-
-    }
 
     winstonLogger.info('REQUEST BODY')
     winstonLogger.info(JSON.stringify(req.body,null,4))
@@ -718,21 +630,21 @@ schoolRouter.route('/SERPS/School/login').get(routeUtils.asyncMiddleware(async (
         
         // *
         const result = await schoolService.deleteNotification(
-            schoolName = req.body.schoolName,
-            schoolID = req.body.schoolID,
-            noteTitle = req.body.noteTitle,
-            noteID = req.body.noteID
+            req.body.schoolName,
+            req.body.schoolID,
+            req.body.noteTitle,
+            req.body.noteID
         )
         
         res.json({
             state: 'success',
-            statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_OK,
-            Data: result
+            statusCode: result.statusCode,
+            Data: result.Data
         })
         
     } catch (e) {
 
-        winstonLogger.error('ERROR: creating notification')
+        winstonLogger.error('ERROR: removing notification')
         winstonLogger.error(e)
 
         res.json({
@@ -858,7 +770,7 @@ schoolRouter.route('/SERPS/School/activateNextTerm')
 
 }))
   // timetable API routes
-  schoolRouter.route('/SERPS/School/:class/createTimetable')
+  schoolRouter.route('/SERPS/School/class/createTimetable')
   .get(routeUtils.asyncMiddleware (async (req,res, next) => {
 
     if(req.body === null) {
@@ -906,7 +818,7 @@ schoolRouter.route('/SERPS/School/activateNextTerm')
     }
     next()
 }))
-  schoolRouter.route('/SERPS/School/:class/getTimetable')
+  schoolRouter.route('/SERPS/School/class/getTimetable')
   .get(routeUtils.asyncMiddleware (async (req,res, next) => {
     try {
       
@@ -921,7 +833,7 @@ schoolRouter.route('/SERPS/School/activateNextTerm')
     }
     next()
 }))
-  schoolRouter.route('/SERPS/School/:class/updateTimetable')
+  schoolRouter.route('/SERPS/School/class/updateTimetable')
   .get(routeUtils.asyncMiddleware (async (req,res, next) => {
     try {
         
@@ -938,7 +850,7 @@ schoolRouter.route('/SERPS/School/activateNextTerm')
     }
     next()
 }))
-  schoolRouter.route('/SERPS/School/:class/deleteTimetable')
+  schoolRouter.route('/SERPS/School/class/deleteTimetable')
   .get(routeUtils.asyncMiddleware (async (req,res, next) => {
     try {
         
@@ -954,7 +866,7 @@ schoolRouter.route('/SERPS/School/activateNextTerm')
     }
     next()
 }))
-  schoolRouter.route('/SERPS/School/:class/archiveTimetable')
+  schoolRouter.route('/SERPS/School/class/archiveTimetable')
   .get(routeUtils.asyncMiddleware (async (req,res, next) => {
     try {
         
@@ -971,251 +883,683 @@ schoolRouter.route('/SERPS/School/activateNextTerm')
     next()
 }))
   // class API call routes
-  schoolRouter.route('/SERPS/School/createClass')
+  schoolRouter.route('/SERPS/School/class/create')
   .get(routeUtils.asyncMiddleware (async (req,res, next) => {
+
+    winstonLogger.info('CREATE: CLASS')
+
+    winstonLogger.info('REQUEST BODY')
+    winstonLogger.info(JSON.stringify(req.body,null,4))
+
     try {
         // *
         const result = await schoolService.createClass(
+          req.body.schoolName,
+          req.body.schoolID,
+          req.body.classAlias,
+          req.body.classData
+        )
+        winstonLogger.info('PAYLOAD')
+        winstonLogger.info(JSON.stringify(result,null,4))
+        
+        res.json({
+            state: 'success',
+            statusCode: result.statusCode,
+            Data: result.Data
+        })
+    
+    } catch (e) {
+        
+        winstonLogger.error('ERROR: updating Session')
+        winstonLogger.error(e)
+
+        res.json({
+            state: 'failure',
+            statusCode: publicEnums.SERPS_STATUS_CODES.INTERNAL_SERVER_ERROR,
+            Data: null
+        })
+
+    }
+
+    next()
+
+}))
+
+  schoolRouter.route('/SERPS/School/class')
+  .get(routeUtils.asyncMiddleware (async (req,res, next) => {
+    
+    winstonLogger.info('CREATE: CLASS')
+
+    winstonLogger.info('REQUEST BODY')
+    winstonLogger.info(JSON.stringify(req.body,null,4))
+
+    try {
+        // *
+        const classData = await schoolService.getClass(
+          req.body.schoolName,
+          req.body.schoolID,
+          req.body.classAlias
+        )
+        winstonLogger.info('PAYLOAD')
+        winstonLogger.info(JSON.stringify(classData,null,4))
+        
+        res.json({
+            state: 'success',
+            statusCode: classData.statusCode,
+            Data: classData.Data
+        })
+    
+    } catch (e) {
+        
+        winstonLogger.error('ERROR: getting class')
+        winstonLogger.error(e)
+
+        res.json({
+            state: 'failure',
+            statusCode: publicEnums.SERPS_STATUS_CODES.INTERNAL_SERVER_ERROR,
+            Data: null
+        })
+
+    }
+
+    next()
+
+}))
+
+// Add general school subjectHolders -> e.g Biology
+// then each class can create it's
+// persosnal biology
+schoolRouter.route('/SERPS/School/subjectHolder')
+  .get(routeUtils.asyncMiddleware (async (req,res, next) => {
+    
+    winstonLogger.info('CREATE: CLASS')
+
+    winstonLogger.info('REQUEST BODY')
+    winstonLogger.info(JSON.stringify(req.body,null,4))
+
+    try {
+        // *
+        const classData = await schoolService.getClass(
+          req.body.schoolName,
+          req.body.schoolID,
+          req.body.classAlias
+        )
+        winstonLogger.info('PAYLOAD')
+        winstonLogger.info(JSON.stringify(classData,null,4))
+        
+        res.json({
+            state: 'success',
+            statusCode: classData.statusCode,
+            Data: classData.Data
+        })
+    
+    } catch (e) {
+        
+        winstonLogger.error('ERROR: getting class')
+        winstonLogger.error(e)
+
+        res.json({
+            state: 'failure',
+            statusCode: publicEnums.SERPS_STATUS_CODES.INTERNAL_SERVER_ERROR,
+            Data: null
+        })
+
+    }
+
+    next()
+
+}))
+schoolRouter.route('/SERPS/School/subjectHolder/create')
+  .get(routeUtils.asyncMiddleware (async (req,res, next) => {
+    
+    winstonLogger.info('CREATE: SUBJECTHOLDER')
+
+    winstonLogger.info('REQUEST BODY')
+    winstonLogger.info(JSON.stringify(req.body,null,4))
+
+    try {
+        // *
+        const result = await schoolService.createSubjectHolder(
+          req.body.schoolName,
+          req.body.schoolID,
+          req.body.subjectName,
+          req.body.subjectDescription
+        )
+        winstonLogger.info('PAYLOAD')
+        winstonLogger.info(JSON.stringify(result,null,4))
+        
+        res.json({
+            state: 'success',
+            statusCode: result.statusCode,
+            Data: result.Data
+        })
+    
+    } catch (e) {
+        
+        winstonLogger.error('ERROR: creatig subjectHolder')
+        winstonLogger.error(e)
+
+        res.json({
+            state: 'failure',
+            statusCode: publicEnums.SERPS_STATUS_CODES.INTERNAL_SERVER_ERROR,
+            Data: null
+        })
+
+    }
+
+    // next()
+
+}))
+schoolRouter.route('/SERPS/School/subjectHolder/remove')
+  .get(routeUtils.asyncMiddleware (async (req,res, next) => {
+    
+    winstonLogger.info('REMOVE: SUBJECTHOLDER')
+
+    winstonLogger.info('REQUEST BODY')
+    winstonLogger.info(JSON.stringify(req.body,null,4))
+
+    try {
+        // *
+        const result = await schoolService.removeSubjectHolder(
+          req.body.schoolName,
+          req.body.schoolID,
+          req.body.subjectName
+        )
+        winstonLogger.info('PAYLOAD')
+        winstonLogger.info(JSON.stringify(result,null,4))
+        
+        res.json({
+            state: 'success',
+            statusCode: result.statusCode,
+            Data: result.Data
+        })
+    
+    } catch (e) {
+        
+        winstonLogger.error('ERROR: getting class')
+        winstonLogger.error(e)
+
+        res.json({
+            state: 'failure',
+            statusCode: publicEnums.SERPS_STATUS_CODES.INTERNAL_SERVER_ERROR,
+            Data: null
+        })
+
+    }
+
+    next()
+
+}))
+//
+schoolRouter.route('/SERPS/School/class/createSubject')
+.get(routeUtils.asyncMiddleware (async (req,res, next) => {
+    winstonLogger.info('CREATE: SUBJECT')
+
+    winstonLogger.info('REQUEST BODY')
+    winstonLogger.info(JSON.stringify(req.body,null,4))
+
+    try {
+        // *
+        const result = await schoolService.createSubject(
+            req.body.schoolName,
+            req.body.schoolID,
+            req.body.classAlias,
+            req.body.subjectName,
+            req.body.subjectData
+        )
+        if(result){
+            winstonLogger.info('PAYLOAD')
+            winstonLogger.info(JSON.stringify(result,null,4))
+            
+            res.json({
+                state: 'success',
+                statusCode: result.statusCode,
+                Data: result.Data
+            })
+        }
+    
+    } catch (e) {
+        
+        winstonLogger.error('ERROR: getting class')
+        winstonLogger.error(e)
+
+        res.json({
+            state: 'failure',
+            statusCode: publicEnums.SERPS_STATUS_CODES.INTERNAL_SERVER_ERROR,
+            Data: null
+        })
+
+    }
+
+    next()
+
+}))
+  schoolRouter.route('/SERPS/School/class/removeSubject')
+  .get(routeUtils.asyncMiddleware (async (req,res, next) => {
+    winstonLogger.info('CREATE: SUBJECT')
+
+    winstonLogger.info('REQUEST BODY')
+    winstonLogger.info(JSON.stringify(req.body,null,4))
+
+    try {
+        // *
+        const result = await schoolService.removeSubject(
+            req.body.schoolName,
+            req.body.schoolID,
+            req.body.classAlias,
+            req.body.subjectName
+        )
+        if(result){
+            winstonLogger.info('PAYLOAD')
+            winstonLogger.info(JSON.stringify(result,null,4))
+            
+            res.json({
+                state: 'success',
+                statusCode: result.statusCode,
+                Data: result.Data
+            })
+        }
+    
+    } catch (e) {
+        
+        winstonLogger.error('ERROR: removing subject')
+        winstonLogger.error(e)
+
+        res.json({
+            state: 'failure',
+            statusCode: publicEnums.SERPS_STATUS_CODES.INTERNAL_SERVER_ERROR,
+            Data: null
+        })
+
+    }
+
+    next()
+    
+}))
+  schoolRouter.route('/SERPS/School/class/update')
+  .get(routeUtils.asyncMiddleware (async (req,res, next) => {
+    winstonLogger.info('UPDATE: CLASS')
+
+    winstonLogger.info('REQUEST BODY')
+    winstonLogger.info(JSON.stringify(req.body,null,4))
+
+    try {
+        // *
+        const result = await schoolService.updateClass(
+            req.body.schoolName,
+            req.body.schoolID,
             req.body.classAlias,
             req.body.classData
         )
-        res.json(result)
-
+        if(result){
+            winstonLogger.info('PAYLOAD')
+            winstonLogger.info(JSON.stringify(result,null,4))
+            
+            res.json({
+                state: 'success',
+                statusCode: result.statusCode,
+                Data: result.Data
+            })
+        }
+    
     } catch (e) {
-      res.sendStatus(500).json(e)
-    }
-    next()
-}))
-  schoolRouter.route('/SERPS/School/createClassSequence')
-  .get(routeUtils.asyncMiddleware (async (req,res, next) => {
-    try {
-      
-        // *
-        const result = await schoolService.createclassSequence()
-        res.json(result)
+        
+        winstonLogger.error('ERROR: updating class')
+        winstonLogger.error(e)
 
-    } catch (e) {
-        res.sendStatus(500).json(e)
+        res.json({
+            state: 'failure',
+            statusCode: publicEnums.SERPS_STATUS_CODES.INTERNAL_SERVER_ERROR,
+            Data: null
+        })
+
     }
+
     next()
+    
 }))
-  schoolRouter.route('/SERPS/School/:class')
+  schoolRouter.route('/SERPS/School/class/Subject')
   .get(routeUtils.asyncMiddleware (async (req,res, next) => {
-    try{
-        
-        // *
-        const classData = schoolService.getClass(
-          req.body.classAlias
-        )
-        res.json(classData)
-        
-    }catch(e){
-        // res.sendStatus(500).json(e)
-    }
-    next()
-}))
-  schoolRouter.route('/SERPS/School/:class/createSubject')
-  .get(routeUtils.asyncMiddleware (async (req,res, next) => {
+    winstonLogger.info('GET: SUBJECT')
+
+    winstonLogger.info('REQUEST BODY')
+    winstonLogger.info(JSON.stringify(req.body,null,4))
+
     try {
-      
         // *
-        const result = schoolService.createSubject(
+        const result = await schoolService.getSubject(
+            req.body.schoolName,
+            req.body.schoolID,
             req.body.classAlias,
-            req.body.subjectData
+            req.body.subjectName
         )
-        res.json(result)
-        
+        if(result){
+            winstonLogger.info('PAYLOAD')
+            winstonLogger.info(JSON.stringify(result,null,4))
+            
+            res.json({
+                state: 'success',
+                statusCode: result.statusCode,
+                Data: result.Data
+            })
+        }
+    
     } catch (e) {
-        res.sendStatus(500).json(e)
-    }
-    next()
-}))
-  schoolRouter.route('/SERPS/School/:class/Subject')
-  .get(routeUtils.asyncMiddleware (async (req,res, next) => {
-    try {
-      
-        // *
-        const SubjectData = await schoolService.getSubject(
-            req.body.classAlias,
-            req.body.subjectTitle
-        )
-        res.json(SubjectData)
         
-    } catch (e) {
-        res.sendStatus(500).json(e)
-    }
-    next()
-}))
-  schoolRouter.route('/SERPS/School/:class/update')
-  .get(routeUtils.asyncMiddleware (async (req,res, next) => {
-    try {
-      
-        // *
-        const result = await schoolService.updateClass(classAlias)
-        res.json(result)
-        
-    } catch (e) {
-        res.sendStatus(500).json(e)
-    }
-    next()
-}))
-  schoolRouter.route('/SERPS/School/:class/Subject')
-  .get(routeUtils.asyncMiddleware (async (req,res, next) => {
-    try {
+        winstonLogger.error('ERROR: getting subject')
+        winstonLogger.error(e)
 
-        // *
-        const result = await schoolService.updateSubject(
-            req.body.classAlias,
-            req.body.subjectTitle
-        )
-        res.json(result)
+        res.json({
+            state: 'failure',
+            statusCode: publicEnums.SERPS_STATUS_CODES.INTERNAL_SERVER_ERROR,
+            Data: null
+        })
 
-    } catch (e) {
-      res.sendStatus(500).json(e)
     }
+
     next()
+    
 }))
-  schoolRouter.route('/SERPS/School/:class/remove')
+  schoolRouter.route('/SERPS/School/class/remove')
   .get(routeUtils.asyncMiddleware (async (req,res, next) => {
+    winstonLogger.info('REMOVE: CLASS')
+
+    winstonLogger.info('REQUEST BODY')
+    winstonLogger.info(JSON.stringify(req.body,null,4))
+
     try {
-      
         // *
         const result = await schoolService.removeClass(
-          req.body.classAlias
+            req.body.schoolName,
+            req.body.schoolID,
+            req.body.classAlias
         )
-        res.json(result)
-
+        if(result){
+            winstonLogger.info('PAYLOAD')
+            winstonLogger.info(JSON.stringify(result,null,4))
+            
+            res.json({
+                state: 'success',
+                statusCode: result.statusCode,
+                Data: result.Data
+            })
+        }
+    
     } catch (e) {
-        res.sendStatus(500).json(e)
-    }
-    next()
-}))
-  schoolRouter.route('/SERPS/School/:class/Subject/remove')
-  .get(routeUtils.asyncMiddleware (async (req,res, next) => {
-    try {
-      
-        // *
-        const result = await schoolService.removeSubject(
-            req.body.classAlias,
-            req.body.subjectTitle
-        )
-        res.json(result)
         
-    } catch (e) {
-        res.sendStatus(500).json(e)
+        winstonLogger.error('ERROR: removing class')
+        winstonLogger.error(e)
+
+        res.json({
+            state: 'failure',
+            statusCode: publicEnums.SERPS_STATUS_CODES.INTERNAL_SERVER_ERROR,
+            Data: null
+        })
+
     }
+
     next()
+
 }))
-  schoolRouter.route('/SERPS/School/:class/assignTeacher')
+  schoolRouter.route('/SERPS/School/class/assignTeacher')
   .get(routeUtils.asyncMiddleware (async (req,res, next) => {
+
+    winstonLogger.info('ASSIGN: CLASS TEACHER')
+
+    winstonLogger.info('REQUEST BODY')
+    winstonLogger.info(JSON.stringify(req.body,null,4))
+
     try {
-      
-        //*
+        // *
         const result = await schoolService.assignClassTeacher(
+            req.body.schoolName,
+            req.body.schoolID,
             req.body.classAlias,
             req.body.TeacherID
         )
-        res.json(result)
-        
+        if(result){
+            winstonLogger.info('PAYLOAD')
+            winstonLogger.info(JSON.stringify(result,null,4))
+            
+            res.json({
+                state: 'success',
+                statusCode: result.statusCode,
+                Data: result.Data
+            })
+        }
+    
     } catch (e) {
-        res.sendStatus(500).json(e)
-    }
-    next()
-}))
-  schoolRouter.route('/SERPS/School/:class/reassignTeacher')
-  .get(routeUtils.asyncMiddleware (async (req,res, next) => {
-    try {
-      
-        // *
-        const result = await schoolService.reassignClassTeacher()
-        res.json(result)
         
-    } catch (e) {
-        res.sendStatus(500).json(e)
+        winstonLogger.error('ERROR: assigning class Teacher')
+        winstonLogger.error(e)
+
+        res.json({
+            state: 'failure',
+            statusCode: publicEnums.SERPS_STATUS_CODES.INTERNAL_SERVER_ERROR,
+            Data: null
+        })
+
     }
+
     next()
+    
 }))
   schoolRouter.route('/SERPS/School/activity/create')
   .get(routeUtils.asyncMiddleware (async (req,res, next) => {
-    try {
       
+    winstonLogger.info('CREATE: ACTIVITY')
+
+    winstonLogger.info('REQUEST BODY')
+    winstonLogger.info(JSON.stringify(req.body,null,4))
+
+    try {
         // *
         const result = await schoolService.createActivity(
+            req.body.schoolName,
+            req.body.schoolID,
             req.body.activityAlias,
             req.body.activityData
         )
-        res.json(result)
-        
+        if(result){
+            winstonLogger.info('PAYLOAD')
+            winstonLogger.info(JSON.stringify(result,null,4))
+            
+            res.json({
+                state: 'success',
+                statusCode: result.statusCode,
+                Data: result.Data
+            })
+        }
+    
     } catch (e) {
-        res.sendStatus(500).json(e)
+        
+        winstonLogger.error('ERROR: creating activity')
+        winstonLogger.error(e)
+
+        res.json({
+            state: 'failure',
+            statusCode: publicEnums.SERPS_STATUS_CODES.INTERNAL_SERVER_ERROR,
+            Data: null
+        })
+
     }
+
     next()
+
 }))
 
   // activity API call routes
-  schoolRouter.route('/SERPS/School/:activity')
+  schoolRouter.route('/SERPS/School/activity')
   .get(routeUtils.asyncMiddleware (async (req,res, next) => {
+    
+    winstonLogger.info('GET: ACTIVITY')
+
+    winstonLogger.info('REQUEST BODY')
+    winstonLogger.info(JSON.stringify(req.body,null,4))
+
     try {
-      
         // *
         const result = await schoolService.getActivity(
+            req.body.schoolName,
+            req.body.schoolID,
             req.body.activityAlias
         )
-        res.json(result)
-        
-    } catch (e) {
-        // res.sendStatus(500).json(e)
-    }
-    next()
-}))
-  schoolRouter.route('/SERPS/School/:activity/update')
-  .get(routeUtils.asyncMiddleware (async (req,res, next) => {
-    try {
+        if(result){
+            winstonLogger.info('PAYLOAD')
+            winstonLogger.info(JSON.stringify(result,null,4))
+            
+            res.json({
+                state: 'success',
+                statusCode: result.statusCode,
+                Data: result.Data
+            })
+        }
     
+    } catch (e) {
+        
+        winstonLogger.error('ERROR: creating activity')
+        winstonLogger.error(e)
+
+        res.json({
+            state: 'failure',
+            statusCode: publicEnums.SERPS_STATUS_CODES.INTERNAL_SERVER_ERROR,
+            Data: null
+        })
+
+    }
+
+    next()
+
+}))
+  schoolRouter.route('/SERPS/School/activity/update')
+  .get(routeUtils.asyncMiddleware (async (req,res, next) => {
+     
+    winstonLogger.info('UPDATE: ACTIVITY')
+
+    winstonLogger.info('REQUEST BODY')
+    winstonLogger.info(JSON.stringify(req.body,null,4))
+
+    try {
         // *
         const result = await schoolService.updateActivity(
+            req.body.schoolName,
+            req.body.schoolID,
             req.body.activityAlias,
             req.body.activityData
         )
-        res.json(result)
-        
-    } catch (e) {
-        res.sendStatus(500).json(e)
-    }
-    next()
-}))
-  schoolRouter.route('/SERPS/School/:activity/remove')
-  .get(routeUtils.asyncMiddleware (async (req,res, next) => {
-    try {
+        if(result){
+            winstonLogger.info('PAYLOAD')
+            winstonLogger.info(JSON.stringify(result,null,4))
+            
+            res.json({
+                state: 'success',
+                statusCode: result.statusCode,
+                Data: result.Data
+            })
+        }
     
+    } catch (e) {
+
+        winstonLogger.error('ERROR: updating activity')
+        winstonLogger.error(e)
+
+        res.json({
+            state: 'failure',
+            statusCode: publicEnums.SERPS_STATUS_CODES.INTERNAL_SERVER_ERROR,
+            Data: null
+        })
+
+    }
+
+    next()
+
+}))
+  schoolRouter.route('/SERPS/School/activity/remove')
+  .get(routeUtils.asyncMiddleware (async (req,res, next) => {
+         
+    winstonLogger.info('REMOVE: ACTIVITY')
+
+    winstonLogger.info('REQUEST BODY')
+    winstonLogger.info(JSON.stringify(req.body,null,4))
+
+    try {
         // *
-        const result = await schoolService.remove(
+        const result = await schoolService.removeActivity(
+            req.body.schoolName,
+            req.body.schoolID,
             req.body.activityAlias
         )
-        res.json(result)
-        
+        if(result){
+            winstonLogger.info('PAYLOAD')
+            winstonLogger.info(JSON.stringify(result,null,4))
+            
+            res.json({
+                state: 'success',
+                statusCode: result.statusCode,
+                Data: result.Data
+            })
+        }
+    
     } catch (e) {
-        res.sendStatus(500).json(e)
+
+        winstonLogger.error('ERROR: removing activity')
+        winstonLogger.error(e)
+
+        res.json({
+            state: 'failure',
+            statusCode: publicEnums.SERPS_STATUS_CODES.INTERNAL_SERVER_ERROR,
+            Data: null
+        })
+
     }
-    next()
-}))
-  schoolRouter.route('/SERPS/School/:activity/assignTeacher')
-  .get(routeUtils.asyncMiddleware (async (req,res, next) => {
-    try {
+
+    next()  
       
+}))
+  schoolRouter.route('/SERPS/School/activity/assignTeacher')
+  .get(routeUtils.asyncMiddleware (async (req,res, next) => {
+             
+    winstonLogger.info('UPDATE: ACTIVITY TEACHER')
+
+    winstonLogger.info('REQUEST BODY')
+    winstonLogger.info(JSON.stringify(req.body,null,4))
+
+    try {
         // *
         const result = await schoolService.assignActivityTeacher(
+            req.body.schoolName,
+            req.body.schoolID,
             req.body.activityAlias,
-            req.body.TeacherID
+            req.body.teaccherID 
         )
-        res.json(result)
-        
+        if(result){
+            winstonLogger.info('PAYLOAD')
+            winstonLogger.info(JSON.stringify(result,null,4))
+            
+            res.json({
+                state: 'success',
+                statusCode: result.statusCode,
+                Data: result.Data
+            })
+        }
+    
     } catch (e) {
-        res.sendStatus(500).json(e)
+
+        winstonLogger.error('ERROR: assign activity teacher')
+        winstonLogger.error(e)
+
+        res.json({
+            state: 'failure',
+            statusCode: publicEnums.SERPS_STATUS_CODES.INTERNAL_SERVER_ERROR,
+            Data: null
+        })
+
     }
-    next()
+
+    next()  
+    
 }))
-  schoolRouter.route('/SERPS/School/:activity/reassignTeacher')
+  schoolRouter.route('/SERPS/School/activity/reassignTeacher')
   .get(routeUtils.asyncMiddleware (async (req,res, next) => {
     try {
       
@@ -1306,7 +1650,7 @@ schoolRouter.route('/SERPS/School/activateNextTerm')
 }))
 
   // lectureNote API call routes
-  schoolRouter.route('/SERPS/School/:class/Subject/')
+  schoolRouter.route('/SERPS/School/class/Subject/')
   .get(routeUtils.asyncMiddleware (async (req,res, next) => {
     try {
     
@@ -1322,7 +1666,7 @@ schoolRouter.route('/SERPS/School/activateNextTerm')
     }
     next()
 }))
-  schoolRouter.route('/SERPS/School/:class/Subject/:lectureNoteID')
+  schoolRouter.route('/SERPS/School/class/Subject/lectureNoteID')
   .get(routeUtils.asyncMiddleware (async (req,res, next) => {
     try {
     
@@ -1339,7 +1683,7 @@ schoolRouter.route('/SERPS/School/activateNextTerm')
     }
     next()
 }))
-  schoolRouter.route('/SERPS/School/:class/Subject/:lectureNote/validate')
+  schoolRouter.route('/SERPS/School/class/Subject/lectureNote/validate')
   .get(routeUtils.asyncMiddleware (async (req,res, next) => {
     try {
     
@@ -1383,6 +1727,133 @@ schoolRouter.route('/SERPS/School/activateNextTerm')
         res.sendStatus(500).json(e)
     }
     next()
+}))
+
+
+schoolRouter.route('/SERPS/School/openAdmission')
+.get(routeUtils.asyncMiddleware (async (req,res, next) => {
+
+  winstonLogger.info('OPEN: ADMISSION')
+
+  winstonLogger.info('REQUEST BODY')
+  winstonLogger.info(JSON.stringify(req.body,null,4))
+
+  try {
+      // *
+      const result = await schoolService.openAdmission(
+          req.body.schoolName,
+          req.body.schoolID 
+      )
+      if(result){
+          winstonLogger.info('PAYLOAD')
+          winstonLogger.info(JSON.stringify(result,null,4))
+          
+          res.json({
+              state: 'success',
+              statusCode: result.statusCode,
+              Data: result.Data
+          })
+      }
+  
+  } catch (e) {
+
+      winstonLogger.error('ERROR: opening admission')
+      winstonLogger.error(e)
+
+      res.json({
+          state: 'failure',
+          statusCode: publicEnums.SERPS_STATUS_CODES.INTERNAL_SERVER_ERROR,
+          Data: null
+      })
+
+  }
+
+  next()  
+  
+}))
+
+schoolRouter.route('/SERPS/School/closeAdmission')
+.get(routeUtils.asyncMiddleware (async (req,res, next) => {
+
+  winstonLogger.info('CLOSE: ADMISSION')
+
+  winstonLogger.info('REQUEST BODY')
+  winstonLogger.info(JSON.stringify(req.body,null,4))
+
+  try {
+      // *
+      const result = await schoolService.closeAdmission(
+          req.body.schoolName,
+          req.body.schoolID 
+      )
+      if(result){
+          winstonLogger.info('PAYLOAD')
+          winstonLogger.info(JSON.stringify(result,null,4))
+          
+          res.json({
+              state: 'success',
+              statusCode: result.statusCode,
+              Data: result.Data
+          })
+      }
+  
+  } catch (e) {
+
+      winstonLogger.error('ERROR: closing admission')
+      winstonLogger.error(e)
+
+      res.json({
+          state: 'failure',
+          statusCode: publicEnums.SERPS_STATUS_CODES.INTERNAL_SERVER_ERROR,
+          Data: null
+      })
+
+  }
+
+  next()  
+  
+}))
+
+schoolRouter.route('/SERPS/School/admission')
+.get(routeUtils.asyncMiddleware (async (req,res, next) => {
+
+  winstonLogger.info('GET: ADMISSION STATUS')
+
+  winstonLogger.info('REQUEST BODY')
+  winstonLogger.info(JSON.stringify(req.body,null,4))
+
+  try {
+      // *
+      const result = await schoolService.getAdmissionStatus(
+          req.body.schoolName,
+          req.body.schoolID 
+      )
+      if(result){
+          winstonLogger.info('PAYLOAD')
+          winstonLogger.info(JSON.stringify(result,null,4))
+          
+          res.json({
+              state: 'success',
+              statusCode: result.statusCode,
+              Data: result.Data
+          })
+      }
+  
+  } catch (e) {
+
+      winstonLogger.error('ERROR: getting admission status')
+      winstonLogger.error(e)
+
+      res.json({
+          state: 'failure',
+          statusCode: publicEnums.SERPS_STATUS_CODES.INTERNAL_SERVER_ERROR,
+          Data: null
+      })
+
+  }
+
+  next()  
+  
 }))
 
   module.exports = schoolRouter

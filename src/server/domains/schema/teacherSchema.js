@@ -34,6 +34,10 @@ const TeacherSchema = new TSchema(
             type: Date,
             required: false
         },
+        gender: {
+          type: String,
+          required: false
+        },
         joinedOn: { type: Date, default: new Date() },
         courseTimeTables: [{
             classAlias: {
@@ -59,6 +63,47 @@ const TeacherSchema = new TSchema(
               }
             }]
         }],
+        class: {
+          Alias: {
+            type: String,
+            required: false,
+            unique: false
+          },
+          classRef: {
+            type: String,
+            required: false,
+            unique: false
+          }
+        },
+        activity: {
+          Name: {
+            type: String,
+            required: false,
+            unique: false
+          },
+          activityRef: {
+            type: String,
+            required: false,
+            unique: false
+          }
+        },
+        subjects: [{
+          Name: {
+            type: String,
+            required: false,
+            unique: false
+          },
+          subjectRef: {
+            type: String,
+            required: false,
+            unique: false
+          }
+        }],
+        teacherIndex:{
+          type: Number,
+          required: false,
+          unique: true
+        },
         isActive: {
           type: Boolean,
           requried: false,

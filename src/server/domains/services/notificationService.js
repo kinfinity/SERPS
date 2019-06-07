@@ -105,31 +105,36 @@ const notificationService = {
   //
   async createNotification(SchoolName,SchoolID,noteTitle,noteID,noteImage,noteText) {
 
-    winstonLogger.info('::notificationService')
-
+    //SchoolName,SchoolID,noteTitle,noteID,noteImage,noteText
+    winstonLogger.info('::notificationServiceL create')
+    
     // Holds return data for this fucntion
     let response,notificationID = null
 
-    //create Notification Document
-    await notificationService._notificationModel.save({
+    const note = {
       SchoolName,
-      SchoolID,
+      schoolID: SchoolID,
       noteTitle,
       noteID,
       noteImages: noteImage,
       noteText
-    }).
+    }
+    const noteM = new NotificationModel(note)
+    winstonLogger.info(noteM)
+    //create Notification Document
+    await noteM.
+    save().
     then((notification) => {
 
       winstonLogger.info('CREATE: notification')
-      winstonLogger.info(notification)
+      winstonLogger.info(JSON.stringify(notification,null,4))
 
-      notificationID = ObjectId(notification._id)
+      notificationID = notification._id
       
     }).
     catch((e) => {
 
-      winstonLogger.error('ERROR: creating notification')
+      winstonLogger.error('ERROR: xcreating notification')
       winstonLogger.error(e)
 
       return Promise.resolve({
@@ -144,8 +149,8 @@ const notificationService = {
     emit(
         'school-notificationCreated',
         {
-          SchoolName,
-          schoolID,
+          schoolName: SchoolName,
+          schoolID: SchoolID,
           notificationID
         }
       )// send a few params
@@ -172,7 +177,7 @@ const notificationService = {
     findOneAndUpdate({
       SchoolName,
       SchoolID,
-      notificationID: noteID,
+      noteID,
       },
       Data,
       options
@@ -180,7 +185,7 @@ const notificationService = {
     then((notification) => {
 
       winstonLogger.info('UPDATE: notification')
-      winstonLogger.info(notification)
+      winstonLogger.info(JSON.stringify(notification,null,4))
 
     }).
     catch((e) => {
@@ -206,25 +211,24 @@ const notificationService = {
   async deleteNotification(SchoolName,SchoolID,noteTitle,noteID) {
 
     winstonLogger.info('::notificationService')
+    winstonLogger.info(noteID)
+    winstonLogger.info(noteTitle)
+    winstonLogger.info(SchoolName)
+    winstonLogger.info(SchoolID)
+    let notificationID = null
 
-    if (!mongoose.Types.ObjectId.isValid(noteID)){
-
-      return Promise.resolve({
-        statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_ERROR,
-        Data: null
-      })
-
-    }
     //delete Notification Document
     await notificationService._notificationModel.
-    findByIdAndRemove({
-      _id: noteID,
+    findOneAndRemove({
+      noteID,
       noteTitle
     }).
     then((notification) => {
 
       winstonLogger.info('DELETE: notification')
-      winstonLogger.info(notification)
+      winstonLogger.info(JSON.stringify(notification,null,4))
+
+      notificationID = notification._id
 
     }).
     catch((e) => {
@@ -244,8 +248,8 @@ const notificationService = {
     emit(
         'school-notificationDeleted',
         {
-          SchoolName,
-          SchoolID,
+          schoolName: SchoolName,
+          schoolID: SchoolID,
           notificationID
         }
       )// send a few params

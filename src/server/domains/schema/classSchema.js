@@ -1,6 +1,5 @@
 /*
  * Created by k_infinity3 <ksupro1@gmail.com>
- * Created on Tues Apr 15 2019
  *
  * Copyright (c) 2019 Echwood Inc.
  *
@@ -13,42 +12,65 @@ const TSchema = mongoose.Schema
 
 const ClassSchema = new TSchema({
     
-    'name': {
+    name: {
         type: String,
         required: false,
-        unique: true,
+        unique: false
     },
-    'alias': {
+    alias: {
         type: String,
         required: true,
         unique: true
     },
-    'subjects': [{
-        type: TSchema.Types.ObjectId,
-        ref: 'SubjectModel'    
+    schoolName:{
+        type: String,
+        required: true
+    },
+    schoolID: {
+        type: String,
+        required: true
+    },
+    subjects: [{
+        Name: {
+            type: String,
+            required: true,
+            unique: true
+        },
+        Ref: {
+            type: TSchema.Types.ObjectId,
+            ref: 'SubjectModel'
+        }
     }],
-    created_at: { 
-        type: Date,
-         required: false, 
-         default: Date.now()
+    public_HASHED_CODE: { 
+        type: String,
+        required: false
     },
-    udpated_at: { 
-        type: Date, 
-        required: true, 
-        default: Date.now() 
-    },
-    'teachers': [{
+    teacher: {
+      Name: {
+          type: String,
+          required: false
+      },
+      teacherRef: {
         type: TSchema.Types.ObjectId,
         ref: 'TeacherModel'
-    }],
-    'students': [{
-        type: TSchema.Types.ObjectId,
-        ref: 'StudentModel'
-    }]},
+      }
+    },
+    students: [{
+        Name: {
+            type: String,
+            required: false
+        },
+        studentRef: {
+            type: TSchema.Types.ObjectId,
+            ref: 'StudentModel'
+        }
+    }]
+
+    },
 
     {
         timestamps: true,
-        strict: true
+        strict: true    
     }
 
 )

@@ -1,4 +1,4 @@
-FROM node:8
+FROM node:10.15.3-alphine
 
 #create server_working directory within image
 WORKDIR /usr/src/app

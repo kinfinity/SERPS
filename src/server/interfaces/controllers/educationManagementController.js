@@ -16,6 +16,7 @@ import activityAdapter from '../db/activityAdapter'
 import resultsAdapter from '../db/resultsAdapter'
 import attendanceAdapter from '../db/attendanceAdapter'
 import studentAdapter from '../db/studentAdapter'
+import teacherAdapter from '../db/teacherAdapter'
  
 const educationManagementController = {
 
@@ -23,17 +24,23 @@ const educationManagementController = {
     async createClass(schoolName,schoolID,classAlias,classData){
         return classAdapter.createClass(schoolName,schoolID,classAlias,classData)
     },
-    async createSubject(schoolName,schoolID,classAlias,subjectData){
-        return subjectAdapter.createSubject(schoolName,schoolID,classAlias,subjectData)
+    async createSubjectHolder(schoolName,schoolID,subjctName,subjectDescription){
+        return subjectAdapter.createSubjectHolder(schoolName,schoolID,subjctName,subjectDescription)
+    },
+    async removeSubjectHolder(schoolName,schoolID,subjctName){
+        return subjectAdapter.removeSubjectHolder(schoolName,schoolID,subjctName)
+    },
+    async createSubject(schoolName,schoolID,classAlias,subjectName,subjectData){
+        return subjectAdapter.createSubject(schoolName,schoolID,classAlias,subjectName,subjectData)
     },
     async getClass(schoolName,schoolID,classAlias){
         return classAdapter.getClass(schoolName,schoolID,classAlias)
     },
-    async getSubject(schoolName,schoolID,classAlias,subjectTitle){
-        return subjectAdapter.getSubject(schoolName,schoolID,classAlias,subjectTitle)
+    async getSubject(schoolName,schoolID,classAlias,subjectName){
+        return subjectAdapter.getSubject(schoolName,schoolID,classAlias,subjectName)
     },
-    async updateClass(schoolName,schoolID,classAlias){
-        return classAdapter.updateClass(schoolName,schoolID,classAlias)
+    async updateClass(schoolName,schoolID,classAlias,classData){
+        return classAdapter.updateClass(schoolName,schoolID,classAlias,classData)
     },
     async updateSubject(schoolName,schoolID,classAlias,subjectTitle){
         return subjectAdapter.updateSubject(schoolName,schoolID,classAlias,subjectTitle)
@@ -41,36 +48,71 @@ const educationManagementController = {
     async removeClass(schoolName,schoolID,classAlias){
         return classAdapter.removeClass(schoolName,schoolID,classAlias)
     },
-    async removeSubject(schoolName,schoolID,classAlias,subjectTitle){
-        return subjectAdapter.removeSubject(schoolName,schoolID,classAlias,subjectTitle)
+    async removeSubject(schoolName,schoolID,classAlias,subjectName){
+        return subjectAdapter.removeSubject(schoolName,schoolID,classAlias,subjectName)
     },
     async assignClassTeacher(schoolName,schoolID,classAlias,TeacherID){
         return classAdapter.assignClassTeacher(schoolName,schoolID,classAlias,TeacherID)
     },
-    async reassignClassTeacher(schoolName,schoolID,classAlias,TeacherID){
-        return classAdapter.removeSubject(schoolName,schoolID,classAlias,TeacherID)
+    async assignClassIDtoTeacher(schoolName,schoolID,classAlias,classID,teacherRef){
+        return teacherAdapter.assignClassIDtoTeacher(schoolName,schoolID,classAlias,classID,teacherRef)
+    },
+    async addClasstoSchool(SchoolName,SchoolID,classData){
+        return classAdapter.addClasstoSchool(SchoolName,SchoolID,classData)
+    },
+    async removeClassfromSchool(schoolName,schoolID,classData){
+        return classAdapter.removeClassfromSchool(schoolName,schoolID,classData)
+    },
+    async addSubjecttoClass(schoolName, schoolID, subjectName, subjectID, classAlias){
+        return subjectAdapter.addSubjecttoClass(schoolName, schoolID, subjectName, subjectID, classAlias)
+    },
+    async removeSubjectfromClass(schoolName, schoolID, subjectName, subjectID, classAlias){
+        return subjectAdapter.removeSubjectfromClass(schoolName, schoolID, subjectName, subjectID, classAlias)
+    },
+    async addSubjectHoldertoSchool(schoolName, schoolID, subjectName, subjectID){
+        return subjectAdapter.addSubjectHoldertoSchool(schoolName, schoolID, subjectName, subjectID)
+    },
+    async removeSubjectHolderfromSchool(schoolName, schoolID, subjectName, subjectID){
+        return subjectAdapter.removeSubjectHolder(schoolName, schoolID, subjectName, subjectID)
+    },
+    async addSubjecttoHolder(schoolName, schoolID, subjectName, subjectID,classAlias){
+        return subjectAdapter.addSubjecttoHolder(schoolName, schoolID, subjectName, subjectID,classAlias)
+    },
+    async removeSubjectfromHolder(schoolName, schoolID, subjectName, subjectID,classAlias){
+        return subjectAdapter.removeSubjectfromHolder(schoolName, schoolID, subjectName, subjectID,classAlias)
     },
 
     
-    async createActivity(schoolName,schoolID,activityAlias){
-        return activityAdapter.createActivity(schoolName,schoolID,activityAlias)
+    // Activity
+    async createActivity(schoolName,schoolID,activityAlias,activityData){
+        return activityAdapter.createActivity(schoolName,schoolID,activityAlias,activityData)
     },
     async getActivity(schoolName,schoolID,activityAlias){
-        return activityAdapter.removeSubject(schoolName,schoolID,activityAlias)
+        return activityAdapter.getActivity(schoolName,schoolID,activityAlias)
     },
-    async updateActivity(schoolName,schoolID,activityAlias){
-        return activityAdapter.removeClass(schoolName,schoolID,activityAlias)
+    async updateActivity(schoolName,schoolID,activityAlias,activityData){
+        return activityAdapter.updateActivity(schoolName,schoolID,activityAlias,activityData)
     },
     async removeActivity(schoolName,schoolID,activityAlias){
-        return activityAdapter.removeSubject(schoolName,schoolID,activityAlias)
+        return activityAdapter.removeActivity(schoolName,schoolID,activityAlias)
     },
     async assignActivityTeacher(schoolName,schoolID,activityAlias,TeacherID){
-        return activityAdapter.removeClass(schoolName,schoolID,activityAlias,TeacherID)
+        return activityAdapter.assignActivityTeacher(schoolName,schoolID,activityAlias,TeacherID)
     },
-    async reassignActivityTeacher(schoolName,schoolID,activityAlias,oldTeacherID,newTeacherID){
-        return activityAdapter.removeSubject(schoolName,schoolID,activityAlias,oldTeacherID,newTeacherID)
+    // ----
+    async addActivitytoSchool(SchoolName, schoolID, activityAlias, activityID){
+        return activityAdapter.addActivitytoSchool(SchoolName, schoolID, activityAlias, activityID)
     },
+    async removeActivityfromSchool(SchoolName, schoolID, activityAlias, activityID){
+        return activityAdapter.removeActivityfromSchool(SchoolName, schoolID, activityAlias, activityID)
+    },
+    // ----
+    async updateActivityTeacher(activityAlias, activityID, teacherRef, oldteacherRef){
+        return activityAdapter.updateActivityTeacher(activityAlias, activityID, teacherRef, oldteacherRef)
+    },
+    
 
+    // Results
     async viewPendingResults(schoolName,schoolID,){
         return resultsAdapter.viewPendingResults(schoolName,schoolID,)
     },
@@ -86,12 +128,6 @@ const educationManagementController = {
     },
     async validateRegisteredStudent(studentID){
         return studentAdapter.validateRegisteredStudent(studentID)
-    },
-    async createclassSequence(schoolName,schoolID){
-        return classAdapter.createclassSequence(schoolName,schoolID)
-    },
-    async createGradeRanges(schoolName,schoolID,gradeData){
-        return resultsAdapter.createGradeRanges(schoolName,schoolID,gradeData)
     },
 
 
@@ -127,6 +163,12 @@ const educationManagementController = {
     async updateAttendance(subjectAlias,schoolName,schoolID,classAlias,attendanceData){
         return attendanceAdapter.updateAttendance(subjectAlias,schoolName,schoolID,classAlias,attendanceData)
     },
+    // -----
+    async addLectureNoteUrl(schoolName,schoolID,classAlias,teacherID,subjectName,lectureNoteTitle,lectureNoteUrl){
+        return teacherAdapter.addLectureNoteUrl(schoolName,schoolID,classAlias,teacherID,subjectName,lectureNoteTitle,lectureNoteUrl)
+    },
+
+
 
     // student x parents
     async getAttendance(studentID){

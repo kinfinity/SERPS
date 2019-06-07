@@ -13,18 +13,25 @@ const TSchema = mongoose.Schema
 
 const ParentSchema = new TSchema(
     {
-        fullname: {
-            type: String,
-            required: false,
-            trim: false,
-        },username: {
-            type: String,
-            required: true,
-            trim: true,
-            unique: true
+        Name: {
+            firstName: {
+                type: String,
+                required: false,
+                trim: false,
+            },
+            surName: {
+                type: String,
+                required: false,
+                trim: false,
+            },
+            lastName: {
+                type: String,
+                required: false,
+                trim: false,
+            }
         },
-            email: {
-        type: String,
+        email: {
+            type: String,
             required: false,
             trim: true,
             unique: true
@@ -48,6 +55,7 @@ const ParentSchema = new TSchema(
                 type: TSchema.Types.ObjectId,
                 ref: 'studentModel'
         }}]
+        
     },
   
     {

@@ -13,12 +13,13 @@
  */
 
 // Import hashing library
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcrypt'
 // Import configuration file
-import config from '../../Infrastructure/utils/config';
-import nexmo from 'nexmo';
-import mailer from '../../Infrastructure/plugins/mailer';
-import shortid from 'shortid';
+import config from '../../Infrastructure/utils/config'
+import nexmo from 'nexmo'
+import mailer from '../../Infrastructure/plugins/mailer'
+import shortid from 'shortid'
+import winstonLogger from '../../Infrastructure/utils/winstonLogger'
 
 const Password = {
 
@@ -29,48 +30,49 @@ const Password = {
    */
     async hash(password) {
 
-      console.log('hash password static function');
+      winstonLogger.info('hash password static function')
 
-      const SALT_WORK_FACTOR = 12;
+      const SALT_WORK_FACTOR = 12
 
+      winstonLogger
     // Generate a salt
       const hashedPassword = await new Promise((resolve, reject) => {
 
         bcrypt.genSalt(SALT_WORK_FACTOR, (err, salt) => {
 
-              console.log('starting generation of salt and hash');
+              winstonLogger.info('starting generation of salt and hash')
         if (err) {
 
-              console.log('error occured when salting with bcrypt');
-          console.log(err);
+              winstonLogger.info('error occured when salting with bcrypt')
+          winstonLogger.error(e)
 
         }
         // Continues if no error
-        console.log(`SALT IS : ${salt}`);
+        winstonLogger.info(`SALT IS : ${salt}`)
         // Hash the password using our new salt
               bcrypt.hash(password, salt, (xerr, hash) => {
 
             if (xerr) {
 
-              console.log('error occured when hashing with bcrypt');
-              console.log(xerr);
-              reject(err);
+              winstonLogger.info('error occured when hashing with bcrypt')
+              winstonLogger.info(xerr)
+              reject(err)
 
           }
           // Continues if there's no error while hashing
 
           // Prepare to send the password back
-          console.log(`HASH: ${hash} `);
-          console.log('done with generation of salt and hash');
-            resolve(hash);
+          winstonLogger.info(`HASH: ${hash} `)
+          winstonLogger.info('done with generation of salt and hash')
+            resolve(hash)
 
-        });
+        })
 
-          });
+          })
 
-    });
+    })
 
-    return Promise.resolve(hashedPassword);
+    return Promise.resolve(hashedPassword)
 
   },
 
@@ -88,17 +90,17 @@ const Password = {
 
           if (err) {
 
-                    reject(err);
+                    reject(err)
 
                 }
         // Continues if there's no error
-          resolve(isMatch);
+          resolve(isMatch)
 
-      });
+      })
 
-    });
+    })
 
-      return Promise.resolve(matched);
+      return Promise.resolve(matched)
 
   },
 
@@ -110,11 +112,11 @@ const Password = {
     async initReset(email) {
 
     // Varaible to hold results to be sent back
-      let verPack = {};
+      let verPack = {}
     // Generate verificationCode
-      const verificationCode = shortid.generate();
+      const verificationCode = shortid.generate()
     // Generate verificationCodeExpiration time 60mins from set time
-    const verificationCodeExpiration = new Date().getTime();
+    const verificationCodeExpiration = new Date().getTime()
     // Configure smtp transport machanism for password reset email
       const transporter = nodemailer.createTransport({
         service: 'gmail',
@@ -126,7 +128,7 @@ const Password = {
         // Server|host gmail password
         pass: config.gmailPassword,
       },
-    });
+    })
     const message = {
             subject: 'arrms.netlify.com | Password Reset',
             to: email,
@@ -134,54 +136,54 @@ const Password = {
       html: `
             <h1>Hello ,</h1>
             <h2>Here is your password reset key</h2>
-            <h2><code contenteditable="false" style="font-weight:200;
-            font-size:1.5rem;padding:5px 10px; background: #EEEEEE; border:0">
+            <h2><code contenteditable="false" style="font-weight:200
+            font-size:1.5rempadding:5px 10px background: #EEEEEE border:0">
             ${verificationCode}</code></h4>
             <p>Please ignore if you didn't try to reset your password on our platform</p>
             `,
-        };
+        }
 
-      console.log('sending message ...');
+      winstonLogger.info('sending message ...')
       mailer(message)
       .then((response) => {
 
-          console.log(`${response}: message sent to ${email}`);
+          winstonLogger.info(`${response}: message sent to ${email}`)
           verPack = {
           verificationCode,
             verificationCodeExpiration,
-        };
+        }
 
       })
       .catch((err) => {
 
-          console.log(`could not send verification code: ${verificationCode}  to ${email}`);
-        Promise.reject(err);
+          winstonLogger.info(`could not send verification code: ${verificationCode}  to ${email}`)
+        Promise.reject(err)
 
-      });
+      })
 
-      return Promise.resolve(verPack);
+      return Promise.resolve(verPack)
 
   },
 
     async initReset(phoneNumber) {
 
     // Varaible to hold results to be sent back
-      const verPack = {};
+      const verPack = {}
     // Generate verificationCode
-      const verificationCode = shortid.generate();
+      const verificationCode = shortid.generate()
     // Generate verificationCodeExpiration time 60mins from set time
-      const verificationCodeExpiration = new Date().getTime() + 60 * 60 * 1000;
+      const verificationCodeExpiration = new Date().getTime() + 60 * 60 * 1000
 
       const _nexmo = new nexmo({
         apiKey: config.nexmoApiKey,
         apiSecret: config.nexmoApiSecret,
 
-    });
+    })
 
     //
 
   },
 
-};
+}
 
-export default Password;
+export default Password

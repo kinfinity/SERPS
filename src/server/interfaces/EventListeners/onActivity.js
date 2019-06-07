@@ -5,32 +5,58 @@
  *
  */
 
-import schoolSessionController from '../../interfaces/controllers/schoolSessionController'
 import winstonLogger from '../../Infrastructure/utils/winstonLogger'
+import educationManagementController from '../controllers/educationManagementController'
 
- const onSchoolSession =  {
-    created: async(params) => { //schoolName, schoolID, schoolSessionID
+ const onActivity =  {
+
+    updateTeacher: async(params) => { //schoolName, schoolID, schoolSessionID
 
         winstonLogger.info('Event Launched')
         winstonLogger.info(JSON.stringify(params,null,4))
 
-        schoolSessionController.addSession(params.SchoolName, params.schoolID, params.schoolSessionID).
+        educationManagementController.updateActivityTeacher(params.activityAlias, params.activityID, params.teacherRef, params.oldteacherRef).
         then((res) => {
 
 
                 if(res !== null){
 
-                    winstonLogger.info('UPDATE: sessionID to school document')
+                    winstonLogger.info('UPDATE: activityID in teacher documents')
+                    winstonLogger.info(JSON.stringify(res,null,4))
+                    //validated 
+                }
+                // if it didn't persist try again Or serialize if DB is down ... 
+
+        }).
+        catch((e) =>{
+
+            winstonLogger.error('ERROR: fixing activityID in teacher documents')
+            winstonLogger.error(e)
+
+        })
+
+    },
+    created: async(params) => { //schoolName, schoolID, schoolSessionID
+
+        winstonLogger.info('Event Launched')
+        winstonLogger.info(JSON.stringify(params,null,4))
+
+        educationManagementController.addActivitytoSchool(params.SchoolName, params.schoolID, params.activityAlias, params.activityID).
+        then((res) => {
+
+
+                if(res !== null){
+
+                    winstonLogger.info('UPDATE: activity to school document')
                     winstonLogger.info(JSON.stringify(res,null,4))
                     //validated
-                    
                 }
                 // if it didn't persist try again Or serialize if DB is down ... 
                 
         }).
         catch((e) =>{
 
-            winstonLogger.error('ERROR: appending sessionID to school document')
+            winstonLogger.error('ERROR: appending activity to school document')
             winstonLogger.error(e)
 
         })
@@ -42,13 +68,13 @@ import winstonLogger from '../../Infrastructure/utils/winstonLogger'
         winstonLogger.info('Event Launched')
         winstonLogger.info(JSON.stringify(params,null,4))
         
-        schoolSessionController.removeSession(params.SchoolName, params.schoolID, params.sessionID).
+        schoolSessionController.removeActivityfromSchool(params.SchoolName, params.schoolID, params.activityAlias, params.activityID).
         then((res) => {
 
 
                 if(res !== null){
 
-                    winstonLogger.info('UPDATE: sessionID to school document')
+                    winstonLogger.info('REMOVE: activity from school document')
                     winstonLogger.info(res)
                     //validated
                     
@@ -58,40 +84,13 @@ import winstonLogger from '../../Infrastructure/utils/winstonLogger'
         }).
         catch((e) =>{
 
-            winstonLogger.error('ERROR: appending sessionID to school document')
+            winstonLogger.error('ERROR: removing activity from school document')
             winstonLogger.error(e)
 
         })
 
-    },
-    update_AccessCode: async(params) => { //schoolName, schoolID, sessionName
-
-        winstonLogger.info('Event Launched')
-        winstonLogger.info(JSON.stringify(params,null,4))
-        
-        schoolSessionController.update_AccessCode(params.schoolName, params.schoolID, params.sessionName).
-        then((res) => {
-
-
-                if(res !== null){
-
-                    winstonLogger.info('UPDATE: public_ACCESS_CODE in school document')
-                    winstonLogger.info(res)
-                    //validated
-                    
-                }
-                // if it didn't persist try again Or serialize if DB is down ... 
-                
-        }).
-        catch((e) =>{
-
-            winstonLogger.error('ERROR: public_ACCESS_CODE in school document')
-            winstonLogger.error(e)
-
-        })
-
-    },
+    }
 
 }
 
-export default onSchoolSession
+export default onActivity

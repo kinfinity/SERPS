@@ -14,42 +14,6 @@ require('mongoose-type-url')
 
 const TSchema = mongoose.Schema
 
-const term = new TSchema({
-    'termTitle': { // 1st,2nd,3rd | Harmattan,Rain
-        type: String,
-        required: true,
-        unique: true,
-    },
-    'notifications':[{
-        type: TSchema.Types.ObjectId,
-        ref: 'NotificationModel'
-    }],
-    'startDate':{
-        type: String,
-        required: false,
-        unique: true
-    },
-    'endDate':{
-        type: String,
-        required: false,
-        unique: true
-    }},
-    {
-        timestamps: true,
-        strict: true
-})
-
-term.pre('save', function(next) {
-
-    this.updated_at = new Date() 
-    if (!this.created_at ) {
-        this.created_at = new Date()
-    }
-
-    next()
-
-})
-
 const SchoolSessionSchema = new TSchema({
     name: {  // 1st term = 20xx20xx_1
         type: String,
@@ -63,6 +27,11 @@ const SchoolSessionSchema = new TSchema({
         trim: true,
         unique: true
     },
+    calendarID: {
+        type:TSchema.Types.ObjectId,
+        ref: 'SchoolCalendarModel',
+        required: false
+    },
     'SchoolName': {
         type: String,
         required: true,
@@ -73,9 +42,64 @@ const SchoolSessionSchema = new TSchema({
         required: false,
         unique: true
     },
-    Terms: [term]
-
+    firstTerm: {
+        'termTitle': {
+            type: String,
+            required: true,
+            unique: true,
+            default: "Frist Term"
+        },
+        'startDate':{
+            type: String,
+            required: false,
+            unique: false
+        },
+        'endDate':{
+            type: String,
+            required: false,
+            unique: false
+        }
     },
+    secondTerm: {
+        'termTitle': { 
+            type: String,
+            required: true,
+            unique: true,
+            default: "Second Term"
+        },
+        'startDate':{
+            type: String,
+            required: false,
+            unique: false
+        },
+        'endDate':{
+            type: String,
+            required: false,
+            unique: false
+        }
+    },
+    thirdTerm: {
+        'termTitle': {
+            type: String,
+            required: true,
+            unique: true,
+            default: "Third Term"
+        },
+        'startDate':{
+            type: String,
+            required: false,
+            unique: false
+        },
+        'endDate':{
+            type: String,
+            required: false,
+            unique: false
+        }
+    },
+    notifications: [{
+        type: TSchema.Types.ObjectId,
+        ref: 'NotificationModel'
+    }]},
     {
         timestamps: true,
         strict: true

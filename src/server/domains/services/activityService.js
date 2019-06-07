@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2019 Echwood Inc.
  * 
- * classService: () : ClassModel
+ * ActivityService: () : ActivityModel
  *
  *  implements fucntions necessary for model manipulation
  *
@@ -17,43 +17,43 @@
  *
  */
 
-import ClassModel from '../models/ClassModel'
+import ActivityModel from '../models/ActivityModel'
 import SchoolModel from '../models/schoolModel'
 import winstonLogger from  '../../Infrastructure/utils/winstonLogger'
 import publicEnums from '../../app/publicEnums'
-import schoolEvent from '../../interfaces/Events/schoolEvents';
+import schoolEvent from '../../interfaces/Events/schoolEvents'
 
 
-const classService = {
+const ActivityService = {
 
-  // handle for the ClassModel
-  _classModel: ClassModel,
+  // handle for the ActivityModel
+  _activityModel: ActivityModel,
   _schoolModel: SchoolModel,
-  // Create new class
-  async createNewClass(schoolName,schoolID,classAlias,classData) {
+  // Create new Activity
+  async createNewActivity(schoolName,schoolID,activityAlias,activityData) {
 
-    winstonLogger.info('CREATE: class')
+    winstonLogger.info('CREATE: Activity')
     winstonLogger.info(JSON.stringify(schoolName,null,4))
     winstonLogger.info(JSON.stringify(schoolID,null,4))
-    winstonLogger.info(JSON.stringify(classData,null,4))
+    winstonLogger.info(JSON.stringify(activityData,null,4))
     // Holds return data for this fucntion
-    let response = null
-    // Check if class exists first returns promise resolved to true or false
-    response = await classService.classExists(
+    let response = null 
+    // Check if Activity exists first returns promise resolved to true or false
+    response = await ActivityService.ActivityExists(
         schoolName,
         schoolID,
-        classAlias
+        activityAlias
     ).
     then((result) => {
 
       // exists in database
-        winstonLogger.info(`FIND: class exists: ${result.status}`)
+        winstonLogger.info(`FIND: Activity exists: ${result.status}`)
         response = result.status
 
     }).
     catch((e) => {
 
-        winstonLogger.error('ERROR: searching for class')
+        winstonLogger.error('ERROR: searching for Activity')
         winstonLogger.error(e)
 
         return Promise.resolve({
@@ -62,24 +62,21 @@ const classService = {
         })
 
     })
-    // Becomes true if class already exists and we kick out of function
+    // Becomes true if Activity already exists and we kick out of function
     if (response) {
 
-        // Return to higher scope if class already exists
+        // Return to higher scope if Activity already exists
         return Promise.resolve({
           statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_ERROR, 
           Data: false
         })
 
     }
-    let _classID = null,_className = null,_classAlias = null
-    // If it doesn't exist create the class
-    const name = classData.Name
-    const alias = classAlias
-    // public_HASHED_CODE: classData.public_HASHED_CODE
+    let _activityID = null,_activityAlias = null
+    // If it doesn't exist create the Activity
+    const alias = activityAlias
 
-    const cM = new ClassModel({
-      name,
+    const cM = new ActivityModel({
       alias,
       schoolName,
       schoolID
@@ -94,16 +91,15 @@ const classService = {
     then((result) => {
       
         //
-        winstonLogger.info('CREATE: class')
+        winstonLogger.info('CREATE: Activity')
         winstonLogger.info(result)
-        _classAlias = result.alias
-        _classID = result._id
-        _className = result.name
+        _activityAlias = result.alias
+        _activityID = result._id
         
     }).
     catch((e) => {  
       
-        winstonLogger.error('ERROR: creating class')
+        winstonLogger.error('ERROR: creating Activity')
         winstonLogger.error(e)
 
         return Promise.resolve({
@@ -114,20 +110,18 @@ const classService = {
     })
 
     winstonLogger.info('Event Data: ')
-    winstonLogger.info(_className)
-    winstonLogger.info(_classAlias)
-    winstonLogger.info(_classID)
-    //class has been created. add to the school document
+    winstonLogger.info(_activityAlias)
+    winstonLogger.info(_activityID)
+    //Activity has been created. add to the school document
     schoolEvent.
     emit(
-        'school-classCreated',
+        'school-ActivityCreated',
         {
           schoolName,
           schoolID,
-          classData: {
-              _className,
-              _classAlias,
-              _classID
+          activityData: {
+              _activityAlias,
+              _activityID
           }
         }
       )// send a few params
@@ -139,49 +133,41 @@ const classService = {
 
   },
    /*
-   * Checks if the class is in the Database without returning anyData
+   * Checks if the Activity is in the Database without returning anyData
    * returns a boolean based on availability
    */
-  async classExists(schoolName,schoolID,classAlias) {
+  async ActivityExists(schoolName,schoolID,activityAlias) {
 
     let res = {
       id: null,
-      status: null
+      status: false
     }
-    // REVIEW THE INDEXING
 
-    // const classsIndex = (classAlias[0] == 'J')? parseInt(classAlias)-1 : parseInt(classAlias) + 3
-    const classIndex = 0
-      //
-      await classService._schoolModel.
+      await ActivityService._schoolModel.
       findOne({
         Name: schoolName,
-        schoolID,
-        'classList.classAlias': classAlias
+        schoolID
       }).
       then((result) => {
 
           //
-          winstonLogger.info('FIND: class in School')
-          // winstonLogger.info(result)
-          if(result === null){
-            res = {
-              id: null,
-              status: false
-            }
-          }else{
-
-            winstonLogger.info(JSON.stringify(result.classList[classIndex],null,4))
-            res = {
-              id: result.classList[classIndex].classRef,
-              status: true
-            }
+          winstonLogger.info('FIND: Activity in School')
+          winstonLogger.info(JSON.stringify(result,null,4))
+          if(result){
+                let activity = null
+                for(activity in result.activities){
+                    if(activity.Name === activityAlias){
+                        res = {
+                            id: result.activity.activityID,
+                            status: true
+                        }
+                    }
+                }
           }
 
       }).catch((e) => {
 
-          winstonLogger.error('ERROR: error searching for class in school')
-          winstonLogger.error(e)
+          winstonLogger.error('ERROR: error searching for Activity in school')
         
           return Promise.resolve({
             id: null,
@@ -196,30 +182,30 @@ const classService = {
   
 
   /*
-   * updates information on a class
+   * updates information on a Activity
    */
-  async deleteClass(schoolName,schoolID,classData) {
+  async deleteActivity(schoolName,schoolID,activityData) {
       
       // Holds return data for this fucntion
       let response = null,id = null
-      // Check if class exists first returns promise resolved to true or false
-      await classService.classExists(
+      // Check if Activity exists first returns promise resolved to true or false
+      await ActivityService.ActivityExists(
           schoolName,
           schoolID,
-          classData.classAlias, 
-          classData.className
+          activityData.activityAlias, 
+          activityData.ActivityName
       ).
       then((result) => {
 
         // exists in database
-          winstonLogger.info(`FIND: class exists: ${JSON.stringify(result,null,4)}`)
+          winstonLogger.info(`FIND: Activity exists: ${JSON.stringify(result,null,4)}`)
           response = result.status
           id = result.id
 
       }).
       catch((e) => {
 
-          winstonLogger.error('ERROR: searching for class')
+          winstonLogger.error('ERROR: searching for Activity')
           winstonLogger.error(e)
 
           return Promise.resolve({
@@ -228,10 +214,10 @@ const classService = {
           })
 
       })
-      // Becomes true if class already exists
+      // Becomes true if Activity already exists
       if (!response) {
 
-          // Return to higher scope if class already exists
+          // Return to higher scope if Activity already exists
           return Promise.resolve({
             statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_ERROR, 
             Data: false
@@ -239,21 +225,21 @@ const classService = {
 
       }
       
-      // delete the class
-      await classService._classModel.
+      // delete the Activity
+      await ActivityService._activityModel.
       findOneAndRemove({
           _id: id
       }).
       then((result) => {
         
           //
-          winstonLogger.info('DELETE: class')
+          winstonLogger.info('DELETE: Activity')
           winstonLogger.info(result)
           
       }).
       catch((e) => {
         
-          winstonLogger.error('ERROR: deleting class')
+          winstonLogger.error('ERROR: deleting Activity')
           winstonLogger.error(e)
 
           return Promise.resolve({
@@ -263,17 +249,17 @@ const classService = {
 
       })
 
-      //class has been created. add to the school document
+      //Activity has been created. add to the school document
       schoolEvent.
       emit(
-          'school-classDeleted',
+          'school-ActivityDeleted',
           {
             schoolName,
             schoolID,
-            classData: {
-                _className,
-                _classAlias,
-                _classID
+            activityData: {
+                _activityName,
+                _activityAlias,
+                _activityID
             }
           }
         )// send a few params
@@ -284,29 +270,29 @@ const classService = {
       })
   },
   /*
-   * updates information on a class
+   * updates information on a Activity
    */
-  async updateClass(schoolName,schoolID,classAlias, classData) {
+  async updateActivity(schoolName,schoolID,activityAlias, activityData) {
     
     let response = null, id = null
       // 
-      await classService.classExists(
+      await ActivityService.ActivityExists(
         schoolName,
         schoolID,
-        classAlias, 
-        classData.className
+        activityAlias, 
+        activityData.ActivityName
       ).
       then((result) => {
 
         // exists in database
-          winstonLogger.info(`FIND: class exists: ${JSON.stringify(result,null,4)}`)
+          winstonLogger.info(`FIND: Activity exists: ${JSON.stringify(result,null,4)}`)
           response = result.status
           id = result.id
 
       }).
       catch((e) => {
 
-          winstonLogger.error('ERROR: updating class')
+          winstonLogger.error('ERROR: updating Activity')
           winstonLogger.error(e)
 
           return Promise.resolve({
@@ -315,10 +301,10 @@ const classService = {
           })
 
       })
-      // Becomes true if class already exists
+      // Becomes true if Activity already exists
       if (!response) {
 
-          // Return to higher scope if class already exists
+          // Return to higher scope if Activity already exists
           return Promise.resolve({
             statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_ERROR, 
             Data: false
@@ -327,22 +313,22 @@ const classService = {
       }
 
       //
-      await classService._classModel.
+      await ActivityService._activityModel.
       findOneAndUpdate({
           _id: id
           },
-          classData
+          activityData
         ).
       then((result) => {
         
           //
-          winstonLogger.info('UPDATE: class')
+          winstonLogger.info('UPDATE: Activity')
           winstonLogger.info(result)
           
       }).
       catch((e) => {
         
-          winstonLogger.error('ERROR: updating class')
+          winstonLogger.error('ERROR: updating Activity')
           winstonLogger.error(e)
 
           return Promise.resolve({
@@ -358,26 +344,26 @@ const classService = {
       })
 
   },
-  async removeClass(schoolName,schoolID,classAlias){
+  async removeActivity(schoolName,schoolID,activityAlias){
   
     let response = null, id = null
       // 
-      await classService.classExists(
+      await ActivityService.ActivityExists(
         schoolName,
         schoolID,
-        classAlias
+        activityAlias
       ).
       then((result) => {
 
         // exists in database
-          winstonLogger.info(`FIND: class exists: ${JSON.stringify(result,null,4)}`)
+          winstonLogger.info(`FIND: Activity exists: ${JSON.stringify(result,null,4)}`)
           response = result.status
           id = result.id
 
       }).
       catch((e) => {
 
-          winstonLogger.error('ERROR: finding class')
+          winstonLogger.error('ERROR: finding Activity')
           winstonLogger.error(e)
 
           return Promise.resolve({
@@ -386,10 +372,10 @@ const classService = {
           })
 
       })
-      // Becomes true if class already exists
+      // Becomes true if Activity already exists
       if (!response) {
 
-          // Return to higher scope if class already exists
+          // Return to higher scope if Activity already exists
           return Promise.resolve({
             statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_ERROR, 
             Data: false
@@ -398,19 +384,19 @@ const classService = {
       }
 
       //
-      await classService._classModel.
+      await ActivityService._activityModel.
       deleteOne({
         _id: id
       }).
       then((result) => {
         
           //
-          winstonLogger.info('REMOVE: class')
+          winstonLogger.info('REMOVE: Activity')
           
       }).
       catch((e) => {
         
-          winstonLogger.error('ERROR: removing class')
+          winstonLogger.error('ERROR: removing Activity')
 
           return Promise.resolve({
             statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_ERROR, 
@@ -428,11 +414,11 @@ const classService = {
 
   },
   
-  async assignClassTeacher(schoolName,schoolID,classAlias, teacherID){
+  async assignActivityTeacher(schoolName,schoolID,activityAlias, teacherID){
 
     let teacherRef = null,Name
       //check for teacher in school first
-      classService._schoolModel.
+      ActivityService._schoolModel.
       find({
         Name: schoolName,
         schoolID
@@ -476,45 +462,69 @@ const classService = {
       }
 
       //gotten teacher id
-      // check for class in school
-      let classID = null
-      await classService.classExists(
+      // check for Activity in school
+      let ActivityID = null
+      await ActivityService.ActivityExists(
         schoolName,
         schoolID,
-        classAlias
+        activityAlias
       ).
       then((result) => {
         // exists in database
-          winstonLogger.info(`FIND: class exists: ${JSON.stringify(result,null,4)}`)
+          winstonLogger.info(`FIND: Activity exists: ${JSON.stringify(result,null,4)}`)
           if(result){
-            classID = result.id
+            ActivityID = result.id
           }
       }).
       catch((e) => {
 
-          winstonLogger.error('ERROR: finding class')
+          winstonLogger.error('ERROR: finding Activity')
           return Promise.resolve({
               statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_ERROR, 
               Data: false
           })
 
       })
-      if(!classID){
+      if(!ActivityID){
         return Promise.resolve({
           statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_ERROR,
           Data: false
         })
       }
-      // then add teacher id and name to class
-      const options = {
-        new: true,
-        safe: true,
-        upsert: true
-      }
-
-      await classService._classModel.
+      
+      // get previous activity teacher
+      await ActivityService._activityModel.
       findOneAndUpdate({
-          _id: classID
+          _id: ActivityID
+      }).
+      then((result) => {
+        //
+        winstonLogger.info('GET: old Activity teacherID')
+        winstonLogger.info(JSON.stringify(result,null,4))
+        if(result){
+          oldteacherrRef = result.teacherRef 
+        }
+
+    }).catch((e) => {
+        winstonLogger.error('ERROR: getting old Activity teacherID')
+      
+        return Promise.resolve({
+          id: null,
+          status: false
+        })
+
+    })
+    // then add teacher id and name to Activity
+    const options = {
+      new: true,
+      safe: true,
+      upsert: true
+    }
+
+
+      await ActivityService._activityModel.
+      findOneAndUpdate({
+          _id: ActivityID
         },{
           teacher: {
             Name, 
@@ -525,14 +535,14 @@ const classService = {
       ).
       then((result) => {
         //
-        winstonLogger.info('UPDATE: class teacherID')
+        winstonLogger.info('UPDATE: Activity teacherID')
         winstonLogger.info(JSON.stringify(result,null,4))
         if(result){
-          classID = result._id // enforce ID
+          ActivityID = result._id // enforce ID
         }
 
     }).catch((e) => {
-        winstonLogger.error('ERROR: updating class teacherID')
+        winstonLogger.error('ERROR: updating Activity teacherID')
       
         return Promise.resolve({
           id: null,
@@ -541,22 +551,21 @@ const classService = {
 
     })
       
-    // update classID in teacher
+    // update ActivityID in teacher
     //FIRE EVENTS
     winstonLogger.info('Event Data: ')
     winstsonLogger.info(teacherRef)
-    winstonLogger.info(classAlias)
-    winstonLogger.info(classID)
-    //class has been created. add to the school document
+    winstonLogger.info(activityAlias)
+    winstonLogger.info(ActivityID)
+    //Activity has been created. add to the school document
     schoolEvent.
     emit(
-        'school-classTeacherUpdate',
+        'school-ActivityTeacherUpdate',
         {
-          schoolName,
-          schoolID,
-          classAlias,
-          classID,
-          teacherRef
+          activityAlias,
+          ActivityID,
+          teacherRef,
+          oldteacherRef
         }
       )// send a few params
 
@@ -566,27 +575,27 @@ const classService = {
       })
 
   },
-  async getClass(schoolName,schoolID,classAlias){
+  async getActivity(schoolName,schoolID,activityAlias){
     
     // Holds return data for this fucntion
     let response = null,id = null
-    // Check if class exists first returns promise resolved to true or false
-    await classService.classExists(
+    // Check if Activity exists first returns promise resolved to true or false
+    await ActivityService.ActivityExists(
         schoolName,
         schoolID,
-        classAlias
+        activityAlias
     ).
     then((result) => {
 
       // exists in database
-        winstonLogger.info(`FIND: class exists: ${JSON.stringify(result,null,4)}`)
+        winstonLogger.info(`FIND: Activity exists: ${JSON.stringify(result,null,4)}`)
         response = result.status
         id = result.id
 
     }).
     catch((e) => {
 
-        winstonLogger.error('ERROR: searching for class')
+        winstonLogger.error('ERROR: searching for Activity')
         winstonLogger.error(e)
 
         return Promise.resolve({
@@ -595,10 +604,10 @@ const classService = {
         })
 
     })
-    // Becomes true if class already exists
+    // Becomes true if Activity already exists
     if (!response) {
 
-        // Return to higher scope if class already exists
+        // Return to higher scope if Activity already exists
         return Promise.resolve({
           statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_ERROR, 
           Data: false
@@ -606,126 +615,23 @@ const classService = {
 
     }
     
-    winstonLogger.info(`CLASS ID: ${id}`)
-    // delete the class
-    await classService._classModel.
+    winstonLogger.info(`Activity ID: ${id}`)
+    // delete the Activity
+    await ActivityService._activityModel.
     findOne({
         _id: id
     }).
     then((result) => {
       
         //
-        winstonLogger.info('GET: class')
+        winstonLogger.info('GET: Activity')
         winstonLogger.info(result)
         response = result
         
     }).
     catch((e) => {
       
-        winstonLogger.error('ERROR: deleting class')
-        winstonLogger.error(e)
-
-        return Promise.resolve({
-          statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_ERROR, 
-          Data: false
-        })
-
-    })
-
-    return Promise.resolve({
-      statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_ERROR, 
-      Data: response
-    })
-
-  },
-  async addSubjecttoClass(schoolName,schoolID,subjectName,subjectID,classAlias){
-    
-    let response = null
-    //
-    const  options = {
-      new: true,
-      safe: true,
-      upsert: true
-    }
-
-    await classService._classModel.
-    findOneAndUpdate({
-        schoolName,
-        schoolID,
-        alias: classAlias
-        },
-        {
-          $push: {
-            subjects: {
-              Name:subjectName,
-              Ref: subjectID
-            }
-          }
-        },
-        options
-    ).
-    then((result) => {
-      
-        //
-        winstonLogger.info('ADD: subject to class')
-        winstonLogger.info(result)
-        response = result
-        
-    }).
-    catch((e) => {
-      
-        winstonLogger.error('ERROR: adding subject to class')
-        winstonLogger.error(e)
-
-        return Promise.resolve({
-          statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_ERROR, 
-          Data: false
-        })
-
-    })
-
-    return Promise.resolve({
-      statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_ERROR, 
-      Data: response
-    })
-
-  },
-  async removeSubjectfromClass(schoolName,schoolID,subjectName,subjectID,classAlias){
-    let response = null
-    //
-    const  options = {
-      new: true,
-      safe: true,
-      upsert: true
-    }
-
-    await classService._classModel.
-    findOneAndUpdate({
-        schoolName,
-        schoolID,
-        alias: classAlias
-        },
-        {
-          $pull: {
-            subjects: {
-              Name:subjectName,
-              Ref: subjectID
-            }
-          }
-        },
-        options
-    ).
-    then((result) => {
-      
-        //
-        winstonLogger.info('REMOVE: subject to class')
-        winstonLogger.info(result)
-        response = result
-        
-    }).
-    catch((e) => {
-      
-        winstonLogger.error('ERROR: removing subject from class')
+        winstonLogger.error('ERROR: geting Activity')
         winstonLogger.error(e)
 
         return Promise.resolve({
@@ -744,4 +650,4 @@ const classService = {
 
 }
 
-export default classService
+export default ActivityService

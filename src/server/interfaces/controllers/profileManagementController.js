@@ -100,11 +100,8 @@ const   profileManagementController = {
     async getSchoolContactInfo(ParentName,ParentID){
         return schoolAdapter.getSchoolContactInfo(ParentName,ParentID);
     },
-    async updateSchoolContactInfo(contactInfo){
-        return schoolAdapter.updateSchoolContactInfo(contactInfo);
-    },
-    async removeNotification(schoolName,schoolID,notificationID){
-        return schoolAdapter.removeNotification(schoolName,schoolID,notificationID);
+    async updateSchoolContactInfo(shoolName,schoolID,contactInfo){
+        return schoolAdapter.updateSchoolContactInfo(shoolName,schoolID,contactInfo);
     }
 
 };

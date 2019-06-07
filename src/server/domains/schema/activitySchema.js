@@ -46,12 +46,7 @@ activityNote.pre('save', function(next) {
 
 const activitySchema = new TSchema({
     
-    name: {
-        type: String,
-        required: false,
-        unique: true,
-    },
-    SchoolName: {
+    schoolName: {
         type: String,
         required: true,
         unique: true,

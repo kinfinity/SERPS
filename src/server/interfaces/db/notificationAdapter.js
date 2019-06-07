@@ -70,9 +70,13 @@ const notificationAdapter = {
     }).
     catch((err) => {
 
-      response = null
-      
-      return Promise.reject(response)
+      winstonLogger.error('ERROR: creating notificationX')
+      winstonLogger.error(err)
+
+      response = {
+        'statusCode': publicEnums.SERPS_STATUS_CODES.REQUEST_ERROR,
+        Data: null
+      }
 
     })
 

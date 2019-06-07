@@ -23,7 +23,13 @@ const schoolWelcome = ""
     },
     teacher: async () => {},
     parent: async () => {},
-    student: async () => {}
+    student: async (params) => {
+
+        // student name is params.name
+        // send Welcome message by email
+        // mailer(params.email,schoolWelcome)// ? senders Mail
+
+    }
  }
 
  export default onSignUp

@@ -8,18 +8,32 @@
  * 
  */
 
-import mongoose from '../../Infrastructure/server/plugins/mongooseCon'
+import mongoose from '../../Infrastructure/plugins/mongooseCon'
 const TSchema = mongoose.Schema
 
-const classSubject = TSchema({  
-
-    classID: {
-      type: TSchema.Types.ObjectId,
+const SubjectSchema = TSchema({  
+    schoolName:{
+      type: String,
+      required: false,
+      unique: false
+    },
+    schoolID: {
+      tpe: String,
+      required: false,
+      unique: false
+    },
+    subjectName: {
+      type: String,
+      required:true,
+      unique: false
+    },
+    classAlias: {
+      type: String,
       required: true
     },
     teacher: {
       type: TSchema.Types.ObjectId,
-      required:true
+      required:false
     },
     lectureNotes: [{
       type: TSchema.Types.ObjectId,
@@ -29,31 +43,5 @@ const classSubject = TSchema({
       timestamps: true,
       strict: true
 })
-
-const SubjectSchema = new TSchema(
-    {
-      'SchoolName': {
-        type: String,
-        required: true,
-        unique: true,
-      },
-      'schoolID':{
-          type: String,
-          required: false,
-          unique: true
-      },
-      title: { // e.g BIOLOGY
-          type: String,
-          required: true,
-          unique: true,
-      },
-      classSubjects: [classSubject]
-      
-    },
-    {
-      timestamps: true,
-      strict: true
-  }
-)
 
 export default SubjectSchema

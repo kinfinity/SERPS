@@ -17,8 +17,8 @@ const notificationController = {
     getNotifications(SchoolName,SchoolID){
         return notificationAdapter.getNotifications(SchoolName,SchoolID) // max=10
     },
-    createNotification(SchoolName,SchoolID,noteID,Data){
-        return notificationAdapter.createNotification(SchoolName,SchoolID,noteID,Data)
+    createNotification(SchoolName,SchoolID,noteTitle,noteID,noteImage,noteText){
+        return notificationAdapter.createNotification(SchoolName,SchoolID,noteTitle,noteID,noteImage,noteText)
     },
     updateNotification(SchoolName,SchoolID,noteID,Data){
         return notificationAdapter.updateNotification(SchoolName,SchoolID,noteID,Data)

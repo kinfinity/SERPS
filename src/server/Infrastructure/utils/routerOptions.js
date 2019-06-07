@@ -1,4 +1,5 @@
 import auth from '../services/auth'
+import winstonLogger from './winstonLogger'
 
 
 const asyncMiddleware = fn =>
@@ -19,20 +20,24 @@ const asyncMiddleware = fn =>
  * Token with student scope wouldn't be validated on a Teacher route
  *  
  **/
-const authSchool = asyncMiddleware(async (req, res, next) => {
+const authSchool = async (req, res, next) => {
   
-  const bearerHeader = req.headers['authorization']
+  winstonLogger.info('AUTHORISATION MIDDLEWARE')
+  const bearerHeader = req.headers['x-access-token'] || req.headers['authorization']
+  winstonLogger.info(`HEADERs: ${JSON.stringify(bearerHeader,null,4)}`)
+
   if(typeof bearerHeader === 'undefined' ){
       res.status(403).json()//forbidden
   }
-  const bearer = bearerHeader.split(' ')
+  const bearer = bearerHeader.split(' ') // .slice(7, token.length)
   bearerToken = bearer[1]
   req.Token = bearerToken
+  winstonLogger.info(`TOKEN: ${bearerToken}`)
   req.baseUrl // scope must match base url filtered and lowerCase e.g /School -> school
 
   next()  
 
-})
+}
 
 const authStudent = asyncMiddleware(async (req, res, next) => {
     
