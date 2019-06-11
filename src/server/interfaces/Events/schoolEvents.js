@@ -42,6 +42,6 @@ schoolEvent.on('school-ActivityCreated',onActivity.created)
 schoolEvent.on('school-ActivityTeacherUpdate',onActivity.updateTeacher)
 
 // lectureNotes
-schoolEvent.on('school-lectureNoteUpdloaded',onLectureNote)
+schoolEvent.on('school-lectureNoteUpdloaded',onLectureNote.uploaded)
 
 export default schoolEvent

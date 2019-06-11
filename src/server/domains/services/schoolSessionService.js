@@ -139,7 +139,8 @@ const schoolSessionService = {
     // Holds return data for this fucntion
     let response,schoolSessionID,activeTerm = null
     winstonLogger.info('HERE WE ARE')
-    winstonLogger.info(sessionData.firstTerm.termTitle)
+    winstonLogger.info(sessionData)
+    winstonLogger.info(sessionData.firstTerm.termTitle) 
     winstonLogger.info(JSON.stringify(sessionData,null,4))
 
     const sessionData1 = {
@@ -209,10 +210,6 @@ const schoolSessionService = {
 
     let schoolSession = null,res = null
 
-    const options = {
-      new: true
-    }
-
     schoolSession = await this.getSchoolSessionID(SchoolName,SchoolID)
     winstonLogger.info(`sessionID: ${JSON.stringify(schoolSession,null,4)}`)
    
@@ -256,15 +253,18 @@ const schoolSessionService = {
   async updateSchoolSession(SchoolName,SchoolID,sessionData) {
 
     winstonLogger.info('::schoolSessionService')
+    winstonLogger.info(JSON.stringify(sessionData,null,4))
 
     let schoolSession = null
 
     const options = {
-      new: true
+      new: true,
+      upsert: true, 
+      safe: true
     }
 
     schoolSession = await this.getSchoolSessionID(SchoolName,SchoolID)
-    winstonLogger.info(`sessionID: ${JSON.stringify(schoolSession,null,4)}`)
+    winstonLogger.info(`sessionID: ${JSON.stringify(schoolSession.sessionObjectID,null,4)}`)
 
     if(!schoolSession.sessionObjectID){
         winstonLogger.info('CREATE: NEW SESSION')

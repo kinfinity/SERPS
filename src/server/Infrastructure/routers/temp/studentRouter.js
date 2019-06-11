@@ -1,11 +1,11 @@
-import studentService from '../services/student'
-import routeUtils from '../utils/routerOptions'
+import studentService from '../../services/student'
+import routeUtils from '../../utils/routerOptions'
 import express from 'express'
-import cloudinaryCon from '../plugins/cloudinaryCon'
-import winstonLogger from '../utils/winstonLogger'
+import cloudinaryCon from '../../plugins/cloudinaryCon'
+import winstonLogger from '../../utils/winstonLogger'
 import shortid from 'shortid'
 import csurf from 'csurf'
-import publicEnums from '../../app/publicEnums'
+import publicEnums from '../../../app/publicEnums'
 import jsStringCompression from 'js-string-compression'
 
 

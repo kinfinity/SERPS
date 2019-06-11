@@ -427,7 +427,7 @@ schoolRouter.route('/SERPS/School/Session/update') // REVIEW
           req.body.schoolID,{
               name:req.body.name,
               academicYear:req.body.academicYear,
-              term: req.body.term
+              term: req.body.term   
           }
         )
         winstonLogger.info('PAYLOAD')
@@ -1668,6 +1668,9 @@ schoolRouter.route('/SERPS/School/class/createSubject')
 }))
   schoolRouter.route('/SERPS/School/class/Subject/lectureNoteID')
   .get(routeUtils.asyncMiddleware (async (req,res, next) => {
+
+    let result = null
+    
     try {
     
         // *
@@ -1826,7 +1829,7 @@ schoolRouter.route('/SERPS/School/admission')
       // *
       const result = await schoolService.getAdmissionStatus(
           req.body.schoolName,
-          req.body.schoolID 
+          req.body.schoolID
       )
       if(result){
           winstonLogger.info('PAYLOAD')

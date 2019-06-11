@@ -98,7 +98,7 @@ const schoolAdminAdapter = {
       winstonLogger.error('ERROR: updating schoolSession')
       winstonLogger.error(e)
 
-      reponse = {
+      response = {
         statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_ERROR,
         Data: false
       }
@@ -116,7 +116,7 @@ const schoolAdminAdapter = {
     then((result) => {
 
       // 
-      winstonLogger.info('CREATE: xschoolSession')
+      winstonLogger.info('ADD: schoolSession')
       winstonLogger.info(JSON.stringify(result,null,4))
 
       response = Promise.resolve(result)
@@ -124,7 +124,7 @@ const schoolAdminAdapter = {
     }).
     catch((e) => {
 
-      winstonLogger.error('ERROR: creating schoolSession')
+      winstonLogger.error('ERROR: adding schoolSession')
       winstonLogger.error(e)
 
       response = {

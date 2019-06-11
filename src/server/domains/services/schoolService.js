@@ -527,7 +527,9 @@ const schoolService = {
       let res = null 
 
       const options = {
-        new: true
+        new: true,
+        upsert: true,
+        safe: true
       }
 
       winstonLogger.info('schoolData:')
@@ -614,7 +616,9 @@ const schoolService = {
       let res = null 
 
       const options = {
-        new: true
+        new: true,
+        safe: true,
+        upsert: true
       }
 
       winstonLogger.info('contactInfo:')
@@ -626,7 +630,10 @@ const schoolService = {
         Name: schoolName,
         schoolID
         },
-        {contactInfo: contactInfo},
+        {
+          email: contactInfo.email,
+          Address: contactInfo.Address
+        },
         options
       ).
       then((updatedSchoolData) => {
@@ -884,13 +891,15 @@ const schoolService = {
     async addSession(schoolName,schoolID,SessionID){
         
       const options = {
-        new: true
+        new: true,
+        safe: true,
+        upsert: true
       }
 
       winstonLogger.info(`SESSION-ID: ${SessionID}`)
       await schoolService._schoolModel.
       findOneAndUpdate({
-          name:schoolName,
+          Name:schoolName,
           schoolID
           },
           {
