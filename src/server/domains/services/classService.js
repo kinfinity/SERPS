@@ -144,37 +144,47 @@ const classService = {
    */
   async classExists(schoolName,schoolID,classAlias) {
 
+    let x = null
     let res = {
       id: null,
       status: null
     }
-    // REVIEW THE INDEXING
-
-    // const classsIndex = (classAlias[0] == 'J')? parseInt(classAlias)-1 : parseInt(classAlias) + 3
-    const classIndex = 0
-      //
+    
+    //
       await classService._schoolModel.
       findOne({
         Name: schoolName,
-        schoolID,
-        'classList.classAlias': classAlias
+        schoolID
       }).
       then((result) => {
 
           //
           winstonLogger.info('FIND: class in School')
-          // winstonLogger.info(result)
-          if(result === null){
+          winstonLogger.info(result.classList[0])
+          if(!result){
             res = {
               id: null,
               status: false
             }
           }else{
 
-            winstonLogger.info(JSON.stringify(result.classList[classIndex],null,4))
-            res = {
-              id: result.classList[classIndex].classRef,
-              status: true
+            const range = (start, end) => new Array(end - start + 1).
+            fill(undefined).map((_, i) => i + start)
+
+            for(x in range(0,8)){
+              winstonLogger.info('CLASS:')
+              winstonLogger.info(result.classList[x])
+              winstonLogger.info(result.classList[x].classAlias)
+              winstonLogger.info('here...')
+              if(result.classList[x].classAlias === classAlias){
+                winstonLogger.info('FOUND:')
+                winstonLogger.info(JSON.stringify(result.classList[x],null,4))
+                res = {
+                  id: result.classList[x].classRef,
+                  status: true
+                }
+                break
+              }
             }
           }
 
@@ -293,8 +303,7 @@ const classService = {
       await classService.classExists(
         schoolName,
         schoolID,
-        classAlias, 
-        classData.className
+        classAlias
       ).
       then((result) => {
 

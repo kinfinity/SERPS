@@ -18,7 +18,6 @@ const classAdapter = {
         return classService.createNewClass(schoolName,schoolID,classAlias,classData)
     },
     async getClass(schoolName,schoolID,classAlias){
-
         return classService.getClass(schoolName,schoolID,classAlias)
     },
     async updateClass(schoolName,schoolID,classAlias,classData){

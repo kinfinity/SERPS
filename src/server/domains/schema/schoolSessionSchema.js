@@ -18,13 +18,11 @@ const SchoolSessionSchema = new TSchema({
     name: {  // 1st term = 20xx20xx_1
         type: String,
         required: false,
-        trim: true,
         unique: true
     },
     academicYear: {  // 20xx20xx
         type: String,
         required: false,
-        trim: true,
         unique: true
     },
     calendarID: {
