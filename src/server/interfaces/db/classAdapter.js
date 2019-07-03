@@ -30,14 +30,14 @@ const classAdapter = {
         return classService.assignClassTeacher(schoolName,schoolID,classAlias,TeacherID)
     },
 
-    async createclassSequence(schoolName,schoolID){
-        return classService.createclassSequence(schoolName,schoolID)
-    },
     async removeClassfromSchool(schoolName,schoolID,classData){
         return schoolService.removeClassfromSchool(schoolName,schoolID,classData)
     },
     async addClasstoSchool(SchoolName,SchoolID,classData){
         return schoolService.addClasstoSchool(SchoolName,SchoolID,classData)
+    },
+    async addtimeTable(schoolName,schoolID,classAlias,timeTableID){
+        return classService.addtimeTable(schoolName,schoolID,classAlias,timeTableID)
     }
     
 }

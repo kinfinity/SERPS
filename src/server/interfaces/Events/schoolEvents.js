@@ -7,6 +7,7 @@ import onClass from '../EventListeners/onClass'
 import onSubject from '../EventListeners/onSubject'
 import onActivity from '../EventListeners/onActivity'
 import onLectureNote from '../EventListeners/onLectureNote'
+import ontimeTable from '../EventListeners/ontimeTable'
 
 // SetUp the various events and listeners 
 const schoolEvent = new EventEmitter()
@@ -43,5 +44,8 @@ schoolEvent.on('school-ActivityTeacherUpdate',onActivity.updateTeacher)
 
 // lectureNotes
 schoolEvent.on('school-lectureNoteUpdloaded',onLectureNote.uploaded)
+
+// timeTable
+schoolEvent.on('school-timeTableCreated',ontimeTable.created)
 
 export default schoolEvent

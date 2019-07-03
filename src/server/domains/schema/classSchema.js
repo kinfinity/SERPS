@@ -41,6 +41,10 @@ const ClassSchema = new TSchema({
             ref: 'SubjectModel'
         }
     }],
+    timeTableID: {
+        type: TSchema.Types.ObjectId,
+        ref: 'TimeTableModel'
+    },
     public_HASHED_CODE: { 
         type: String,
         required: false

@@ -11,7 +11,15 @@ const TSchema = mongoose.Schema
 
 const timeTableSchema = new TSchema(
   {
-        termID: {
+        schoolName: {
+            type: String,
+            required: true
+        },
+        schoolID: {
+            type: String,
+            required: true
+        },
+        sessionID: {
             type: TSchema.Types.ObjectId,
             ref: 'termModel',
             required: true,
@@ -24,17 +32,12 @@ const timeTableSchema = new TSchema(
         noPeriods:{
             type: Number
         },
-        MONDAY: {
-            allocation: [{
+        MONDAY: [{
                 subject:{
-                    type: TSchema.Types.ObjectId,// subject
-                    required: false,
-                    ref: 'SubjectModel'
+                    type: String
                 },
                 teacher:{
-                    type: TSchema.Types.ObjectId,// subject
-                    required: false,
-                    ref: 'TeacherModel'
+                    type: String
                 },
                 startTime: {
                     type:  String
@@ -42,19 +45,13 @@ const timeTableSchema = new TSchema(
                 endTime: {
                     type: String
                 }
-            }]
-        },
-        TUESDAY: {
-            allocation: [{
+            }],
+        TUESDAY: [{
                 subject:{
-                    type: TSchema.Types.ObjectId,// subject
-                    required: false,
-                    ref: 'SubjectModel'
+                    type: String
                 },
                 teacher:{
-                    type: TSchema.Types.ObjectId,// subject
-                    required: false,
-                    ref: 'TeacherModel'
+                    type: String
                 },
                 startTime: {
                     type:  String
@@ -62,19 +59,13 @@ const timeTableSchema = new TSchema(
                 endTime: {
                     type: String
                 }
-            }]
-        },
-        WEDNESSDAY: {
-            allocation: [{
+            }],
+        WEDNESSDAY: [{
                 subject:{
-                    type: TSchema.Types.ObjectId,// subject
-                    required: false,
-                    ref: 'SubjectModel'
+                    type: String
                 },
                 teacher:{
-                    type: TSchema.Types.ObjectId,// subject
-                    required: false,
-                    ref: 'TeacherModel'
+                    type: String
                 },
                 startTime: {
                     type:  String
@@ -82,19 +73,13 @@ const timeTableSchema = new TSchema(
                 endTime: {
                     type: String
                 }
-            }]
-        },
-        THURSDAY: {
-            allocation: [{
+            }],
+        THURSDAY: [{
                 subject:{
-                    type: TSchema.Types.ObjectId,// subject
-                    required: false,
-                    ref: 'SubjectModel'
+                    type: String
                 },
                 teacher:{
-                    type: TSchema.Types.ObjectId,// subject
-                    required: false,
-                    ref: 'TeacherModel'
+                    type: String
                 },
                 startTime: {
                     type:  String
@@ -102,19 +87,13 @@ const timeTableSchema = new TSchema(
                 endTime: {
                     type: String
                 }
-            }]
-        },
-        FRIDAY: {
-            allocation: [{
+            }],
+        FRIDAY: [{
                 subject:{
-                    type: TSchema.Types.ObjectId,// subject
-                    required: false,
-                    ref: 'SubjectModel'
+                    type: String
                 },
                 teacher:{
-                    type: TSchema.Types.ObjectId,// subject
-                    required: false,
-                    ref: 'TeacherModel'
+                    type: String
                 },
                 startTime: {
                     type:  String
@@ -122,8 +101,7 @@ const timeTableSchema = new TSchema(
                 endTime: {
                     type: String
                 }
-            }]
-        },
+            }],
         
      created_at: { 
         type: Date,

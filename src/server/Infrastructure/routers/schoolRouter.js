@@ -4,6 +4,7 @@ import express from 'express'
 import authorisationService from '../../domains/services/authorisationService'
 import cloudinaryCon from '../plugins/cloudinaryCon'
 import winstonLogger from '../utils/winstonLogger'
+import redisClient from '../utils/'
 import shortid from 'shortid'
 import csurf from 'csurf'
 import publicEnums from '../../app/publicEnums'
@@ -17,8 +18,6 @@ import jsStringCompression from 'js-string-compression'
 const hm = new jsStringCompression.Hauffman()
 
 winstonLogger.info('::::schoolRouter')
-
-// winstonLogger.info('::::schoolRouter')
     /*      
      *  Build  school API call routes
      *  
@@ -27,11 +26,11 @@ winstonLogger.info('::::schoolRouter')
     const schoolRouter = express.Router([routeUtils.routerOptions])
     
     //Middleware
-    // const csrfMiddleware = csurf({cookie: true})
+    const csrfMiddleware = csurf({cookie: true})
 
     //
-    // schoolRouter.use('/SERPS/School',routeUtils.asyncMiddleware(routeUtils.authSchool))
-    // schoolRouter.use(csrfMiddleware)
+    schoolRouter.use('/SERPS/School',routeUtils.asyncMiddleware(routeUtils.authSchool))
+    schoolRouter.use(csrfMiddleware)
 
 // Non openAccess_Routes : require Access Token
   schoolRouter.route('/SERPS/School/logOut').get(routeUtils.asyncMiddleware(async (req,res, next) => {
@@ -773,29 +772,16 @@ schoolRouter.route('/SERPS/School/activateNextTerm')
   schoolRouter.route('/SERPS/School/class/createTimetable')
   .get(routeUtils.asyncMiddleware (async (req,res, next) => {
 
-    if(req.body === null) {
-
-        winstonLogger.error('ERROR: WRONG REQUEST PARAMS')
-
-        res.json({
-            state: 'failure',
-            statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_PARAM_ERROR,
-            Data: null
-        })
-
-    }
-
     winstonLogger.info('REQUEST BODY')
     winstonLogger.info(JSON.stringify(req.body,null,4))
 
     try {
         
-        // *
         const result = schoolService.createTimetable(
-            schoolName = req.body.schoolName,
-            schoolID = req.body.schoolID,
-            classAlias = req.body.classAlias,
-            timeTableData = req.body.timeTableData //REVIEW
+            req.body.schoolName,
+            req.body.schoolID,
+            req.body.classAlias,
+            req.body.timeTableData //ARRAY -> REVIEW
         )
         
         res.json({
@@ -1230,10 +1216,10 @@ schoolRouter.route('/SERPS/School/class/createSubject')
         const result = await schoolService.getSubject(
             req.body.schoolName,
             req.body.schoolID,
-            req.body.classAlias,
+            req.body.classAlias,    
             req.body.subjectName
         )
-        if(result){
+        // if(result){
             winstonLogger.info('PAYLOAD')
             winstonLogger.info(JSON.stringify(result,null,4))
             
@@ -1242,7 +1228,7 @@ schoolRouter.route('/SERPS/School/class/createSubject')
                 statusCode: result.statusCode,
                 Data: result.Data
             })
-        }
+        // }
     
     } catch (e) {
         

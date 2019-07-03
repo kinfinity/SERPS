@@ -749,6 +749,60 @@ const classService = {
       Data: response
     })
 
+  },
+
+  // 
+  async addtimeTable(schoolName,schoolID,classAlias,timeTableID){
+
+    let response = null
+    winstonLogger.info('ADD TIMETABLE DATA:')
+    winstonLogger.info(timeTableID)
+    winstonLogger.info(schoolName)
+    winstonLogger.info(schoolID)
+    winstonLogger.info(classAlias)
+    //
+    const  options = {
+      new: true,
+      safe: true,
+      upsert: true
+    }
+
+    await classService._classModel.
+    findOneAndUpdate({
+        schoolName,
+        schoolID,
+        alias: classAlias
+        },
+        {
+          timeTableID
+        },
+        options
+    ).
+    then((result) => {
+      
+        //
+        winstonLogger.info('ADD: timeTableID to class')
+        winstonLogger.info(result)
+        response = result
+        
+    }).
+    catch((e) => {
+      
+        winstonLogger.error('ERROR: adding timeTableD to class')
+        winstonLogger.error(e)
+
+        return Promise.resolve({
+          statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_ERROR, 
+          Data: false
+        })
+
+    })
+
+    return Promise.resolve({
+      statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_ERROR, 
+      Data: response
+    })
+
   }
 
 }

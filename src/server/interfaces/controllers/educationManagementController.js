@@ -81,7 +81,9 @@ const educationManagementController = {
     async removeSubjectfromHolder(schoolName, schoolID, subjectName, subjectID,classAlias){
         return subjectAdapter.removeSubjectfromHolder(schoolName, schoolID, subjectName, subjectID,classAlias)
     },
-
+    async addtimeTable(schoolName,schoolID,classAlias,timeTableID){
+        return classAdapter.addtimeTable(schoolName,schoolID,classAlias,timeTableID)
+    },
     
     // Activity
     async createActivity(schoolName,schoolID,activityAlias,activityData){
