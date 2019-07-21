@@ -4,11 +4,12 @@ import express from 'express'
 import authorisationService from '../../domains/services/authorisationService'
 import cloudinaryCon from '../plugins/cloudinaryCon'
 import winstonLogger from '../utils/winstonLogger'
-import redisClient from '../utils/'
-import shortid from 'shortid'
+import redisCache from '../utils/redisClient'
+// import shortid from 'shortid'
 import csurf from 'csurf'
 import publicEnums from '../../app/publicEnums'
 import jsStringCompression from 'js-string-compression'
+import cookieParser from 'cookie-Parser'
 
 /**
  * base64 image strings are compress b4 sent to server
@@ -26,11 +27,21 @@ winstonLogger.info('::::schoolRouter')
     const schoolRouter = express.Router([routeUtils.routerOptions])
     
     //Middleware
-    const csrfMiddleware = csurf({cookie: true})
+    const csrfMiddleware = csurf({cookie: true})// crorss site resource forgery Handling
 
     //
     schoolRouter.use('/SERPS/School',routeUtils.asyncMiddleware(routeUtils.authSchool))
+    schoolRouter.use(cookieParser())
     schoolRouter.use(csrfMiddleware)
+
+    schoolRouter.get('/csrfTOKENS', csrfMiddleware, function (req, res) {
+        // send the token to client
+        res.json({ csrfToken: req.csrfToken()})
+    })
+      
+    schoolRouter.post('/csrfTOKENS', csrfMiddleware, function (req, res) {
+        //process the Token for validation
+    })
 
 // Non openAccess_Routes : require Access Token
   schoolRouter.route('/SERPS/School/logOut').get(routeUtils.asyncMiddleware(async (req,res, next) => {
@@ -116,6 +127,7 @@ winstonLogger.info('::::schoolRouter')
     // next()
 
 }))
+
   schoolRouter.route('/SERPS/School/contactInfo')
   .get(routeUtils.asyncMiddleware (async (req,res, next) => {
 
@@ -810,7 +822,9 @@ schoolRouter.route('/SERPS/School/activateNextTerm')
       
         // *
         const timeTable = await schoolService.getClassTimetable(
-          req.body.classAlias
+            req.body.schoolName,
+            req.body.schoolID,
+            req.body.classAlias
         )
         res.json(timeTable)
         
@@ -1731,7 +1745,8 @@ schoolRouter.route('/SERPS/School/openAdmission')
       // *
       const result = await schoolService.openAdmission(
           req.body.schoolName,
-          req.body.schoolID 
+          req.body.schoolID,
+          req.body.public_ACCESS_CODE
       )
       if(result){
           winstonLogger.info('PAYLOAD')

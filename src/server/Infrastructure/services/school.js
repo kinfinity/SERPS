@@ -86,9 +86,8 @@ export default {
     winstonLogger.info(params)
     // Call controller which handles authentication
     await authenticationController.authenticateSchoolAdmin(
-      params.email,
-      params.password,
-      params.username
+      params.detail,
+      params.password
     ).
     then((result) => {
 
@@ -106,8 +105,6 @@ export default {
       }
 
     })
-    winstonLogger.info('AUTHENTICATION PAYLOAD:')
-    winstonLogger.info(JSON.stringify(payload))
 
       return  payload
 
@@ -338,8 +335,8 @@ export default {
     async getAdmissionStatus(schoolName,schoolID){
         return schoolSessionController.getAdmissionStatus(schoolName,schoolID)
     },
-    async openAdmission(schoolName,schoolID){
-        return schoolSessionController.openAdmission(schoolName,schoolID)
+    async openAdmission(schoolName,schoolID,publicIdentifier){
+        return schoolSessionController.openAdmission(schoolName,schoolID,publicIdentifier)
     },
     async closeAdmission(schoolName,schoolID){
         return schoolSessionController.closeAdmission(schoolName,schoolID)

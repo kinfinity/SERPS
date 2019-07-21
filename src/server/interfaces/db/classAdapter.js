@@ -29,6 +29,10 @@ const classAdapter = {
     async assignClassTeacher(schoolName,schoolID,classAlias,TeacherID){
         return classService.assignClassTeacher(schoolName,schoolID,classAlias,TeacherID)
     },
+    async getTimetable(schoolName,schoolID,ClassAlias){
+        return classService.getClassTimetable(schoolName,schoolID,ClassAlias)
+    },
+
 
     async removeClassfromSchool(schoolName,schoolID,classData){
         return schoolService.removeClassfromSchool(schoolName,schoolID,classData)

@@ -132,6 +132,8 @@ const schoolService = {
   // Authenticate an already existing user
   async authenticateUser(schoolData) {
 
+    winstonLogger.info('SCHOOL DATA:')
+    winstonLogger.info(JSON.stringify(schoolData,null,4))
     let response = null
     let response1 = null
     let response2 = null
@@ -139,19 +141,18 @@ const schoolService = {
     let id = null
 
     // Try email
-    await schoolService.
-    _schoolModel.
-    findOne({email: schoolData.email}).
+    await schoolService._schoolModel.
+    findOne({email: schoolData.detail}).
     then((Data) => {
 
       // Get data from DB
       if(Data) {
 
-        winstonLogger.info('email found')
+        winstonLogger.info('Email found:')
         tempData = Data
-        winstonLogger.info(Data)
+        winstonLogger.info(JSON.stringify(Data.email,null,4))
         response1 = true
-        id = schoolData.email
+        id = schoolData.detail
 
       }
 
@@ -164,19 +165,18 @@ const schoolService = {
     })
 
     // Try Name
-    await schoolService.
-    _schoolModel.
-    findOne({Name: schoolData.Name}).
+    await schoolService._schoolModel.
+    findOne({schoolID: schoolData.detail}).
     then((Data) => {
 
       // Get data from DB
       if(Data) {
 
-        winstonLogger.info('Name found')
+        winstonLogger.info('schoolID found:')
         tempData = Data
-        winstonLogger.info(Data)
+        winstonLogger.info(Data.schoolID)
         response2 = true
-        id = schoolData.Name
+        id = schoolData.detail
 
       }
 
@@ -184,21 +184,20 @@ const schoolService = {
     catch((err) => {
 
       //
+      winstonLogger.info('ERROR: searching for name')
       response2 = false
 
     })
 
-    if (response1 == null && response2 == null) {
+    if (!(response1 || response2)){
 
       // Break out
       winstonLogger.info(`ERROR AUTHENTICATING :::`)
       // Return false and and empty object
-      response = Promise.resolve({
+      return Promise.resolve({
         statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_ERROR,
         Token: null
       })
-
-      return response
 
     }
     // User exists -> check password correspondence with bcrypt
@@ -229,7 +228,8 @@ const schoolService = {
     // Return a boolean(true) and signed JWT
     await Promise.resolve(tokenService.generateToken({
           email: tempData.email,
-          Name: tempData.Name
+          schoolName: tempData.Name,
+          schoolID: tempData.schoolID
     })).
     then((tk) => {
 
@@ -1165,14 +1165,34 @@ const schoolService = {
     return Promise.resolve(response)
 
   },  
-  async openAdmission(schoolName,schoolID){
+  async openAdmission(schoolName,schoolID,publicIdentifier){
     //
-    let response = null
+    let response = null, hI = null
     
     const options = {
       new: true,
       safe: true
     }
+    await Password.hash(publicIdentifier).
+    then((hashedIdentifier) => {
+
+        // Succeeded in saving new user to DB
+        winstonLogger.info(' -> hashedIdentifier')
+        winstonLogger.info(hashedIdentifier)
+        hI = hashedIdentifier
+
+    }).catch((err) => {
+
+      winstonLogger.error('Identifier NOT HASHED')
+      winstonLogger.error(err.stack)  
+
+      return Promise.resolve({
+        statusCode: publicEnums.SERPS_STATUS_CODES.INTERNAL_SERVER_ERROR,
+        Data: null
+      })
+
+    })
+
 
     await schoolService._schoolModel.
     findOneAndUpdate({
@@ -1180,6 +1200,7 @@ const schoolService = {
         schoolID
       },
       {
+        public_ACCESS_CODE: hI,
         admissionStatus: true
       },
       options
@@ -1260,8 +1281,88 @@ const schoolService = {
     
         return Promise.resolve(response)
 
-  }
+  },
+  async addtimeTable(schoolName,schoolID,classAlias,timeTableID){
 
+    let response = null, classx = null, classr = null
+    winstonLogger.info('SCHOOL ADD TIMETABLE DATA:')
+    winstonLogger.info(timeTableID)
+    winstonLogger.info(schoolName)
+    winstonLogger.info(schoolID)
+    winstonLogger.info(classAlias)
+    //
+    const  options = {
+      new: true,
+      safe: true,
+      upsert: true
+    }
+
+    // find class
+    await schoolService._schoolModel.
+    findOne({
+      Name:schoolName,
+      schoolID
+    }).
+    then((Data) => {
+      if(Data)
+      {
+        for(classr in Data.classList)
+        {
+          if(Number.isInteger(parseInt(classr)))
+          {
+              winstonLogger.info('CLASS')
+              winstonLogger.info(classr)
+              if(Data.classList[classr].classAlias === classAlias)
+              {
+                  winstonLogger.info('CLASS_INDEX:')
+                  winstonLogger.info(classr)
+                  classx = classr
+              }
+          }
+        }
+      }
+    })
+    await schoolService._schoolModel.
+    findOneAndUpdate({
+        Name: schoolName,
+        schoolID
+        },
+        {
+            // '$set :classList.$.0.timeTableID': timeTableID 
+        },
+        options 
+    ).
+    then((result) => {
+      
+        //
+        winstonLogger.info('ADD: timeTableID to school')
+        result.classList[classx].timeTableID = timeTableID // isn't persisted
+        // schoolService._schoolModel.save(result).then().catch()
+        winstonLogger.info(JSON.stringify(schoolService._schoolModel,null,4))
+        winstonLogger.info(JSON.stringify(result,null,4))
+        response = result
+        
+    }).
+    catch((e) => {
+      
+        winstonLogger.error('ERROR: adding timeTableID to school')
+        winstonLogger.error(e.stack)
+        winstonLogger.error(e.message)
+
+        return Promise.resolve({
+          statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_ERROR, 
+          Data: false
+        })
+
+    })
+
+    return Promise.resolve({
+      statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_ERROR, 
+      Data: response
+    })
+
+  }
+  
 }
 
 export default schoolService

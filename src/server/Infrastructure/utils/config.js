@@ -1,22 +1,36 @@
+import winstonLogger from './winstonLogger'
+
 /**
  * #k_infinityIII@Echwood
  *
  * config : () :
  *      load from .env with dotenv
  */
-const path = require('path');
+const path = require('path')
 const fs = require('fs')
 
-require('dotenv').config({path: path.join(__dirname, '../../../../.env')});
+require('dotenv').config({path: path.join(__dirname, '../../../../.env')})
 
-// try {
+let _tokenPrivateKey = null, _tokenPublicKey = null
+try {
   
-//   const _tokenPrivateKey = fs.readFileSync('../certs/token/private.key','utf-8') 
-//   const _tokenPublicKey = fs.readFileSync('../certs/token/public.key','utf-8')
+  // _tokenPrivateKey = fs.readFileSync(__dirname + '/../certs/token/private.key','utf-8') 
+  // _tokenPublicKey = fs.readFileSync(__dirname + '/../certs/token/public.key','utf-8')
+  _tokenPrivateKey = fs.readFileSync(__dirname + '/../certs/token/rsa_private.pem','utf-8') 
+  _tokenPublicKey = fs.readFileSync(__dirname + '/../certs/token/rsa_public.pem','utf-8')
   
-// } catch (e) {
-//   console.log('error getting permission files' + e.toString())
-// }
+  winstonLogger.info('PRIVATE KEY:')
+  winstonLogger.info(_tokenPrivateKey)
+  winstonLogger.info('PUBLIC KEY:')
+  winstonLogger.info(_tokenPublicKey)
+
+} catch (e) {
+
+  winstonLogger.error('ERROR:')
+  winstonLogger.error(e.message)
+  winstonLogger.error(e.stack)
+
+}
 
 const config = {
 
@@ -35,8 +49,9 @@ const config = {
   cloudinarySecret: process.env.CLOUDINARY_API_SECRET,
   cloudinaryName: process.env.CLOUDINARY_CLOUD_NAME,
   serverID: process.env.serverID,
-  tokenPrivateKey:  process.env.TOKEN_PRIVATEKEY,
-  tokenPublicKey:  process.env.TOKEN_PUBLICKEY
-};
+  tokenPrivateKey: _tokenPrivateKey,// || process.env.TOKEN_PRIVATEKEY,
+  tokenPublicKey: _tokenPublicKey// || process.env.TOKEN_PUBLICKEY
 
-export default config;
+}
+
+export default config

@@ -22,6 +22,7 @@ import SchoolModel from '../models/schoolModel'
 import winstonLogger from  '../../Infrastructure/utils/winstonLogger'
 import publicEnums from '../../app/publicEnums'
 import schoolEvent from '../../interfaces/Events/schoolEvents';
+import timeTableService from './timeTableService';
 
 
 const classService = {
@@ -802,6 +803,81 @@ const classService = {
       statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_ERROR, 
       Data: response
     })
+
+  },
+  async getClassTimetable(schoolName,schoolID,classAlias){
+
+    let timeTableID = null, timeTableData = null, classx = null
+
+    await schoolService._schoolModel.
+      findOne({
+        Name: schoolName,
+        schoolID
+      }).then((schoolData) => {
+
+       //
+       if(schoolData){
+        for(classx in schoolData.classList){
+          if(Number.isInteger(parseInt(classx))){
+              winstonLogger.info('CLASS')
+              winstonLogger.info(classx)
+              if(schoolData.classList[classx].classAlias === classAlias){
+                  winstonLogger.info('timeTableID:')
+                  winstonLogger.info(schoolData.classList[classx].timeTableID)
+                  timeTableID = schoolData.classList[classx].timeTableID
+              }
+          }
+        }
+       }
+
+      }).catch((e) => {
+
+        winstonLogger.error('error getting timetTableID')
+        winstonLogger.error(e)
+
+        return Promise.resolve({
+          statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_ERROR,
+          Data: null
+        })
+
+      })
+
+      if(!timeTableID){
+        return Promise.resolve({
+          statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_ERROR,
+          Data: null
+        })
+      }
+
+      // get timeTable
+      timeTableService._timeTableModel.
+      findOne({
+        _id: timeTableID
+      }).
+      then((Data) => {
+
+        if(Data){
+          
+          //
+          timeTable = Data
+        }
+
+      }).catch((e) => {
+        
+        winstonLogger.error('error getting timetTable')
+        winstonLogger.error(e)
+
+        return Promise.resolve({
+          statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_ERROR,
+          Data: null
+        })
+
+      })
+
+      return Promise.resolve({
+        statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_OK,
+        Data: timeTableData
+      })
 
   }
 

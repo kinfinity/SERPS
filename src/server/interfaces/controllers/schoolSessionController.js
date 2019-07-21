@@ -39,8 +39,8 @@ const   schoolSessionController = {
     async getAdmissionStatus(schoolName,schoolID){
         return schoolAdapter.getAdmissionStatus(schoolName,schoolID)
     },
-    async openAdmission(schoolName,schoolID){
-        return schoolAdapter.openAdmission(schoolName,schoolID)
+    async openAdmission(schoolName,schoolID,publicIdentifier){
+        return schoolAdapter.openAdmission(schoolName,schoolID,publicIdentifier)
     },
     async closeAdmission(schoolName,schoolID){
         return schoolAdapter.closeAdmission(schoolName,schoolID)

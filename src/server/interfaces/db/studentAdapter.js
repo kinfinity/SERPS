@@ -14,6 +14,7 @@
 import authorisationService from '../../domains/services/authorisationService'
 import studentService from '../../domains/services/studentService'
 import publicEnums from '../../app/publicEnums'
+import winstonLogger from '../../Infrastructure/utils/winstonLogger';
 
 
 const studentAdapter = {
@@ -21,6 +22,8 @@ const studentAdapter = {
   // Adds new user to the database with email and password
   async persist(params) {
 
+    winstonLogger.info('PARAMS:')
+    winstonLogger.info(JSON.stringify(params,null,4))
     let response = null
 
     await studentService.createNewEmailUser(
@@ -37,15 +40,17 @@ const studentAdapter = {
 
       // Creation Succeeded
       winstonLogger.info('PERSIST: Result')
-      winstonLogger.info(result)
+      winstonLogger.info(JSON.stringify(result,null,4))
 
       response = Promise.resolve(result)
 
     }).
     catch((err) => {
 
+      winstonLogger.error('ERROR: persisting data')
+      winstonLogger.error(err.stack)
+
       response = null
-      
       return Promise.reject(response)
 
     })
@@ -63,7 +68,7 @@ const studentAdapter = {
 
       // Authentication succeeded
       winstonLogger.info('AUTHENTICATION: result')
-      winstonLogger.info(result)
+      winstonLogger.info(JSON.stringify(result,null,4))
 
       response = Promise.resolve(result)
 
@@ -71,7 +76,7 @@ const studentAdapter = {
     catch((err) => {
 
       winstonLogger.error('ERROR: authenticating')
-      winstonLogger.error(e)
+      winstonLogger.error(e.stack)
 
       response = {
         'statusCode': publicEnums.SERPS_STATUS_CODES.REQUEST_ERROR,
@@ -105,18 +110,53 @@ const studentAdapter = {
     return response
 
   },
+   // authorise an authenticated user
+   async authorise(accessToken) {
   
+    let response = null
+    // 
+    await authorisationService.authoriseToken(accessToken).
+    then((resolve) => {
+
+        // Authorization done
+        winstonLogger.info('Authorising:')
+        winstonLogger.info(JSON.stringify(resolve,null,4))
+
+        //check contents of token
+        if(resolve){
+
+          response = resolve
+
+        }
+
+
+    }).
+    catch((err) => {
+
+      winstonLogger.error('ERROR:')
+      winstonLogger.error(err.stack)
+      winstonLogger.error(err.message)
+      response = {
+          statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_ERROR,
+          Data :null
+      }
+
+    })
+
+    return Promise.resolve(response)
+
+  },
   //  
-  async getStudentPersonalInfo(studentName,studentID) {
+  async getStudentPersonalInfo(schoolName,fullName,studentID) {
   
     let response = null
     //
-    await studentService.getStudentPersonalInfo().
+    await studentService.getStudentPersonalInfo(schoolName,fullName,studentID).
     then((result) => {
 
       // 
       winstonLogger.info('GET: studentInfo')
-      winstonLogger.info(result)
+      winstonLogger.info(JSON.stringify(result,null,4))
 
       response = Promise.resolve(result)
 
@@ -124,7 +164,7 @@ const studentAdapter = {
     catch((e) => {
 
       winstonLogger.error('ERROR: getting studentInfo')
-      winstonLogger.error(e)
+      winstonLogger.error(e.stack)
 
       response = {
           statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_ERROR,
@@ -206,17 +246,17 @@ const studentAdapter = {
 
   },
 
-  async updateStudentContactInfo(studentName,studentID,studentData){
+  async updateStudentContactInfo(schoolName,fullName,studentID,contactInfo){
 
     //
     let response = null
 
-    await studentService.updateStudentContactInfo(studentName,studentID,studentData).
+    await studentService.updateStudentContactInfo(schoolName,fullName,studentID,contactInfo).
     then((result) => {
 
       // 
       winstonLogger.info('UPDATE: studentContactInfo')
-      winstonLogger.info(result)
+      winstonLogger.info(JSON.stringify(result,null,4))
 
       response = Promise.resolve(result)
 
@@ -224,7 +264,7 @@ const studentAdapter = {
     catch((e) => {
 
       winstonLogger.error('ERROR: getting studentContactInfo')
-      winstonLogger.error(e)
+      winstonLogger.error(e.stack)
 
       reponse = {
         statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_ERROR,
@@ -236,6 +276,68 @@ const studentAdapter = {
     return response
 
   },
+  async getStudentAcademicInfo(schoolName,fullName,studentID){
+
+    //
+    let response = null
+
+    await studentService.getStudentAcademicInfo(schoolName,fullName,studentID).
+    then((result) => {
+
+      // 
+      winstonLogger.info('GET: studentAcademicInfo')
+      winstonLogger.info(JSON.stringify(result,null,4))
+
+      response = Promise.resolve(result)
+
+    }).
+    catch((e) => {
+
+      winstonLogger.error('ERROR: getting studentContactInfo')
+      winstonLogger.error(e.stack)
+
+      reponse = {
+        statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_ERROR,
+        Data: null
+      }
+
+    })
+
+    return response
+
+  },
+  async getGuardianInfo(schoolName,fullName,studentID){
+
+    //
+    let response = null
+
+    await studentService.getGuardianInfo(schoolName,fullName,studentID).
+    then((result) => {
+
+      // 
+      winstonLogger.info('GET: student Guardian')
+      winstonLogger.info(JSON.stringify(result,null,4))
+
+      response = Promise.resolve(result)
+
+    }).
+    catch((e) => {
+
+      winstonLogger.error('ERROR: getting student Guardian')
+      winstonLogger.error(e.stack)
+
+      reponse = {
+        statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_ERROR,
+        Data: null
+      }
+
+    })
+
+    return response
+
+  },
+  
+  
 
 }
 

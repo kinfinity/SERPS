@@ -19,11 +19,13 @@ import winstonLogger from '../../Infrastructure/utils/winstonLogger';
 const authenticationController = {
 
   // student
-    authenticateStudent(email, password, username, clientID) {
+    authenticateStudent(email, password) {
 
       winstonLogger.info('authenticationController handling login');
+      winstonLogger.info(email)
+      winstonLogger.info(password)
 
-      return studentAdapter.authenticate(email, password, username, clientID);
+      return studentAdapter.authenticate(email, password);
 
   },
 
@@ -69,11 +71,11 @@ const authenticationController = {
 
   },
   // SchoolAdmin
-  authenticateSchoolAdmin(email, password, username) {
+  authenticateSchoolAdmin(detail, password) {
 
     winstonLogger.info('authenticationController handling login');
 
-    return schoolAdminAdapter.authenticate(email, password, username);
+    return schoolAdminAdapter.authenticate(detail, password);
 
 },
 

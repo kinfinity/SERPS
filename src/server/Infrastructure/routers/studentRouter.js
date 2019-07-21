@@ -1,11 +1,12 @@
-import studentService from '../../services/student'
-import routeUtils from '../../utils/routerOptions'
+import studentService from '../services/student'
+import routeUtils from '../utils/routerOptions'
 import express from 'express'
-import cloudinaryCon from '../../plugins/cloudinaryCon'
-import winstonLogger from '../../utils/winstonLogger'
-import shortid from 'shortid'
+// import cloudinaryCon from '../../plugins/cloudinaryCon'
+import winstonLogger from '../utils/winstonLogger'
+// import shortid from 'shortid'
 import csurf from 'csurf'
-import publicEnums from '../../../app/publicEnums'
+import cookieParser from 'cookie-Parser'
+import publicEnums from '../../app/publicEnums'
 import jsStringCompression from 'js-string-compression'
 
 
@@ -18,6 +19,22 @@ import jsStringCompression from 'js-string-compression'
   // student router for all student calls 
   const studentRouter = express.Router([routeUtils.routerOptions])
 
+  //Middleware
+  const csrfMiddleware = csurf({cookie: true})// crorss site resource forgery Handling
+
+  //  
+  studentRouter.use('/SERPS/Student',routeUtils.asyncMiddleware(routeUtils.authStudent))
+  studentRouter.use(cookieParser())
+  studentRouter.use(csrfMiddleware)
+
+  studentRouter.get('/csrfTOKENstudent', csrfMiddleware, function (req, res) {
+      // send the token to client
+      res.json({ csrfToken: req.csrfToken()})
+  })
+    
+  studentRouter.post('/csrfTOKENstudent', csrfMiddleware, function (req, res) {
+      //process the Token for validation
+  })
   
   studentRouter.route('/SERPS/student/logOut').get(routeUtils.asyncMiddleware (async(req,res) => {
       // *
@@ -53,66 +70,9 @@ import jsStringCompression from 'js-string-compression'
 
   // Info API routes
   studentRouter.route('/SERPS/student')// profileInfo
-  .get(routeUtils.asyncMiddleware (async(req,res) => {
+  .get(routeUtils.asyncMiddleware (async(req,res,next) => {
     // *
     winstonLogger.info('STUDENT-PROFILE')
-    
-    if(req.body !== null) {
-
-        winstonLogger.error('ERROR: WRONG REQUEST PARAMS')
-
-        res.json({
-            state: 'failure',
-            statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_PARAM_ERROR,
-            Data: null
-        })
-
-    }
-
-    winstonLogger.info('REQUEST BODY')
-    winstonLogger.info(JSON.stringify(req.body,null,4))
-    
-      try {
-          // *
-          const payload = await studentService.getStudentPersonalInfo(studentName,studentID)
-
-          winstonLogger.info("PAYLOAD")
-          winstonLogger.info(studentProfileInfo)
-
-          payload.state = 'success'
-          res.json(studentProfileInfo)
-
-      } catch (e) {
-
-        winstonLogger.error('ERROR: signing out')
-        winstonLogger.error(e)
-
-        res.json({
-            state: 'failure',
-            statusCode: publicEnums.SERPS_STATUS_CODES.INTERNAL_SERVER_ERROR,
-            Token: null
-        })
-
-      }
-
-    next()
-  }))
-  studentRouter.route('/SERPS/student/contactInfo/update')
-  .get(routeUtils.asyncMiddleware (async(req,res) => {
-    
-    winstonLogger.info('STUDENT-CONTACTINFO')
-    
-    if(req.body === null) {
-
-        winstonLogger.error('ERROR: WRONG REQUEST PARAMS')
-
-        res.json({
-            state: 'failure',
-            statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_PARAM_ERROR,
-            Data: null
-        })
-
-    }
 
     winstonLogger.info('REQUEST BODY')
     winstonLogger.info(JSON.stringify(req.body,null,4))
@@ -120,26 +80,69 @@ import jsStringCompression from 'js-string-compression'
       try {
           // *
           const payload = await studentService.getStudentPersonalInfo(
-              req.body.studentName,
-              req.body.studentID,
-              req.body.contactInfo
+            req.body.schoolName,
+            req.body.fullName,
+            req.body.studentID
           )
 
           winstonLogger.info("PAYLOAD")
-          winstonLogger.info(payload)
+          winstonLogger.info(JSON.stringify(payload,null,4))
+          payload.state = 'failure'
+          if(payload){
+            payload.state = 'success'
+          }
+          res.json(payload)
 
-          payload.state = 'success'
+      } catch (e) {
+
+        winstonLogger.error('ERROR:getting student info')
+        winstonLogger.error(e.stack)
+
+        res.json({
+            state: 'failure',
+            statusCode: publicEnums.SERPS_STATUS_CODES.INTERNAL_SERVER_ERROR,
+            Data: null
+        })
+
+      }
+
+    next()
+
+  }))
+  studentRouter.route('/SERPS/student/contactInfo/update')
+  .get(routeUtils.asyncMiddleware (async(req,res,next) => {
+    
+    winstonLogger.info('STUDENT-CONTACTINFO')
+    
+    winstonLogger.info('REQUEST BODY')
+    winstonLogger.info(JSON.stringify(req.body,null,4))
+    
+      try {
+          // *
+          const payload = await studentService.updateContactInfo(
+            req.body.schoolName,
+            req.body.fullName,
+            req.body.studentID,
+            req.body.contactInfo
+          )
+            
+          winstonLogger.info("PAYLOAD")
+          winstonLogger.info(JSON.stringify(payload,null,4))
+          payload.state = 'failure'
+          if(payload){
+            payload.state = 'success'
+          }
           res.json(payload)
 
       } catch (e) {
 
         winstonLogger.error('ERROR: updating contactInfo')
-        winstonLogger.error(e)
+        winstonLogger.error(e.stack)
 
         res.json({
             state: 'failure',
             statusCode: publicEnums.SERPS_STATUS_CODES.INTERNAL_SERVER_ERROR,
-            Token: null
+            Data: null
         })
 
       }
@@ -148,21 +151,9 @@ import jsStringCompression from 'js-string-compression'
 
   }))
   studentRouter.route('/SERPS/student/academicInfo')
-  .get(routeUtils.asyncMiddleware (async(req,res) => {
+  .get(routeUtils.asyncMiddleware (async(req,res,next) => {
     
     winstonLogger.info('STUDENT-ACADEMICINFO')
-    
-    if(req.body === null) {
-
-        winstonLogger.error('ERROR: WRONG REQUEST PARAMS')
-
-        res.json({
-            state: 'failure',
-            statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_PARAM_ERROR,
-            Data: null
-        })
-
-    }
 
     winstonLogger.info('REQUEST BODY')
     winstonLogger.info(JSON.stringify(req.body,null,4))
@@ -170,26 +161,28 @@ import jsStringCompression from 'js-string-compression'
       try {
           // *
           const payload = await studentService.getStudentAcademictInfo(
-            req.body.studentName,
-            req.body.studentID,
-            req.body.contactInfo
+            req.body.schoolName,
+            req.body.fullName,
+            req.body.studentID
         )
 
           winstonLogger.info("PAYLOAD")
-          winstonLogger.info(payload)
-
-          payload.state = 'success'
+          winstonLogger.info(JSON.stringify(payload,null,4))
+          payload.state = 'failure'
+          if(payload){
+            payload.state = 'success'
+          }
           res.json(payload)
 
       } catch (e) {
 
         winstonLogger.error('ERROR: getting contactInfo')
-        winstonLogger.error(e)
+        winstonLogger.error(e.stack)
 
         res.json({
             state: 'failure',
             statusCode: publicEnums.SERPS_STATUS_CODES.INTERNAL_SERVER_ERROR,
-            Token: null
+            Data: null
         })
 
       }
@@ -197,38 +190,29 @@ import jsStringCompression from 'js-string-compression'
     next()
 
   }))
+  // *
   studentRouter.route('/SERPS/student/guardianInfo')
   .get(routeUtils.asyncMiddleware (async(req,res) => {
     
     winstonLogger.info('STUDENT-GAURDIANINFO')
-    
-    if(req.body === null) {
-
-        winstonLogger.error('ERROR: WRONG REQUEST PARAMS')
-
-        res.json({
-            state: 'failure',
-            statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_PARAM_ERROR,
-            Data: null
-        })
-
-    }
 
     winstonLogger.info('REQUEST BODY')
     winstonLogger.info(JSON.stringify(req.body,null,4))
     
       try {
           // *
-          const payload = await studentService.getStudentGuardianInfo(
-            req.body.studentName,
-            req.body.studentID,
-            req.body.contactInfo
+          const payload = await studentService.getGuardianInfo(
+            req.body.schoolName,
+            req.body.fullName,
+            req.body.studentID
           )
 
           winstonLogger.info("PAYLOAD")
-          winstonLogger.info(payload)
-
-          payload.state = 'success'
+          winstonLogger.info(JSON.stringify(payload,null,4))
+          payload.state = 'failure'
+          if(payload){
+            payload.state = 'success'
+          }
           res.json(payload)
 
       } catch (e) {
@@ -247,75 +231,12 @@ import jsStringCompression from 'js-string-compression'
     next()
 
   }))
-  studentRouter.route('/SERPS/student/guardianInfo/update')
-  .get(routeUtils.asyncMiddleware (async(req,res) => {
-    
-    winstonLogger.info('STUDENT-GAURDIANINFO')
-    
-    if(req.body === null) {
-
-        winstonLogger.error('ERROR: WRONG REQUEST PARAMS')
-
-        res.json({
-            state: 'failure',
-            statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_PARAM_ERROR,
-            Data: null
-        })
-
-    }
-
-    winstonLogger.info('REQUEST BODY')
-    winstonLogger.info(JSON.stringify(req.body,null,4))
-    
-      try {
-          // *
-          const payload = await studentService.updateStudentGuardianInfo(
-            req.body.studentName,
-            req.body.studentID,
-            req.body.contactInfo
-          )
-
-          winstonLogger.info("PAYLOAD")
-          winstonLogger.info(payload)
-
-          payload.state = 'success'
-          res.json(payload)
-
-      } catch (e) {
-
-        winstonLogger.error('ERROR: updating guardianInfo')
-        winstonLogger.error(e)
-
-        res.json({
-            state: 'failure',
-            statusCode: publicEnums.SERPS_STATUS_CODES.INTERNAL_SERVER_ERROR,
-            Token: null
-        })
-
-      }
-
-    next()
-
-  }))
-
 
   // notification API routes
   studentRouter.route('/SERPS/student/notifications')
-  .get(routeUtils.asyncMiddleware (async(req,res) => {
+  .get(routeUtils.asyncMiddleware (async(req,res,next) => {
     
     winstonLogger.info('STUDENT-NOTIFICATIONS')
-    
-    if(req.body === null) {
-
-        winstonLogger.error('ERROR: WRONG REQUEST PARAMS')
-
-        res.json({
-            state: 'failure',
-            statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_PARAM_ERROR,
-            Data: null
-        })
-
-    }
 
     winstonLogger.info('REQUEST BODY')
     winstonLogger.info(JSON.stringify(req.body,null,4))
@@ -323,21 +244,24 @@ import jsStringCompression from 'js-string-compression'
       try {
           // *
           const payload = await studentService.getNotifications(
-            req.body.studentName,
-            req.body.studentID,
-            req.body.contactInfo
+            req.body.schoolName,
+            req.body.schoolID,
+            req.body.fullName,
+            req.body.studentID
           )
 
           winstonLogger.info("PAYLOAD")
-          winstonLogger.info(payload)
-
-          payload.state = 'success'
+          winstonLogger.info(JSON.stringify(payload,null,4))
+          payload.state = 'failure'
+          if(payload){
+            payload.state = 'success'
+          }
           res.json(payload)
 
       } catch (e) {
 
         winstonLogger.error('ERROR: getting notifications')
-        winstonLogger.error(e)
+        winstonLogger.error(e.stack)
 
         res.json({
             state: 'failure',
@@ -351,23 +275,11 @@ import jsStringCompression from 'js-string-compression'
 
   }))
 
-  // activity API call routes
+  // *** activity API call routes
   studentRouter.route('/SERPS/student/activities')
   .get(routeUtils.asyncMiddleware (async(req,res) => {
     
     winstonLogger.info('STUDENT-ACTIVITIES')
-    
-    if(req.body === null) {
-
-        winstonLogger.error('ERROR: WRONG REQUEST PARAMS')
-
-        res.json({
-            state: 'failure',
-            statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_PARAM_ERROR,
-            Data: null
-        })
-
-    }
 
     winstonLogger.info('REQUEST BODY')
     winstonLogger.info(JSON.stringify(req.body,null,4))
@@ -375,16 +287,17 @@ import jsStringCompression from 'js-string-compression'
       try {
           // *
           const payload = await studentService.getActivities(
+            req.body.schoolName,
+            req.body.schoolID,
             req.body.studentName,
-            req.body.studentID,
-            req.body.contactInfo
+            req.body.studentID
           )
 
           winstonLogger.info("PAYLOAD")
           winstonLogger.info(payload)
 
           payload.state = 'success'
-          res.json(payload)
+          res.json(payload)   
 
       } catch (e) {
 
@@ -454,22 +367,10 @@ import jsStringCompression from 'js-string-compression'
   }))
 
   // timetable API call routes
-  studentRouter.route('/SERPS/student/timeTable')
-  .get(routeUtils.asyncMiddleware (async(req,res) => {
+  studentRouter.route('/SERPS/student/timeTable')   
+  .get(routeUtils.asyncMiddleware (async(req,res,next) => {
     
     winstonLogger.info('STUDENT-ACTIVITY NOTIFICATIONS')
-    
-    if(req.body === null) {
-
-        winstonLogger.error('ERROR: WRONG REQUEST PARAMS')
-
-        res.json({
-            state: 'failure',
-            statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_PARAM_ERROR,
-            Data: null
-        })
-
-    }
 
     winstonLogger.info('REQUEST BODY')
     winstonLogger.info(JSON.stringify(req.body,null,4))
@@ -477,21 +378,22 @@ import jsStringCompression from 'js-string-compression'
       try {
           // *
           const payload = await studentService.getTimetable(
-            req.body.studentName,
-            req.body.studentID,
-            req.body.contactInfo
+            req.body.schoolName,
+            req.body.classAlias
           )
 
           winstonLogger.info("PAYLOAD")
-          winstonLogger.info(payload)
-
-          payload.state = 'success'
+          winstonLogger.info(JSON.stringify(payload,null,4))
+          payload.state = 'failure'
+          if(payload){
+            payload.state = 'success'
+          }
           res.json(payload)
 
       } catch (e) {
 
         winstonLogger.error('ERROR: getting activity notifications')
-        winstonLogger.error(e)
+        winstonLogger.error(e.stack)
 
         res.json({
             state: 'failure',
@@ -509,48 +411,38 @@ import jsStringCompression from 'js-string-compression'
   studentRouter.route('/SERPS/student/parentKey')
   .get(routeUtils.asyncMiddleware (async(req,res) => {
     // *
-    const parentKey = studentService.generateParentKey(studentID)
     
     winstonLogger.info('STUDENT-GENERATE PARENT KEY')
-    
-    if(req.body === null) {
-
-        winstonLogger.error('ERROR: WRONG REQUEST PARAMS')
-
-        res.json({
-            state: 'failure',
-            statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_PARAM_ERROR,
-            Data: null
-        })
-
-    }
 
     winstonLogger.info('REQUEST BODY')
     winstonLogger.info(JSON.stringify(req.body,null,4))
     
       try {
           // *
-          const payload = await studentService.getTimetable(
+          const payload = await studentService.generateParentKey(
+            req.body.schoolName,
+            req.body.schoolID,
             req.body.studentName,
-            req.body.studentID,
-            req.body.contactInfo
+            req.body.studentID
           )
-
+    
           winstonLogger.info("PAYLOAD")
-          winstonLogger.info(payload)
-
-          payload.state = 'success'
+          winstonLogger.info(JSON.stringify(payload,null,4))
+          payload.state = 'failure'
+          if(payload){
+            payload.state = 'success'
+          }
           res.json(payload)
 
       } catch (e) {
 
         winstonLogger.error('ERROR: generating parent key')
-        winstonLogger.error(e)
+        winstonLogger.error(e.stack)
 
         res.json({
             state: 'failure',
             statusCode: publicEnums.SERPS_STATUS_CODES.INTERNAL_SERVER_ERROR,
-            Token: null
+            Data: null
         })
 
       }

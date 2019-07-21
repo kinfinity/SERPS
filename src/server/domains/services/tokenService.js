@@ -14,6 +14,7 @@
 
 import DestroyAccessToken from '../../app/usecase/DestroyAccessToken'
 import GetAccessToken from '../../app/usecase/GetAccesToken'
+import VerifyAccessToken from '../../app/usecase/VerifyAccessToken'
 import jwtAccessTokenManager
   from '../../interfaces/security/jwtAccessTokenManager'
 import winstonLogger from '../../Infrastructure/utils/winstonLogger';
@@ -31,7 +32,7 @@ const tokenService = {
     const Token = new GetAccessToken(jwtAccessTokenManager).
     execute(payload)
 
-    return Token
+    return Promise.resolve(Token)
 
   },
 
@@ -40,12 +41,15 @@ const tokenService = {
    */
   async decodeToken(aToken) {
 
-    tokenService.tokenExists(aToken)
+    //tokenService.tokenExists(aToken) handle at redisCache level
     // Return a decoded token 
-    const decodedToken = new DecodeAccessToken(jwtAccessTokenManager).
+    const decodedToken = new VerifyAccessToken(jwtAccessTokenManager).
     execute(aToken)
 
-    return decodedToken
+    winstonLogger.info('DECODED_TOKEN:')
+    winstonLogger.info(JSON.stringify(decodedToken,null,4))
+
+    return Promise.resolve(decodedToken)
 
   }
 

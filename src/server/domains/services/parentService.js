@@ -30,225 +30,221 @@
  *
  */
 
-import Password from '../utils/password';
-import ParentModel from '../models/ParentModel';
-import tokenService from './tokenService';
-
+import Password from '../utils/password'
+import ParentModel from '../models/ParentModel'
+import tokenService from './tokenService'
+import winstonLogger from '../../Infrastructure/utils/winstonLogger'
+import publicEnums from '../../app/publicEnums'
+import shortid from 'short-id'
 
 const parentService = {
 
   // handle for the ParentModel
   _parentModel: ParentModel,
   // Create new user
-  async createNewEmailUser(email, ipassword, username, clientID) {
+  async createNewEmailUser(schoolName,Name,birthDate,email,password,gender,Address){
 
-    console.log('inside parentService');
+    winstonLogger.info('inside studentService')
     // Holds return data for this fucntion
-    let response = null;
+    let response = null
+    const fullName = Name.first + " " + Name.middle + " " + Name.last
+    winstonLogger.info('Name:')
+    winstonLogger.info(fullName)
     // Check if user exists first returns promise resolved to true or false
-    await parentService.parentExists({email, username}).
+    await parentService.parentExists({email,fullName}).
     then((result) => {
 
+      winstonLogger.info('searching DB parent')
+      winstonLogger.info(JSON.stringify(result,null,4))
       // Email exists in database
-        response = result;
+        response = result
 
     }).
-    catch((err) => Promise.resolve({'result': false, 'Token': null, 'message': err.toString()}));
+    catch((e) => {
+      winstonLogger.info('ERROR: checking DB for parent')
+      winstonLogger.error(e.stack)
+
+      Promise.resolve({
+        statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_ERROR,
+        Data: null
+      })
+
+    })
     // Becomes true if user already exists and we kick out of function
     if (response) {
 
+      winstonLogger.info('wrong response')
+
       // Return to higher scope if there's a user
-      return Promise.resolve({'result': false, 'Token': null, 'message': err.toString()});
+      return Promise.resolve({
+        statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_ERROR_USEREXISTS,
+        Data: null
+      })
 
     }
+    winstonLogger.info('SCHOOL NAME:')
+    winstonLogger.info(JSON.stringify(schoolName,null,4))
+    
+    // create temp parentID
+    const parentID = Name.first + shortid.generate() 
+    winstonLogger.info('Generated ID:')
+    winstonLogger.info(parentID)
+
     // Create static Data for user
-      const parentData = {
+      let parentData = {
+        schoolName,
+        parentID,
+        fullName,
         email,
-        username
-    };
+        gender,
+        birthDate,
+        Address
+      }
+    const ipassword = password
+
+    winstonLogger.info('HERE:')
+    winstonLogger.info(JSON.stringify(parentData,null,4))
     // Hash user password on first save
     await Password.hash(ipassword).
     then((hashedPassword) => {
 
       // Append Hashed password to static user Data
-      parentData.password = hashedPassword;
-      // Create new user model
-      const student = new ParentModel(parentData);
-    
-      // Save new user
-      student.
-      save().
-      then(() => {
-
-        // Succeeded in saving new user to DB
-        console.log('USER CREATED:::');
-
-      }).
-      catch((err) => {
-
-        console.log(`USER NOT CREATED:::${err}`);
-
-        return Promise.resolve({
-          result: false,
-          Token: {},
-          message: err.toString()
-        });
-
-      });
+      winstonLogger.info('HASHED:')
+      winstonLogger.info(hashedPassword)
+      parentData.password = hashedPassword
 
     }).catch((err) => {
 
-      console.log(`USER PASSWORD NOT HASHED:::${err}`);
-        
-      response = Promise.resolve({
-          result: false,
-          Token: {},
-          message: err.toString()
-      });
+      winstonLogger.error('STUDENT PASSWORD NOT HASHED')
+      winstonLogger.error(err)  
 
-      return response;
+      return Promise.resolve({
+        statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_ERROR,
+        Data: null
+      })
 
-    });
+    })
 
+    // Create new user model
+    const parent = new ParentModel(parentData)
+    
+    // Save new user
+    await parent.
+    save().
+    then((result) => {
+
+      // Succeeded in saving new user to DB
+      winstonLogger.info(' -> PARENT CREATED')
+      winstonLogger.info(JSON.stringify(result,null,4))
+      result.password =  ipassword
+
+      response = result
+
+    }).
+    catch((err) => {
+
+      winstonLogger.error(' -> PARENT NOT CREATED')
+      winstonLogger.error(err.stack)
+
+      return Promise.resolve({
+        statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_ERROR,
+        Data: null
+      })
+
+    })
     // Create and use timeout
-    const timeout = (ms) => new Promise((res) => setTimeout(res, ms));
+    const timeout = (ms) => new Promise((res) => setTimeout(res, ms))
+    await timeout(1000)
 
-    await timeout(1000);
-    // Swap back in unhashedPassword for authentication
-    parentData.password = ipassword;
-    // Authenticate user after signup
-    await parentService.authenticateUser(parentData, clientID).
-    then((us) => {
-
-      // Succeeded authentication
-      Promise.resolve(us).then((result) => {
-
-        // Set response
-        response = result;
-
-      });
-
-      return response;
-
-    });
-
-    return response;
+    return Promise.resolve({
+      statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_ERROR,
+      Data: response
+    })
 
   },
   // Authenticate an already existing user
-  async authenticateUser(parentData, clientID) {
+  async authenticateUser(parentData) {
 
-    let response = null;
-    let response1 = null;
-    let response2 = null;
-    let tempData = null;
-    let id = null;
+    winstonLogger.info('student service')
+    winstonLogger.info(JSON.stringify(parentData,null,4))
+
+    let response = null, tempData = null, id = null
 
     // Try email
-    await parentService.
-    _parentModel.
+    await studentService.
+    _studentModel.
     findOne({email: parentData.email}).
     then((Data) => {
 
+      winstonLogger.info('searching for email')
+      winstonLogger.info(JSON.stringify(Data,null,4))
       // Get data from DB
       if(Data) {
-
-        console.log('email found');
-        tempData = Data;
-        console.log(Data);
-        response1 = true;
-        id = parentData.email;
-
+        winstonLogger.info('email found')
+        winstonLogger.info(JSON.stringify(Data,null,4))
+        tempData = Data
+        id = studentData.email
+        response = true
       }
 
     }).
     catch((err) => {
       
+      winstonLogger.error('ERROR: searching for email')
+      winstonLogger.error(err.stack)
       //
-      response1 = false
+      return Promise.resolve({
+        statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_ERROR,
+        Data: false
+      })
 
-    });
+    })
 
-    // Try username
-    await parentService.
-    _parentModel.
-    findOne({username: parentData.username}).
-    then((Data) => {
 
-      // Get data from DB
-      if(Data) {
+    if (!response) {
 
-        console.log('username found');
-        tempData = Data;
-        console.log(Data);
-        response2 = true;
-        id = parentData.username;
+      winstonLogger.info('email does not exists')
 
-      }
-
-    }).
-    catch((err) => {
-
-      //
-      response2 = false;
-
-    });
-
-    if (response1 == null && response2 == null) {
-
-      // Break out
-      console.log(`ERROR AUTHENTICATING :::`);
-      // Return false and and empty object
-      response = Promise.resolve({
-        result: false,
-        Token: null,
-        message: 'username +/- email does not exist'
-      });
-
-      return response;
+      return Promise.resolve({
+        statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_ERROR,
+        Data: false
+      })
 
     }
     // User exists -> check password correspondence with bcrypt
-    let res = null;
+    let res = null
   
     await Password.compare(parentData.password, tempData.password).
     then((matched) => {
     
       // Password matched
-      console.log(`password matched ? ${matched}`);
-      res = Promise.resolve(matched);
+      winstonLogger.info(`password matched ? ${matched}`)
+      res = Promise.resolve(matched)
 
     }).
-    catch((err) => Promise.reject(err));
+    catch((err) => Promise.reject(err))
 
     if (!res) {
 
-
-      response = {
-        result: false,
-        Token: null,
-         message: 'we got garbbage from password comparism'
-      };
-
-      return response;
+      return {
+        statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_ERROR,
+        Token: null
+      }
 
     }
+
+    winstonLogger.info('TEMP DATA:')
+    winstonLogger.info(JSON.stringify(tempData,null,4))
     // Return a boolean(true) and signed JWT
     const Token = await Promise.resolve(tokenService.generateToken({
-          email: tempData.email,
-          username: tempData.username
-    },
-    clientID
-    ));
+          parentID: tempData.parentID,
+          fullName: tempData.fullName
+    }))
 
-    // Resolve
-    response = Promise.resolve({
-      result: true,
-      Token,
-      message: 'authentication success'
-    });
-
-    return response;
+    return Promise.resolve({
+      statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_OK,
+      Token
+    })
 
   },
 
@@ -258,70 +254,40 @@ const parentService = {
    */
   async parentExists(parentE) {
 
-    let eeResult = null;
-    let eeResult1 = null;
-    let eeResult2 = null;
-
-    // Check email
-    await parentService.
-    _parentModel.
-    findOne({email: parentE.email}).
-    then((Data) => {
-
-      console.log(`checking data base for user`);
-      if(Data){
+      let result = null
   
-        if (Data.length === 0) {
-
-          console.log('no user exists');
-          eeResult1 = Promise.resolve(false);
-
-
+      // Check email
+      await parentService.
+      _parentModel.
+      findOne({
+        email: parentE.email,
+        fullName: parentE.fullName
+      }).
+      then((Data) => {
+  
+        winstonLogger.info(`checking data base for user`)
+        if(Data){
+  
+          winstonLogger.info(`FOUND:  ${JSON.stringify(Data,null,4)}`)
+          result = Promise.resolve(true)
+        }else {
+          winstonLogger.info('user does not exists')
+          result = Promise.resolve(false)
         }
-
-        console.log(`FOUND: ${Data}`);
-        eeResult1 = Promise.resolve(true);
-      }
-
-    }).
-    catch((err) => {
-
-      console.log('error checking database');
-      console.log(err);
-      eeResult1 = Promise.resolve(false);
-
-    });
-    // Check username
-    await parentService.
-    _parentModel.
-    findOne({username: parentE.username}).
-    then((Data) => {
-
-      console.log(`checking data base for user`);
-      if(Data) {
-
-        if (Data.length === 0) {
-
-          console.log('no user exists');
-          eeResult2 = Promise.resolve(false);
-
-        }
-
-        console.log(`FOUND: ${Data}`);
-        eeResult2 = Promise.resolve(true);
-      }
-    }).
-    catch((err) => {
-
-      console.log('error checking database');
-      console.log(err);
-      eeResult2 = Promise.resolve(false);
-
-    });
-
-    return eeResult = eeResult1 || eeResult2;
-
-  },
+  
+      }).
+      catch((e) => {
+  
+        winstonLogger.error('ERROR: checking database for parent')
+        winstonLogger.error(e.stack)
+  
+        result = Promise.resolve(false)
+  
+      })
+  
+      return result
+  
+    },
 
   /*
    * Init reset send mail ( verification code | reset token)
@@ -331,64 +297,64 @@ const parentService = {
   async initPasswordReset(parentE) {
 
     // Email exists result
-    let response0 = null;
+    let response0 = null
 
     // Ensure email exists in database
     await parentService.parentExists(parentE).
     then((result) => {
 
       // Boolean result
-      response0 = result;
+      response0 = result
 
     }).
-    catch((err) => console.log(err));
+    catch((err) => winstonLogger.info(err))
     // If no return failure if yes continue
     if (!response0) {
 
-      console.log(`${user} does not belongs to a user in database`);
+      winstonLogger.info(`${user} does not belongs to a user in database`)
 
-      return Promise.reject(response0);
+      return Promise.reject(response0)
 
     }
     // Initialize and get resetDetails
       const verificationPack = await Password.initReset(email)
       .then((verPack) => {
 
-          Promise.resolve(verPack);
+          Promise.resolve(verPack)
 
       })
       .catch((err) => {
 
-          Promise.reject(err);
+          Promise.reject(err)
 
-      });
+      })
 
     // Add email to verificationPack
-      console.log('this is the RESET data');
-    console.log(verificationPack);
-      verificationPack.email = email;
+      winstonLogger.info('this is the RESET data')
+    winstonLogger.info(verificationPack)
+      verificationPack.email = email
 
     // Add temporaryData(verificationPack) to user's data in DB
     await parentService
       ._parentModel.update(verificationPack)
       .then((response) => {
 
-        console.log('updated: ');
-          console.log(response);
+        winstonLogger.info('updated: ')
+          winstonLogger.info(response)
 
       })
       .catch((err) => {
 
-          console.log('error updating the user data with reset data ');
-          console.log(err);
+          winstonLogger.error('Error updating the user data with reset data ')
+          winstonLogger.info(err)
         // Return false and and empty object
 
-          Promise.reject(err);
+          Promise.reject(err)
 
-      });
+      })
 
     // Return value
-    return Promise.resolve();
+    return Promise.resolve()
 
   },
 
@@ -397,7 +363,7 @@ const parentService = {
    */
     async validatePasswordResetEmail(email, verificationCode, newPassword) {
 
-      console.log('ENTERED VALIDATEPASSWORDRESETEMAIL FUNCTION');
+      winstonLogger.error('ENTERED VALIDATEPASSWORDRESETEMAIL FUNCTION')
     // Find email and verificationCode combination
     await parentService._parentModel.findOne({
             email,
@@ -405,32 +371,32 @@ const parentService = {
         })
       .then((parentData) => {
 
-        console.log('parentData : ');
-        console.log(parentData);
+        winstonLogger.info('parentData : ')
+        winstonLogger.info(parentData)
         // Update passwordfied
-          parentData.password = newPassword;
+          parentData.password = newPassword
         // Delete the temporaryData
-        parentData.verificationCode = null;
-        parentData.verificationCodeExpiration = null;
-        console.log('new parentData : ');
+        parentData.verificationCode = null
+        parentData.verificationCodeExpiration = null
+        winstonLogger.info('new parentData : ')
         parentData.save()
           .catch((err) => {
 
-              console.log('error updating password');
-              console.log(err);
+              winstonLogger.error('Error updating password')
+              winstonLogger.info(err)
 
-          });
-        console.log(parentData);
+          })
+        winstonLogger.info(parentData)
 
 
       })
       .catch((err) => {
 
-          console.log('ERROR updating PASSWORD');
+          winstonLogger.error('ERROR updating PASSWORD')
 
-        return Promise.reject(err);
+        return Promise.reject(err)
 
-      });
+      })
 
   },
 
@@ -439,27 +405,27 @@ const parentService = {
    */
     async validatePasswordResetToken(resetToken, newPassword) {
 
-      console.log('ENTERED VALIDATEPASSWORDRESETTOKEN FUNCTION');
+      winstonLogger.error('ENTERED VALIDATEPASSWORDRESETTOKEN FUNCTION')
     // Find email and verificationCode combination
       await parentService._parentModel.findOne(resetToken)
       .then((parentData) => {
 
-        console.log('parentData : ');
-          console.log(parentData);
+        winstonLogger.info('parentData : ')
+          winstonLogger.info(parentData)
         // Update passwordfied
-          parentData.password = newPassword;
+          parentData.password = newPassword
         // Delete the temporaryData
-          parentData.verificationCode = null;
-          parentData.verificationCodeExpiration = null;
+          parentData.verificationCode = null
+          parentData.verificationCodeExpiration = null
 
       })
       .catch((err) => {
 
-          console.log('ERROR updating PASSWORD');
+          winstonLogger.error('ERROR updating PASSWORD')
 
-          return Promise.reject(err);
+          return Promise.reject(err)
 
-      });
+      })
 
   },
 
@@ -469,11 +435,50 @@ const parentService = {
     async logoutUser(Token) {
 
     // Destroy the token from database
-    console.log('destroy token');
-    await Promise.resolve(tokenService.killToken(Token));
+    winstonLogger.info('destroy token')
+    await Promise.resolve(tokenService.killToken(Token))
 
   },
 
-};
+  async getPersonalInfoByID(parentID){
 
-export default parentService;
+    await parentService._parentModel.
+      findOne({
+        _id: parentID
+      }).
+      then((parentData) => {
+
+        winstonLogger.info('GET: parent info')
+        winstonLogger.info(JSON.stringify(parentData,null,4))
+
+        let parentInfo = null
+        if(parentData){
+          parentInfo = {
+            Name: parentData.fullName,
+            Address: parentData.Address,
+            Email: parentData.email,
+            Gender: parentData.gender
+          }
+        }
+
+        return Promise.resolve({
+          statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_OK,
+          Data: parentInfo
+        })
+        
+      }).catch((e) => {
+
+        winstonLogger.error('ERROR: getting parent info')
+        winstonLogger.error(e.messsage)
+
+        return Promise.resolve({
+          statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_ERROR,
+          Data: null
+        })
+
+      })
+  },
+
+}
+
+export default parentService

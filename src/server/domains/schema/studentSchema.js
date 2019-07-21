@@ -62,7 +62,7 @@ const StudentSchema = new TSchema(
             type: Date,
             required: false,
         },
-        parents: [{
+        parent: {
             Name: {
                 type: String,
                 required: false
@@ -71,7 +71,7 @@ const StudentSchema = new TSchema(
                 type: TSchema.Types.ObjectId,
                 ref: 'ParentModel'
             }
-        }],
+        },
         activity: {
             Name: {
                 type: String,
@@ -82,26 +82,27 @@ const StudentSchema = new TSchema(
                 ref: 'ClassModel'
             }
         },
-        class: {
-            Alias: {
+        classAlias: {
+            type: String,
+            required: false
+        },
+        classRef: {
+            type: TSchema.Types.ObjectId,
+            ref: 'ClassModel'
+        },
+            schoolName: {
                 type: String,
                 required: false
             },
-            classRef: {
-                type: TSchema.Types.ObjectId,
-                ref: 'ClassModel'
-            }
-        },
-        School: {
-            Name: {
+            schoolID: {
                 type: String,
                 required: false
             },
             schoolRef: {
                 type: TSchema.Types.ObjectId,
                 ref: 'SchoolModel'
-            }
-        },
+            },
+
         bioData: {
             type: TSchema.Types.ObjectId,
             ref: 'BioDataModel'

@@ -22,18 +22,16 @@ export default class {
     let Token = null
 
     winstonLogger.info('PrivateKey for Token encryption')
-    winstonLogger.info(privateKey)
+    winstonLogger.info(JSON.stringify(privateKey,null,4))
       winstonLogger.info('Token Data')
-      winstonLogger.info(JSON.stringify(payload))
+      winstonLogger.info(JSON.stringify(payload,null,4))
       winstonLogger.info('Token Options')
-      winstonLogger.info(options)
+      winstonLogger.info(JSON.stringify(options,null,4))
 
       try {
            
-        Token = jwt.sign({
-          email: payload.email,
-          name: payload.Name
-          },
+        Token = jwt.sign(
+          payload,
           privateKey,
           options
         )
@@ -41,12 +39,12 @@ export default class {
       } catch (e) {
         
         winstonLogger.error('Error generating Token')
-        winstonLogger.error(e)
+        winstonLogger.error(e.message)
 
       }
        
       winstonLogger.info('Token')
-      winstonLogger.info(JSON.stringify(Token))
+      winstonLogger.info(JSON.stringify(Token,null,4))
 
       return Token
 
@@ -54,8 +52,20 @@ export default class {
 
   static verify(accessToken, options) {
 
+    let res = null
       //equally decodes the token
-      return jwt.verify(accessToken, publicKey, options)
+      try{
+
+        res = jwt.verify(accessToken, publicKey, options)
+        winstonLogger.info(JSON.stringify(res,null,4))
+
+      }catch(e){
+        
+        winstonLogger.error('ERROR:')
+        winstonLogger.error(e.message)
+
+      }
+      return res
 
   }
   

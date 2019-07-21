@@ -18,6 +18,9 @@ const timeTableAdapter = {
     },
     async removeTimetable(schoolName,schoolID,classAlias,timeTableData){
         return timeTableService.removeTimetable(schoolName,schoolID,classAlias,timeTableData)
+    },
+    async getTimetable(schoolName,classAlias){
+        return timeTableService.getTimetable(schoolName,classAlias)
     }
 
     // 

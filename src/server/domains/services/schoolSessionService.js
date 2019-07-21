@@ -32,20 +32,20 @@ const schoolSessionService = {
     let response =null, schoolSession = null
 
     winstonLogger.info('GET: notification')
-    winstonLogger.info(JSON.stringify(paymentData,null,4))
 
     schoolSession = await this.getSchoolSessionID(SchoolName,SchoolID)
-    winstonLogger.info(`sessionID: ${schoolSession}`)        
+    winstonLogger.info(`sessionID: ${JSON.stringify(schoolSession,null,4)}`)        
         
         //
     await schoolSessionService._schoolSessionModel.
-    findAll({
+    findOne({
         _id: schoolSession.sessionObjectID
     }).
     // sort({ _id: -1 }).
     // limit(10).
     then((schoolSession) => {
 
+      winstonLogger.info(JSON.stringify(schoolSession,null,4))
       winstonLogger.info('GET: notifications')
       response = schoolSession.notifications
       winstonLogger.info(JSON.stringify(response,null,4))
@@ -54,7 +54,7 @@ const schoolSessionService = {
     catch((e) => {
 
       winstonLogger.error('ERROR: getting notifications')
-      winstonLogger.error(e)
+      winstonLogger.error(e.stack)
 
       return Promise.resolve({
         statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_ERROR,
@@ -62,6 +62,7 @@ const schoolSessionService = {
       })
 
     })
+    
     
     return Promise.resolve({
       statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_OK,

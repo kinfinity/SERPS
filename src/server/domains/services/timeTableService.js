@@ -194,6 +194,82 @@ const timeTableService = {
     return Promise.resolve(result)
 
   },
+  async getTimetable(schoolName,classAlias){
+
+    let timeTableID = null, classr = null , timeTable = null
+    winstonLogger.info('INPUT:')
+    winstonLogger.info(schoolName)
+    winstonLogger.info(classAlias)
+    //
+    await schoolService._schoolModel.
+    findOne({
+        Name: schoolName
+    }).
+    then((Data) => {
+        
+        //
+        if(Data){
+
+            //
+            for(classr in Data.classList)
+            {
+                if(Number.isInteger(parseInt(classr)))
+                {
+                    winstonLogger.info('CLASS')
+                    winstonLogger.info(Data.classList[classr].classAlias)
+                    winstonLogger.info(classAlias)
+                    if(Data.classList[classr].classAlias === classAlias)
+                    {
+                        winstonLogger.info('TIMETABLE ID:')
+                        winstonLogger.info(JSON.stringify(Data.classList[classr],null,4))
+                        timeTableID = Data.classList[classr].timeTableID
+                    }
+                }
+            }
+        }
+    }).catch((err) => {
+        
+        winstonLogger.error('ERROR:')
+        winstonLogger.error(err.message)
+        winstonLogger.error(err.stack)
+
+        return Promise.resolve({
+            statusCode: publicEnums.SERPS_STATUS_CODES.INTERNAL_SERVER_ERROR,
+            Data: null
+        })
+
+    })
+
+    if(!timeTableID){
+
+        winstonLogger.info('NO TIMETABLE')
+        return Promise.resolve({
+            statusCode: publicEnums.SERPS_STATUS_CODES.INTERNAL_SERVER_ERROR,
+            Data: null
+        })
+
+    }
+
+    await timeTableService._timeTableModel.
+    findOne({
+        _id: timeTableID
+    }).
+    then((res) =>{
+        if(res){
+
+            winstonLogger.info('TIMETABLE DATA:')
+            winstonLogger.info(JSON.stringify(res,null,4))
+            timeTable = res
+        }
+    }).
+    catch((e) => {})
+
+    return Promise.resolve({
+        statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_OK,
+        Data: timeTable
+    })
+
+  }
 
 }
 

@@ -5,26 +5,30 @@
  *      Promises Bluebird
  *
  */
-import Promise from 'bluebird';
+import winstonLogger from '../../Infrastructure/utils/winstonLogger'
+import config from '../../Infrastructure/utils/config'
 
 export default class {
 
   constructor(accessTokenManager) {
 
-        this.accessTokenManager = accessTokenManager;
+        this.accessTokenManager = accessTokenManager
 
     }
 
     execute(accessToken) {
 
-      const verified = this.accessTokenManager.verify(accessToken);
+      winstonLogger.info('Verifying Token')
+      
+      const options = {
+        issuer: config.serverID,
+        subject: 'accessToken',
+        expiresIn: '1h',
+        algorithm: ['RS256'],
+        audience: 'serps'
+        }
 
-      if (!verified) {
-
-        return Promise.reject(new Error('Invalid access token'));
-
-    }
-    return verified
+    return  this.accessTokenManager.verify(accessToken,options)
 
   }
 

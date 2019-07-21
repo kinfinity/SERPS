@@ -30,11 +30,21 @@ const ParentSchema = new TSchema(
                 trim: false,
             }
         },
+        fullName: {
+            type: String,
+            required: false,
+            trim: false,
+            unique: true
+        },
         email: {
             type: String,
             required: false,
             trim: true,
             unique: true
+        },
+        Address: {
+            type: String,
+            required: false
         },
         password: {
                 type: String,
@@ -42,7 +52,7 @@ const ParentSchema = new TSchema(
         },
         gender: {
             type: String,
-        required: false,
+            required: false,
         },
         joinedOn: { type: Date, default: new Date() },  
         isActive: {

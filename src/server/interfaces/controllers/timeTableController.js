@@ -14,14 +14,14 @@ import timeTableAdapter from '../db/timeTableAdapter'
 
 const timeTableController = {
 
-    getClassAliasTimetable(ClassAlias){
-        return timeTableAdapter.getClassAliasTimetable(ClassAlias)
-    },
     getSubjectTimetable(subjectAlias,ClassAlias){
         return timeTableAdapter.getSubjectTimetable(subjectAlias,ClassAlias)
     },
     createTimetable(schoolName,schoolID,classAlias,timeTableData){
         return timeTableAdapter.createTimetable(schoolName,schoolID,classAlias,timeTableData) // list or Datastructure [list of lists]
+    },
+    getClassTimetable(schoolName,classAlias){
+        return timeTableAdapter.getTimetable(schoolName,classAlias)
     },
     updateTimetable(ClassAlias,subject,timeSlot){ // timeSlot Enum for ClassAlias ranges
         return timeTableAdapter.updateTimetable(ClassAlias,subject,timeSlot)

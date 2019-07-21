@@ -30,20 +30,21 @@ const notificationService = {
     winstonLogger.info('::notificationService')
 
     // Holds return data for this fucntion
-    let response = null
+    let response = [],inotifications = null
 
     // get the notifications
     await schoolSessionService.getNotifications(SchoolName,SchoolID).
     then((notifications) => {
 
       winstonLogger.info('GET: notifications')
-      response = notifications
-      winstonLogger.info(response)
+      inotifications = notifications.Data
+      winstonLogger.info(JSON.stringify(inotifications,null,4))
+
     }).
     catch((e) => {
 
       winstonLogger.error('ERROR: getting notifications')
-      winstonLogger.error(e)
+      winstonLogger.error(e.stack)
 
       return Promise.resolve({
         statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_ERROR,
@@ -52,6 +53,34 @@ const notificationService = {
 
     })
     
+    
+    winstonLogger.info('NOTIFICATIONS:')
+    winstonLogger.info(JSON.stringify(inotifications,null,4))
+    for(let notification in inotifications){
+
+      if(Number.isInteger(parseInt(notification))){
+
+        winstonLogger.info(`NOTIFICATION: ${notification}`)
+        
+        await notificationService._notificationModel.
+        find({_id: inotifications[notification]}).
+        then((note) => {
+
+          winstonLogger.info('NOTE:')
+          winstonLogger.info(JSON.stringify(note,null,4))
+          response.push(note)
+
+        }).
+        catch((e) => {
+
+          winstonLogger.error('ERROR: getting note')
+          winstonLogger.error(e.stack)
+
+        })
+      }
+
+    }
+
     return Promise.resolve({
       statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_OK,
       Data: response

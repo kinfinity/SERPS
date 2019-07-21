@@ -13,13 +13,15 @@
  *      signout()       | LOGOUT
  */
 
-import authenticationController from '../../interfaces/controllers/authenticationController';
-import singUpController from '../../interfaces/controllers/signUpController';
-import notificationController from '../../interfaces/controllers/notificationController';
-import paymentManagementController from '../../interfaces/controllers/paymentManagementController';
-import profileManagementController from '../../interfaces/controllers/profileManagementController';
-import educationManagementController from '../../interfaces/controllers/educationManagementController';
-import timeTableController from '../../interfaces/controllers/timeTableController';
+import authenticationController from '../../interfaces/controllers/authenticationController'
+import singUpController from '../../interfaces/controllers/signUpController'
+import notificationController from '../../interfaces/controllers/notificationController'
+import paymentManagementController from '../../interfaces/controllers/paymentManagementController'
+import profileManagementController from '../../interfaces/controllers/profileManagementController'
+import educationManagementController from '../../interfaces/controllers/educationManagementController'
+import timeTableController from '../../interfaces/controllers/timeTableController'
+import winstonLogger from '../utils/winstonLogger'
+import publicEnums from '../../app/publicEnums'
 
 export default {
 
@@ -31,21 +33,67 @@ export default {
         }
      * 
     */// Creates a new parent in the database
-  async signupParent(params) {
+async signupParent(params) {
 
-    let payload = null;
-    await singUpController.createParent(params)
-    .then((result) => {
-        payload = result;
-    })
-    .catch((err) => {
-        console.log(err);
-        payload = null;
-    });
-    console.log('FINALLY HERE WITH PAYLOAD');
-    console.log(payload);
+  winstonLogger.info('SIGNUP')
+  
+  let Data = null
+  // create student
+  await singUpController.createParent(params)
+  .then((result) => {
 
-  return payload;
+      winstonLogger.info("aquiring SIGNUP DATA")
+      winstonLogger.info(JSON.stringify(result,null,4))
+      Data = result.Data
+
+  })
+  .catch((err) => {
+      winstonLogger.error('ERROR: signUp')
+      winstonLogger.error(err.stack)
+
+      return  Promise.resolve({
+        status: publicEnums.SERPS_STATUS_CODES.REQUEST_ERROR,
+        Token: null
+      })
+  })
+
+  if(!Data){
+
+    winstonLogger.info('SIGN-UP:')
+    winstonLogger.info(JSON.stringify(Data,null,4))
+
+      return  Promise.resolve({
+          status: publicEnums.SERPS_STATUS_CODES.REQUEST_ERROR,
+          Token: null
+      })
+
+  }
+  // done with SIGNUP 
+  let payloadA = null
+  winstonLogger.info('DATA:')
+  winstonLogger.info(JSON.stringify(Data,null,4))
+  // authenticate student -> creates token
+   await this.authenticate({
+      email: Data.email,
+      password: Data.password
+  }).
+  then((result) => payloadA = result)
+  .catch((err) => {
+
+      winstonLogger.error('ERROR: authentication')
+      winstonLogger.error(err.stack)
+
+      return  Promise.resolve({
+        status: publicEnums.SERPS_STATUS_CODES.REQUEST_ERROR,
+        Token: null
+      })
+
+  })
+
+  winstonLogger.info("SIGNUP PAYLOAD")
+  winstonLogger.info(JSON.stringify(payloadA,null,4))
+
+  return payloadA
 
 },
 
@@ -54,66 +102,68 @@ export default {
   async authenticate(params) {
 
     // Holder for response data
-    let payload = null;
-
-    console.
-    log('\t:::CLIENT CONNECTED (accessing authenticate function)::: with');
-    console.log(params);
+    let payload = null
+    winstonLogger.info('AUTHENTICATION')
+    winstonLogger.info(JSON.stringify(params,null,4))
     // Call controller which handles authentication
     await authenticationController.authenticateParent(
       params.email,
-      params.password,
-      params.username,
-      params.metadata.get('clientID')
+      params.password
     ).
     then((result) => {
 
       // Succeeded user authentication, prepare to sendout payload
-      payload = result;
+      payload = result
 
     }).
     catch((err) => {
 
-      // Creation of new user didn't work send back false, empty token and reason
-      payload = {'result':false,'Token':null,'message':err.toString()};
+      winstonLogger.error('ERROR: authentication...')
+      winstonLogger.error(err.stack)
+      // failed authenticating user send errorCode[statusCode] and empty token
+      payload = {
+          statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_ERROR,
+          Token :null
+      }
 
-    });
-    console.log(`:::CLIENT PAYLOAD:`);
-    console.log(payload);
+    })
+    winstonLogger.info('AUTHENTICATION PAYLOAD:')
+    winstonLogger.info(JSON.stringify(payload,null,4))
 
-      return  payload;
+      return  payload
 
   },
+
 
   // Signout an already authenticated user
   async signout(params) {
 
     // Holder for response data
-    let payload = null;
+    let payload = null
 
     console.
-    log('\t:::CLIENT CONNECTED (accessing signout function):::');
+    log('\t:::CLIENT CONNECTED (accessing signout function):::')
     console
-    .log(`Sent -> ${params}`);
-    console.log(params);
+    .log(`Sent -> ${params}`)
+    winstonLogger.info(params)
     // Call controller which handles logout
     await authenticationController.logoutParent(params.Token).
     then((result) => {
 
       // Succeeded user logout, prepare response
-          payload = result;
+          payload = result
 
       })
       .catch((err) => {
 
         // Logout failed sending response
-          payload = {'response': false};
+          payload = {'response': false}
 
-      });
-      console.log(`:::CLIENT PAYLOAD: `);
-      console.log(payload);
+      })
+      winstonLogger.info(`:::CLIENT PAYLOAD: `)
+      winstonLogger.info(payload)
 
-      return  payload;
+      return  payload
 
   },
 /**
@@ -134,72 +184,72 @@ export default {
      */
     // paymentConotroller
     async createParentPaymentInfo(ParentPaymentInfoAlias,ParentPaymentInfoData){
-      return paymentManagementController.createParentPaymentInfo(ParentPaymentInfoAlias,ParentPaymentInfoData);
+      return paymentManagementController.createParentPaymentInfo(ParentPaymentInfoAlias,ParentPaymentInfoData)
     },
     async getPaymentInfo(ParentPaymentInfoAlias){
-        return paymentManagementController.getParentPaymentInfo(ParentPaymentInfoAlias);
+        return paymentManagementController.getParentPaymentInfo(ParentPaymentInfoAlias)
     },
     async updatePaymentInfo(ParentPaymentInfoAlias,ParentPaymentInfoData){
-        return paymentManagementController.updateParentPaymentInfo(ParentPaymentInfoAlias,ParentPaymentInfoData);
+        return paymentManagementController.updateParentPaymentInfo(ParentPaymentInfoAlias,ParentPaymentInfoData)
     },
     async viewParentPaymentTransactionHistory(ParentName,ParentID){// TransactionID Term bank[parent] accNo Receipt
-        return paymentManagementController.viewParentPaymentTransactionHistory(ParentName,ParentID);
+        return paymentManagementController.viewParentPaymentTransactionHistory(ParentName,ParentID)
     },
     async payTution(ParentName,ParentID,StudentID){// TransactionID Term bank[parent] accNo Receipt
-      return paymentManagementController.payTution(ParentName,ParentID,StudentID);
+      return paymentManagementController.payTution(ParentName,ParentID,StudentID)
   },
 
     // profileManagementController
     async createProfileInfo(profileInfo){
-      return profileManagementController.createParentProfileInfo(profileInfo);
+      return profileManagementController.createParentProfileInfo(profileInfo)
     },
     async getProfileInfo(ParentName,ParentID){
-      return profileManagementController.getParentProfileInfo(ParentName,ParentID);
+      return profileManagementController.getParentProfileInfo(ParentName,ParentID)
     },
     async getContactInfo(ParentName,ParentID){
-      return profileManagementController.getParentContactInfo(ParentName,ParentID);
+      return profileManagementController.getParentContactInfo(ParentName,ParentID)
     },
     async updateContactInfo(contactInfo){
-        return profileManagementController.updateParentContactInfo(contactInfo);
+        return profileManagementController.updateParentContactInfo(contactInfo)
     },
     async getAddressInfo(ParentName,ParentID){
-        return profileManagementController.getParentAddressInfo(ParentName,ParentID);
+        return profileManagementController.getParentAddressInfo(ParentName,ParentID)
     },
     async updateAddressInfo(addressInfo){
-        return profileManagementController.updateParentContactInfo(addressInfo);
+        return profileManagementController.updateParentContactInfo(addressInfo)
     },
     async getHealthInfo(studentName,studentID){
-      return profileManagementController.getStudentHealthInfo(studentName,studentID);
+      return profileManagementController.getStudentHealthInfo(studentName,studentID)
     },
     async updateHealthInfo(studentID){
-        return profileManagementController.getStudentHealthReport(studentID);
+        return profileManagementController.getStudentHealthReport(studentID)
     },
     async getHealthStatus(studentID){
-        return profileManagementController.getStudentHealthReports(studentID);
+        return profileManagementController.getStudentHealthReports(studentID)
     },
 
     // notificationController
     async getNotifications(){
-      return notificationController.getLatest(); // max=10
+      return notificationController.getLatest() // max=10
     },
 
     // educationManagementController
     async getAttendance(studentID){
-      return educationManagementController.getStudentAttendance(studentID);
+      return educationManagementController.getStudentAttendance(studentID)
     },
     async getActivities(studentID){
-        return educationManagementController.getStudentActivities(studentID);
+        return educationManagementController.getStudentActivities(studentID)
     },
     async getActivityNotification(activityAlias){
-        return educationManagementController.getActivityNotification(activityAlias);
+        return educationManagementController.getActivityNotification(activityAlias)
     },
     async getResults(studentID){
-        return educationManagementController.getStudentResults(studentID);
+        return educationManagementController.getStudentResults(studentID)
     },
 
     //
     getClassTimetable(ClassAlias){
-      return timeTableController.getClassTimetable(ClassAlias);
+      return timeTableController.getClassTimetable(ClassAlias)
     },
 
-};
+}

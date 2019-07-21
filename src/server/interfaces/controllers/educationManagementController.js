@@ -17,6 +17,7 @@ import resultsAdapter from '../db/resultsAdapter'
 import attendanceAdapter from '../db/attendanceAdapter'
 import studentAdapter from '../db/studentAdapter'
 import teacherAdapter from '../db/teacherAdapter'
+import schoolAdminAdapter from '../db/schoolAdminAdapter'
  
 const educationManagementController = {
 
@@ -82,7 +83,9 @@ const educationManagementController = {
         return subjectAdapter.removeSubjectfromHolder(schoolName, schoolID, subjectName, subjectID,classAlias)
     },
     async addtimeTable(schoolName,schoolID,classAlias,timeTableID){
-        return classAdapter.addtimeTable(schoolName,schoolID,classAlias,timeTableID)
+        const res1 = schoolAdminAdapter.addtimeTable(schoolName,schoolID,classAlias,timeTableID)
+        const res2 = classAdapter.addtimeTable(schoolName,schoolID,classAlias,timeTableID)
+        return res1 & res2
     },
     
     // Activity

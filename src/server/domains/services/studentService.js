@@ -56,19 +56,20 @@ const studentService = {
     winstonLogger.info('inside studentService')
     // Holds return data for this fucntion
     let response = null
-    winstonLogger.info(`FULLNAME: ${JSON.stringify(Name,null,4)}`)
+    const fullName = Name.first + " "+ Name.middle + " " +Name.last 
     // Check if user exists first returns promise resolved to true or false
-    await studentService.studentExists({email,Name}).
+    await studentService.studentExists({email,fullName}).
     then((result) => {
 
       winstonLogger.info('searching DB for student')
+      winstonLogger.info(JSON.stringify(result,null,4))
       // Email exists in database
         response = result
 
     }).
     catch((e) => {
       winstonLogger.info('ERROR: checking DB for student')
-      winstonLogger.error(e)
+      winstonLogger.error(e.stack)
 
       Promise.resolve({
         statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_ERROR,
@@ -79,6 +80,8 @@ const studentService = {
     // Becomes true if user already exists and we kick out of function
     if (response) {
 
+      winstonLogger.info('wrong response')
+
       // Return to higher scope if there's a user
       return Promise.resolve({
         statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_ERROR_USEREXISTS,
@@ -86,23 +89,29 @@ const studentService = {
       })
 
     }
+    winstonLogger.info('SCHOOL NAME:')
+    winstonLogger.info(JSON.stringify(schoolName,null,4))
+    winstonLogger.info(JSON.stringify(publicIdentifier,null,4))
     // get school publicIdentifier
-    const schoolPI = null, schoolRef = null, schoolID = null
-     studentService._schoolModel.
+    let schoolPI = null, schoolRef = null, schoolID = null
+    await studentService._schoolModel.
      findOne({
-       Name: schoolName,
-       public_ACCESS_CODE: publicIdentifier
+       Name: schoolName
      }).
-     then((schoolData) => {
-        winstonLogger.info('GET: school public_ACCESS_CODE')
-        winstonLogger.info(schoolData.public_ACCESS_CODE)
-        schoolPI = schoolData.public_ACCESS_CODE
-        schoolRef = schoolData.school.schoolRef
-        schoolID = schoolData.schoolID
+    then((schoolData) => {
+       if(schoolData){
+          winstonLogger.info('GET: school public_ACCESS_CODE')
+          winstonLogger.info(JSON.stringify(schoolData,null,4))
+          schoolPI = schoolData.public_ACCESS_CODE
+          schoolRef = schoolData._id
+          schoolID = schoolData.schoolID
+       }else{
+         winstonLogger.info('school not found')
+       }
      }).
      catch((e) => {
        winstonLogger.error('ERROR: getting school public_ACCESS_CODE')
-       winstonLogger.error(e)
+       winstonLogger.error(e.stack)
 
        return Promise.resolve({
         statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_ERROR,
@@ -111,8 +120,8 @@ const studentService = {
 
      })
     // verify school publicIdentifier
-    const match = null
-    await Password.compare(schoolPI,publicIdentifier).
+    let match = null
+    await Password.compare(publicIdentifier,schoolPI).
     then((matched) => {
     
       // Password matched
@@ -123,7 +132,7 @@ const studentService = {
     catch((err) => {
 
       winstonLogger.error('ERROR: trying to match school public_ACCESS_CODE')
-      winstonLogger.error(e)
+      winstonLogger.error(e.stack)
 
       return Promise.resolve({
         statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_ERROR_SCHOOLCODEMISMATCH,
@@ -132,65 +141,44 @@ const studentService = {
 
     })
     if(!match && !publicEnums.CLASS_LIST.match(classAlias)){
+
+      winstonLogger.info('invalid MATCH')
       return Promise.resolve({
         statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_ERROR_SCHOOLCODEMISMATCH,
         Data: null
       })
+
     }
+    
 
     // create temp StudentID
     const studentID = schoolID + Name.first + shortid.generate() 
+    winstonLogger.info('Generated ID:')
+    winstonLogger.info(studentID)
 
-    // create school Ref data for student
-    const School = {
-      Nam:schooName,
-      schoolRef
-    }
     // Create static Data for user
-      const studentData = {
-        School,
+      let studentData = {
+        schoolName,
+        schoolRef,
         studentID,
-        Name,
+        fullName,
         email,
-        password,
-        "class.classAlias": classAlias,
+        classAlias,
         gender,
         birthDate
       }
-    const ipassword = studentData.password
+    const ipassword = password
+
+    winstonLogger.info('HERE:')
+    winstonLogger.info(JSON.stringify(studentData,null,4))
     // Hash user password on first save
     await Password.hash(ipassword).
     then((hashedPassword) => {
 
       // Append Hashed password to static user Data
+      winstonLogger.info('HASHED:')
+      winstonLogger.info(hashedPassword)
       studentData.password = hashedPassword
-      // Create new user model
-      const studenet = new StudentModel(studentData)
-    
-      // Save new user
-      studenet.
-      save().
-      then((result) => {
-
-        // Succeeded in saving new user to DB
-        winstonLogger.info(' -> STUDENT CREATED')
-        winstonLogger.info(result)
-        result.password =  ipassword
-
-        response = result
-
-      }).
-      catch((err) => {
-
-        winstonLogger.error(' -> STUDENT NOT CREATED')
-        winstonLogger.error(err)
-
-        return Promise.resolve({
-          statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_ERROR,
-          Data: null
-        })
-
-      })
 
     }).catch((err) => {
 
@@ -204,6 +192,33 @@ const studentService = {
 
     })
 
+    // Create new user model
+    const student = new StudentModel(studentData)
+    
+    // Save new user
+    await student.
+    save().
+    then((result) => {
+
+      // Succeeded in saving new user to DB
+      winstonLogger.info(' -> STUDENT CREATED')
+      winstonLogger.info(JSON.stringify(result,null,4))
+      result.password =  ipassword
+
+      response = result
+
+    }).
+    catch((err) => {
+
+      winstonLogger.error(' -> STUDENT NOT CREATED')
+      winstonLogger.error(err.stack)
+
+      return Promise.resolve({
+        statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_ERROR,
+        Data: null
+      })
+
+    })
     // Create and use timeout
     const timeout = (ms) => new Promise((res) => setTimeout(res, ms))
     await timeout(1000)
@@ -217,6 +232,9 @@ const studentService = {
   // Authenticate an already existing user
   async authenticateUser(studentData) {
 
+    winstonLogger.info('student service')
+    winstonLogger.info(JSON.stringify(studentData,null,4))
+
     let response = null, tempData = null, id = null
 
     // Try email
@@ -225,11 +243,12 @@ const studentService = {
     findOne({email: studentData.email}).
     then((Data) => {
 
+      winstonLogger.info('searching for email')
+      winstonLogger.info(JSON.stringify(Data,null,4))
       // Get data from DB
       if(Data) {
-
         winstonLogger.info('email found')
-        winstonLogger.info(Data)
+        winstonLogger.info(JSON.stringify(Data,null,4))
         tempData = Data
         id = studentData.email
         response = true
@@ -238,6 +257,8 @@ const studentService = {
     }).
     catch((err) => {
       
+      winstonLogger.error('ERROR: searching for email')
+      winstonLogger.error(err.stack)
       //
       return Promise.resolve({
         statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_ERROR,
@@ -249,7 +270,7 @@ const studentService = {
 
     if (!response) {
 
-      winstonLogger.info('ERROR: authenticating')
+      winstonLogger.info('email does not exists')
 
       return Promise.resolve({
         statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_ERROR,
@@ -278,9 +299,14 @@ const studentService = {
       }
 
     }
+
+    winstonLogger.info('TEMP DATA:')
+    winstonLogger.info(JSON.stringify(tempData,null,4))
     // Return a boolean(true) and signed JWT
     const Token = await Promise.resolve(tokenService.generateToken({
-          email: tempData.email
+          studentID: tempData.studentID,
+          fullName: tempData.fullName,  
+          schoolName: tempData.schoolName
     }))
 
     return Promise.resolve({
@@ -303,27 +329,25 @@ const studentService = {
     _studentModel.
     findOne({
       email: studentE.email,
-      Name: studentE.Name
+      fullName: studentE.fullName
     }).
     then((Data) => {
 
       winstonLogger.info(`checking data base for user`)
       if(Data){
-  
-        if (Data.length === 0) {
-          winstonLogger.info('user does not exists')
-          result = Promise.resolve(false)
-        }
 
         winstonLogger.info(`FOUND:  ${JSON.stringify(Data,null,4)}`)
         result = Promise.resolve(true)
+      }else {
+        winstonLogger.info('user does not exists')
+        result = Promise.resolve(false)
       }
 
     }).
     catch((e) => {
 
       winstonLogger.error('ERROR: checking database for student')
-      winstonLogger.error(e)
+      winstonLogger.error(e.stack)
 
       result = Promise.resolve(false)
 
@@ -483,37 +507,36 @@ const studentService = {
     await Promise.resolve(tokenService.killToken(Token))
 
   },
-  async getStudentPersonalInfo(studentName,studentID){
+  async getStudentPersonalInfo(schoolName,fullName,studentID){
 
      let profileInfo = null
 
       await studentService._studentModel.
       findOne({
-        Name: studentName,
-        studentID
+        fullName,
+        studentID,
+        schoolName
       }).
       then((studentData) => {
 
         // pack in only the school's basic profile info
-        profileInfo = {
-          Name: studentData.Name,
-          email: studentData.email,
-          address: studentData.address,
-          shoolName: studentData.School.Name,
-          admissionStatus: studentData.admission_Status
+        if(studentData){
+          profileInfo = {
+            Name: studentData.fullName,
+            email: studentData.email,
+            address: studentData.address,
+            schoolName: studentData.schoolName,
+            studentID: studentData.studentID,
+            admissionStatus: studentData.admission_Status
+          }
         }
         winstonLogger.info('GET: student profileInfo')
-        winstonLogger.info(profileInfo)
-
-        return Promise.resolve({
-          statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_OK,
-          Data: profileInfo
-        })
+        winstonLogger.info(JSON.stringify(profileInfo,null,4))
         
       }).catch((e) => {
 
         winstonLogger.error('ERROR: getting student data')
-        winstonLogger.error(e)
+        winstonLogger.error(e.stack)
 
         return Promise.resolve({
           statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_ERROR,
@@ -521,19 +544,28 @@ const studentService = {
         })
 
       })
+      
+      return Promise.resolve({
+        statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_OK,
+        Data: profileInfo
+      })
 
   },
-  async updateStudent(studentName,studentID,studentData){
+  async updateStudent(schoolName,schoolID,studentName,studentID,studentData){
 
     //
     const options = {
-      new: true
+      new: true,
+      upsert: true,
+      safe: true
     }
 
       await studentService._studentModel.
       findOneAndUpdate({
         Name: studentName,
-        studentID
+        studentID,
+        schoolName,
+        schoolID
         },
         studentData,
         options
@@ -599,31 +631,37 @@ const studentService = {
       })
 
   },
-  async updateStudentContactInfo(studentName,studentID,options){
+  async updateStudentContactInfo(schoolName,fullName,studentID,contactInfo){
     
+    let res = null 
+
+    const options = {
+      new: true,
+      safe: true,
+      upsert: true
+    }
+
       await studentService._studentModel.
       findOneAndUpdate({
-        Name: studentName,
-        studentID
+        Name: fullName,
+        studentID,
+        schoolName
         },
-        studentData,
+        contactInfo,
         options
       ).
       then((studentData) => {
 
-        
-        winstonLogger.info('UPDATE: student contact info')
-        winstonLogger.info(JSON.stringify(studentData,null,4))
+        if(studentData){
+          winstonLogger.info('UPDATE: student contact info')
+          winstonLogger.info(JSON.stringify(studentData,null,4))
+          res = studentData
+        }
 
-        return Promise.resolve({
-          statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_OK,
-          Data: studentData
-        })
-        
       }).catch((e) => {
 
         winstonLogger.error('ERROR: updating student contact info')
-        winstonLogger.error(e)
+        winstonLogger.error(e.messsage)
 
         return Promise.resolve({
           statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_ERROR,
@@ -632,8 +670,92 @@ const studentService = {
 
       })
 
-  },
+      return Promise.resolve({
+        statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_OK,
+        Data: res
+      })
 
+  },
+  async getStudentAcademicInfo(schoolName,fullName,studentID){
+    
+    let res = null
+
+      await studentService._studentModel.
+      findOne({
+        fullName,
+        studentID,
+        schoolName
+      }).
+      then((studentData) => {
+
+        winstonLogger.info('GET: student Academic info')
+        winstonLogger.info(JSON.stringify(studentData,null,4))
+
+        if(studentData){
+          res = {
+            schoolName: studentData.schoolName,
+            admission_status: studentData.admission_status,
+            class: studentData.classAlias,
+            Activity: studentData.activity.Name
+          }
+        }
+
+        
+      }).catch((e) => {
+
+        winstonLogger.error('ERROR: updating student contact info')
+        winstonLogger.error(e.messsage)
+
+        return Promise.resolve({
+          statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_ERROR,
+          Data: null
+        })
+
+      })
+      
+      return Promise.resolve({
+        statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_OK,
+        Data: res
+      })
+
+  },
+  async getGuardianInfo(schoolName,fullName,studentID){
+    
+    let guardInfo = null
+
+      await studentService._studentModel.
+      findOne({
+        fullName,
+        studentID,
+        schoolName
+      }).
+      then((studentData) => {
+
+        winstonLogger.info('GET: student Guardian info')
+        winstonLogger.info(JSON.stringify(studentData,null,4))
+
+        if(studentData){
+          guardInfo = studentData.parent
+        }
+        
+      }).catch((e) => {
+
+        winstonLogger.error('ERROR: updating student Guardian info')
+        winstonLogger.error(e.messsage)
+
+        return Promise.resolve({
+          statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_ERROR,
+          Data: null
+        })
+
+      })
+
+      return Promise.resolve({
+        statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_OK,
+        Data: guardInfo
+      })
+
+  },
 
 }
 

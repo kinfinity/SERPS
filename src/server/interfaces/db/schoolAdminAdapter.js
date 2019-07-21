@@ -55,16 +55,16 @@ const schoolAdminAdapter = {
 
   },
   // Authenticates already existing user
-  async authenticate(email, password, username) {
+  async authenticate(detail, password) {
   
     let response = null
 
-    await schoolAdminService.authenticateUser({email, password, username}).
+    await schoolAdminService.authenticateUser({detail, password}).
     then((result) => {
 
       // Authentication succeeded
       winstonLogger.info('AUTHENTICATION: result')
-      winstonLogger.info(result)
+      winstonLogger.info(JSON.stringify(result,null,4))
 
       response = Promise.resolve(result)
 
@@ -88,20 +88,22 @@ const schoolAdminAdapter = {
   async authorise(accessToken) {
   
     let response = null
-
     // 
     await authorisationService.authoriseToken(accessToken).
     then((resolve) => {
 
-        // Authorization succeeded
-        winstonLogger.info('AUTHORISATION: result')
-        winstonLogger.info(resolve)
+        // Authorization done
+        winstonLogger.info('Authorising:')
+        winstonLogger.info(JSON.stringify(resolve,null,4))
 
-        response = Promise.resolve(resolve)
+        response = resolve
 
     }).
     catch((err) => {
 
+      winstonLogger.error('ERROR:')
+      winstonLogger.error(err.stack)
+      winstonLogger.error(err.message)
       response = {
           statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_ERROR,
           Data :null
@@ -109,7 +111,7 @@ const schoolAdminAdapter = {
 
     })
 
-    return response
+    return Promise.resolve(response)
 
   },
   // Logout an authenticated user
@@ -359,11 +361,11 @@ const schoolAdminAdapter = {
     return response
 
   },  
-  async openAdmission(schoolName,schoolID){
+  async openAdmission(schoolName,schoolID,publicIdentifier){
     //
     let response = null
 
-    await schoolAdminService.openAdmission(schoolName,schoolID).
+    await schoolAdminService.openAdmission(schoolName,schoolID,publicIdentifier).
     then((result) => {
 
       // 
@@ -416,6 +418,9 @@ const schoolAdminAdapter = {
     
         return response
 
+  },
+  async addtimeTable(schoolName,schoolID,classAlias,timeTableID){
+    return schoolAdminService.addtimeTable(schoolName,schoolID,classAlias,timeTableID)
   }
 
 }

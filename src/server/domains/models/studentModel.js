@@ -1,3 +1,5 @@
+import winstonLogger from '../../Infrastructure/utils/winstonLogger';
+
 /*
  * Created by k_infinity3 <ksupro1@gmail.com>
  * Created on Tues Apr 16 2019
@@ -14,13 +16,17 @@ const StudentSchema = require('../schema/studentSchema')
 // Preparatory steps before save to model(pre-save)
 StudentSchema.default.pre('save', function(next) {
 
-    now = new Date()
+    const now = new Date()
     this.updated_at = now
     if ( !this.created_at ) {
         this.created_at = now
     }
-    this.birthmonth = this.birthdate.getMonth() + 1
-    this.birthday = this.birthdate.getDate()
+    winstonLogger.info('PRE:')
+    winstonLogger.info(JSON.stringify(this,null,4))
+    // winstonLogger.info(this.birthmonth)
+    // winstonLogger.info(this.birthday)
+    // this.birthmonth = this.birthdate.getMonth() + 1
+    // this.birthday = this.birthdate.getDate()
 
     next()
     

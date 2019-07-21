@@ -11,100 +11,157 @@
  */
 
 
-import authorisationService from '../../domains/services/authorisationService';
-import parentService from '../../domains/services/parentService';
-
+import authorisationService from '../../domains/services/authorisationService'
+import parentService from '../../domains/services/parentService'
+import publicEnums from '../../app/publicEnums';
+import winstonLogger from '../../Infrastructure/utils/winstonLogger'
 
 const parentAdapter = {
 
   // Adds new user to the database with email and password
-  async persist(email, password, username, clientID) {
+  async persist(params) {
 
-    let response = null;
-
-    await parentService.createNewEmailUser(email, password, username, clientID).
-    then((resolve) => {
-
-      // Creation Succeeded
-      response = Promise.resolve(resolve);
-
-    }).
-    catch((err) => {
-
-      response = {'result':false,'Token':null,'message':err.toString()};
-      
-      return Promise.reject(response);
-
-    });
-
-    return response;
+      winstonLogger.info('PARAMS:')
+      winstonLogger.info(JSON.stringify(params,null,4))
+      let response = null
+  
+      await parentService.createNewEmailUser(
+        params.schoolName,
+        params.Name,
+        params.birthDate,
+        params.email,
+        params.password,
+        params.gender,
+        params.Address
+      ).
+      then((result) => {
+  
+        // Creation Succeeded
+        winstonLogger.info('PERSIST: Result')
+        winstonLogger.info(JSON.stringify(result,null,4))
+  
+        response = Promise.resolve(result)
+  
+      }).
+      catch((err) => {
+  
+        winstonLogger.error('ERROR: persisting data')
+        winstonLogger.error(err.stack)
+  
+        response = null
+        return Promise.reject(response)
+  
+      })
+  
+      return response
 
   },
   // Authenticates already existing user
-  async authenticate(email, password, username, clientID) {
+  async authenticate(email, password) {
   
-    let response = null;
+    let response = null
 
-    await parentService.authenticateParent({email, password, username}, clientID).
-    then((resolve) => {
+    await parentService.authenticateUser({email, password}).
+    then((result) => {
 
       // Authentication succeeded
-        response = Promise.resolve(resolve);
+      winstonLogger.info('AUTHENTICATION: result')
+      winstonLogger.info(JSON.stringify(result,null,4))
+
+      response = Promise.resolve(result)
 
     }).
     catch((err) => {
 
-      response = {'result':false,'Token':null,'message':err.toString()};
+      winstonLogger.error('ERROR: authenticating')
+      winstonLogger.error(err.stack)
 
-    });
+      response = {
+        'statusCode': publicEnums.SERPS_STATUS_CODES.REQUEST_ERROR,
+        'Token':null
+      }
 
-    return response;
+    })
+
+    return response
 
   },
   // authorise an authenticated user
   async authorise(accessToken) {
   
-    let response = null;
+    let response = null
 
     // 
     await authorisationService.authoriseToken(accessToken).
     then((resolve) => {
 
       // Authorization succeeded
-        response = Promise.resolve(resolve);
+        response = Promise.resolve(resolve)
 
     }).
     catch((err) => {
 
-      response = {'result': false};
+      response = {'result': false}
 
-    });
+    })
 
-    return response;
+    return response
 
   },
   // Logout an authenticated user
   async logout(accessToken) {
   
-    let response = null;
+    let response = null
 
     await parentService.logoutParent(accessToken).
     then((resolve) => {
 
       // Lougout succeeded
-      response = Promise.resolve(resolve);
+      response = Promise.resolve(resolve)
 
     }).
     catch((err) => {
 
-      reponse = {'response': false};
+      winstonLogger.error('ERROR: logging out')
+      winstonLogger.error(e.stack)
 
-    });
+      reponse = {
+        statusCode: publicEnums.SERPS_STATUS_CODES.INTERNAL_SERVER_ERROR,
+        Data: false
+      }
 
-    return response;
+    })
 
+    return response
+
+  },
+
+  async getPersonalInfo(parentID){
+
+    let response = null
+
+    await parentService.getPersonalInfoByID(parentID).
+    then((resolve) => {
+
+      winstonLogger.info('GET: parentInfo by ID')
+      response = Promise.resolve(resolve)
+
+    }).
+    catch((err) => {
+
+      winstonLogger.error('ERROR: geteting parentInfo by ID')
+      winstonLogger.error(e.stack)
+
+      reponse = {
+        statusCode: publicEnums.SERPS_STATUS_CODES.INTERNAL_SERVER_ERROR,
+        Data: false
+      }
+
+    })
+
+    return response
   }
 
-};
+}
 
-export default parentAdapter;
+export default parentAdapter

@@ -152,6 +152,10 @@ const SchoolSchema = new TSchema({
         classRef: {
           type: TSchema.Types.ObjectId,
           ref: 'ClassModel'
+        },
+        timeTableID: {
+          type: TSchema.Types.ObjectId,
+          ref: 'TimeTableModel'
         }
      }],
      joinedOn: { type: Date, default: new Date() },

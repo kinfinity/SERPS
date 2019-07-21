@@ -24,12 +24,11 @@ export default class {
       const options = {
         issuer: config.serverID,
         subject: 'accessToken',
-        expiresIn: '1h',
-   //     algorithm: 'RS256',
-        audience: 'serp'
+        expiresIn: '20h',
+        algorithm: 'RS256',
+        audience: 'serps'
         }
-      options.audience = 'serps'// verify
-
+        
       return this.accessTokenManager.generate(payload, options)
 
   }

@@ -12,46 +12,39 @@
  */
 
 
-import parentAdapter from '../db/parentAdapter';
-import schoolAdminAdapter from '../db/schoolAdminAdapter';
-import studentAdapter from '../db/studentAdapter';
-import teacherAdapter from '../db/teacherAdapter';
+import parentAdapter from '../db/parentAdapter'
+import schoolAdminAdapter from '../db/schoolAdminAdapter'
+import studentAdapter from '../db/studentAdapter'
+import teacherAdapter from '../db/teacherAdapter'
+import winstonLogger from '../../Infrastructure/utils/winstonLogger'
 
 const authorisationController = {
 
   // Parent
   authoriseParent(accessToken) {
 
-    console.log('authorisationController handling login');
-
-    return parentAdapter.authorise(accessToken);
+    return parentAdapter.authorise(accessToken)
 
   },
   // schoolAdmin
   authoriseSchoolAdmin(accessToken) {
 
-    console.log('authorisationController handling login');
-
-    return schoolAdminAdapter.authorise(accessToken);
+    return schoolAdminAdapter.authorise(accessToken)
 
   },
   // student
   authoriseStudent(accessToken) {
 
-    console.log('authorisationController handling login');
-
-    return studentAdapter.authorise(accessToken);
+    return studentAdapter.authorise(accessToken)
 
   },
   // teacher
   authoriseTeacher(accessToken) {
 
-    console.log('authorisationController handling login');
-
-    return teacherAdapter.authorise(accessToken);
+    return teacherAdapter.authorise(accessToken)
 
   }
 
-};
+}
 
-export default authorisationController;
+export default authorisationController
