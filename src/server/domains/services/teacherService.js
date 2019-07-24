@@ -34,117 +34,142 @@ import Password from '../utils/password'
 import TeacherModel from '../models/TeacherModel'
 import tokenService from './tokenService'
 import winstonLogger from '../../Infrastructure/utils/winstonLogger'
-import publicEnums from '../../app/publicEnums';
-
+import shortid from 'short-id'
+import publicEnums from '../../app/publicEnums'
 
 const teacherService = {
 
   // handle for the TeacherModel
   _teacherModel: TeacherModel,
   // Create new user
-  async createNewEmailUser(email, ipassword, username, clientID) {
+  async createNewEmailUser(schoolName,Name,birthDate,email,password,gender,Address){
 
     winstonLogger.info('inside teacherService')
     // Holds return data for this fucntion
     let response = null
+    const fullName = Name.first + " " + Name.middle + " " + Name.last
+    winstonLogger.info('Name:')
+    winstonLogger.info(fullName)
     // Check if user exists first returns promise resolved to true or false
-    await teacherService.teacherExists({email, username}).
+    await teacherService.teacherExists({email,fullName}).
     then((result) => {
 
+      winstonLogger.info('searching DB teacher')
+      winstonLogger.info(JSON.stringify(result,null,4))
       // Email exists in database
         response = result
 
     }).
-    catch((err) => Promise.resolve({'result': false, 'Token': null, 'message': err.toString()}))
+    catch((e) => {
+      winstonLogger.info('ERROR: checking DB for teacher')
+      winstonLogger.error(e.stack)
+
+      Promise.resolve({
+        statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_ERROR,
+        Data: null
+      })
+
+    })
     // Becomes true if user already exists and we kick out of function
     if (response) {
 
+      winstonLogger.info('wrong response')
+
       // Return to higher scope if there's a user
-      return Promise.resolve({'result': false, 'Token': null, 'message': err.toString()})
+      return Promise.resolve({
+        statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_ERROR_USEREXISTS,
+        Data: null
+      })
 
     }
+    winstonLogger.info('SCHOOL NAME:')
+    winstonLogger.info(JSON.stringify(schoolName,null,4))
+    
+    // create temp teacherID
+    const teacherID = Name.first + shortid.generate() 
+    winstonLogger.info('Generated ID:')
+    winstonLogger.info(teacherID)
+
     // Create static Data for user
-      const teacherData = {
+      let teacherData = {
+        schoolName,
+        teacherID,
+        fullName,
         email,
-        username
-    }
+        gender,
+        birthDate,
+        Address
+      }
+    const ipassword = password
+
+    winstonLogger.info('HERE:')
+    winstonLogger.info(JSON.stringify(teacherData,null,4))
     // Hash user password on first save
     await Password.hash(ipassword).
     then((hashedPassword) => {
 
       // Append Hashed password to static user Data
+      winstonLogger.info('HASHED:')
+      winstonLogger.info(hashedPassword)
       teacherData.password = hashedPassword
-      // Create new user model
-      const student = new TeacherModel(teacherData)
-    
-      // Save new user
-      student.
-      save().
-      then(() => {
-
-        // Succeeded in saving new user to DB
-        winstonLogger.info('USER CREATED:::')
-
-      }).
-      catch((err) => {
-
-        winstonLogger.info(`USER NOT CREATED:::${err}`)
-
-        return Promise.resolve({
-          result: false,
-          Token: {},
-          message: err.toString()
-        })
-
-      })
 
     }).catch((err) => {
 
-      winstonLogger.info(`USER PASSWORD NOT HASHED:::${err}`)
-        
-      response = Promise.resolve({
-          result: false,
-          Token: {},
-          message: err.toString()
-      })
+      winstonLogger.error('STUDENT PASSWORD NOT HASHED')
+      winstonLogger.error(err.stack)  
 
-      return response
+      return Promise.resolve({
+        statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_ERROR,
+        Data: null
+      })
 
     })
 
+    // Create new user model
+    const teacher = new TeacherModel(teacherData)
+    
+    // Save new user
+    await teacher.
+    save().
+    then((result) => {
+
+      // Succeeded in saving new user to DB
+      winstonLogger.info(' -> teacher CREATED')
+      winstonLogger.info(JSON.stringify(result,null,4))
+      result.password =  ipassword
+
+      response = result
+
+    }).
+    catch((err) => {
+
+      winstonLogger.error(' -> teacher NOT CREATED')
+      winstonLogger.error(err.stack)
+
+      return Promise.resolve({
+        statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_ERROR,
+        Data: null
+      })
+
+    })
     // Create and use timeout
     const timeout = (ms) => new Promise((res) => setTimeout(res, ms))
-
     await timeout(1000)
-    // Swap back in unhashedPassword for authentication
-    teacherData.password = ipassword
-    // Authenticate user after signup
-    await teacherService.authenticateUser(teacherData, clientID).
-    then((us) => {
 
-      // Succeeded authentication
-      Promise.resolve(us).then((result) => {
-
-        // Set response
-        response = result
-
-      })
-
-      return response
-
+    return Promise.resolve({
+      statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_ERROR,
+      Data: response
     })
 
-    return response
-
   },
-  // Authenticate an already existing user
-  async authenticateUser(teacherData, clientID) {
 
-    let response = null
-    let response1 = null
-    let response2 = null
-    let tempData = null
-    let id = null
+  // Authenticate an already existing user
+  async authenticateUser(teacherData) {
+
+    winstonLogger.info('student service')
+    winstonLogger.info(JSON.stringify(teacherData,null,4))
+
+    let response = null, tempData = null, id = null
 
     // Try email
     await teacherService.
@@ -152,62 +177,39 @@ const teacherService = {
     findOne({email: teacherData.email}).
     then((Data) => {
 
+      winstonLogger.info('searching for email')
+      winstonLogger.info(JSON.stringify(Data,null,4))
       // Get data from DB
       if(Data) {
-
-        winstonLogger.error('Email found')
+        winstonLogger.info('email found')
+        winstonLogger.info(JSON.stringify(Data,null,4))
         tempData = Data
-        winstonLogger.info(Data)
-        response1 = true
         id = teacherData.email
-
+        response = true
       }
 
     }).
     catch((err) => {
       
+      winstonLogger.error('ERROR: searching for email')
+      winstonLogger.error(err.stack)
       //
-      response1 = false
-
-    })
-
-    // Try username
-    await teacherService.
-    _teacherModel.
-    findOne({username: teacherData.username}).
-    then((Data) => {
-
-      // Get data from DB
-      if(Data) {
-
-        winstonLogger.info('username found')
-        tempData = Data
-        winstonLogger.info(Data)
-        response2 = true
-        id = teacherData.username
-
-      }
-
-    }).
-    catch((err) => {
-
-      //
-      response2 = false
-
-    })
-
-    if (response1 == null && response2 == null) {
-
-      // Break out
-      winstonLogger.info(`ERROR AUTHENTICATING :::`)
-      // Return false and and empty object
-      response = Promise.resolve({
-        result: false,
-        Token: null,
-        message: 'username +/- email does not exist'
+      return Promise.resolve({
+        statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_ERROR,
+        Data: false
       })
 
-      return response
+    })
+
+
+    if (!response) {
+
+      winstonLogger.info('email does not exists')
+
+      return Promise.resolve({
+        statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_ERROR,
+        Data: false
+      })
 
     }
     // User exists -> check password correspondence with bcrypt
@@ -225,32 +227,27 @@ const teacherService = {
 
     if (!res) {
 
-
-      response = {
-        result: false,
-        Token: null,
-         message: 'we got garbbage from password comparism'
+      return {
+        statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_ERROR,
+        Token: null
       }
 
-      return response
-
     }
+
+    winstonLogger.info('TEMP DATA:')
+    winstonLogger.info(JSON.stringify(tempData,null,4))
     // Return a boolean(true) and signed JWT
     const Token = await Promise.resolve(tokenService.generateToken({
-          email: tempData.email,
-          username: tempData.username
-    },
-    clientID
-    ))
+      schoolName: tempData.schoolName,
+      schoolID: tempData.schoolID,
+      teacherName: tempData.fullName,
+      teacherID: tempData.teacherID
+    }))
 
-    // Resolve
-    response = Promise.resolve({
-      result: true,
-      Token,
-      message: 'authentication success'
+    return Promise.resolve({
+      statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_OK,
+      Token
     })
-
-    return response
 
   },
 
@@ -260,70 +257,41 @@ const teacherService = {
    */
   async teacherExists(teacherE) {
 
-    let eeResult = null
-    let eeResult1 = null
-    let eeResult2 = null
-
-    // Check email
-    await teacherService.
-    _teacherModel.
-    findOne({email: teacherE.email}).
-    then((Data) => {
-
-      winstonLogger.info(`checking data base for user`)
-      if(Data){
+      let result = null
   
-        if (Data.length === 0) {
-
-          winstonLogger.info('no user exists')
-          eeResult1 = Promise.resolve(false)
-
-
+      // Check email
+      await teacherService.
+      _teacherModel.
+      findOne({
+        email: teacherE.email,
+        fullName: teacherE.fullName
+      }).
+      then((Data) => {
+  
+        winstonLogger.info(`checking data base for user`)
+        if(Data){
+  
+          winstonLogger.info(`FOUND:  ${JSON.stringify(Data,null,4)}`)
+          result = Promise.resolve(true)
+        }else {
+          winstonLogger.info('user does not exists')
+          result = Promise.resolve(false)
         }
+  
+      }).
+      catch((e) => {
+  
+        winstonLogger.error('ERROR: checking database for teacher')
+        winstonLogger.error(e.stack)
+  
+        result = Promise.resolve(false)
+  
+      })
+  
+      return result
+  
+    },  
 
-        winstonLogger.info(`FOUND: ${Data}`)
-        eeResult1 = Promise.resolve(true)
-      }
-
-    }).
-    catch((err) => {
-
-      winstonLogger.error('Error checking database')
-      winstonLogger.info(err)
-      eeResult1 = Promise.resolve(false)
-
-    })
-    // Check username
-    await teacherService.
-    _teacherModel.
-    findOne({username: teacherE.username}).
-    then((Data) => {
-
-      winstonLogger.info(`checking data base for user`)
-      if(Data) {
-
-        if (Data.length === 0) {
-
-          winstonLogger.info('no user exists')
-          eeResult2 = Promise.resolve(false)
-
-        }
-
-        winstonLogger.info(`FOUND: ${Data}`)
-        eeResult2 = Promise.resolve(true)
-      }
-    }).
-    catch((err) => {
-
-      winstonLogger.error('Error checking database')
-      winstonLogger.info(err)
-      eeResult2 = Promise.resolve(false)
-
-    })
-
-    return eeResult = eeResult1 || eeResult2
-
-  },
 
   /*
    * Init reset send mail ( verification code | reset token)
@@ -476,6 +444,150 @@ const teacherService = {
 
   },
 
+
+  async getTeacherInfo(schoolName,schoolID,teacherName,teacherID){
+
+    let teacherInfo = null
+
+    winstonLogger.info('DETAILS')
+    winstonLogger.info(teacherName)
+    winstonLogger.info(teacherID)
+    await teacherService._teacherModel.
+      findOne({
+        schoolName,
+        schoolID,
+        // fullname: teacherName,
+        teacherID
+      }).
+      then((teacherData) => {
+
+        winstonLogger.info('GET: teacher info')
+        winstonLogger.info(JSON.stringify(teacherData,null,4))
+
+        if(teacherData){
+          teacherInfo = {
+            Name: teacherData.fullName,
+            // Address: teacherData.Address,
+            // Email: teacherData.email,
+            Gender: teacherData.gender
+          }
+        }
+        
+      }).catch((e) => {
+
+        winstonLogger.error('ERROR: getting teacher info')
+        winstonLogger.error(e.stack)
+
+        return Promise.resolve({
+          statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_ERROR,
+          Data: null
+        })
+
+      })
+      
+      return Promise.resolve({
+        statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_OK,
+        Data: teacherInfo
+      })
+
+  },
+  async getTeacherContactInfo(schoolName,schoolID,teacherName,teacherID){
+
+    let teacherInfo = null
+
+    winstonLogger.info('DETAILS')
+    winstonLogger.info(teacherName)
+    winstonLogger.info(teacherID)
+    await teacherService._teacherModel.
+      findOne({
+        schoolName,
+        schoolID,
+        // fullname: teacherName,
+        teacherID
+      }).
+      then((teacherData) => {
+
+        winstonLogger.info('GET: teacher Contact info')
+        winstonLogger.info(JSON.stringify(teacherData,null,4))
+
+        if(teacherData){
+          teacherInfo = {
+            Name: teacherData.fullName,
+            Address: teacherData.Address,
+            Email: teacherData.email
+          }
+        }
+        
+      }).catch((e) => {
+
+        winstonLogger.error('ERROR: getting teacher Contact info')
+        winstonLogger.error(e.stack)
+
+        return Promise.resolve({
+          statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_ERROR,
+          Data: null
+        })
+
+      })
+      
+      return Promise.resolve({
+        statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_OK,
+        Data: teacherInfo
+      })
+
+  },
+  async updateTeacherContactInfo(schoolName,schoolID,teacherName,teacherID,contactInfo){
+
+    let teacherInfo = null
+
+    const options = {
+      new: true,
+      safe: true,
+      upsert: true
+    }
+
+    winstonLogger.info('DETAILS')
+    winstonLogger.info(teacherName)
+    winstonLogger.info(teacherID)
+    winstonLogger.info(JSON.stringify(contactInfo,null,4))
+
+    await teacherService._teacherModel.
+      findOneAndUpdate({
+        schoolName,
+        schoolID,
+        // fullname: teacherName,
+        teacherID
+        },
+        contactInfo,
+        options
+      ).
+      then((teacherData) => {
+
+        winstonLogger.info('GET: teacher Contact info')
+        winstonLogger.info(JSON.stringify(teacherData,null,4))
+
+        if(teacherData){
+          teacherInfo = teacherData
+        }
+        
+      }).catch((e) => {
+
+        winstonLogger.error('ERROR: getting teacher Contact info')
+        winstonLogger.error(e.stack)
+
+        return Promise.resolve({
+          statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_ERROR,
+          Data: null
+        })
+
+      })
+      
+      return Promise.resolve({
+        statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_OK,
+        Data: teacherInfo
+      })
+
+  },
 
   //
   async assignClassIDtoTeacher(classAlias,classID,teacherRef){

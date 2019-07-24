@@ -36,6 +36,7 @@ import tokenService from './tokenService'
 import winstonLogger from '../../Infrastructure/utils/winstonLogger'
 import publicEnums from '../../app/publicEnums'
 import shortid from 'short-id'
+import studentService from './studentService'
 
 const parentService = {
 
@@ -171,8 +172,8 @@ const parentService = {
     let response = null, tempData = null, id = null
 
     // Try email
-    await studentService.
-    _studentModel.
+    await parentService.
+    _parentModel.
     findOne({email: parentData.email}).
     then((Data) => {
 
@@ -183,7 +184,7 @@ const parentService = {
         winstonLogger.info('email found')
         winstonLogger.info(JSON.stringify(Data,null,4))
         tempData = Data
-        id = studentData.email
+        id = parentData.email
         response = true
       }
 
@@ -442,6 +443,8 @@ const parentService = {
 
   async getPersonalInfoByID(parentID){
 
+    let parentInfo = null
+
     await parentService._parentModel.
       findOne({
         _id: parentID
@@ -451,7 +454,6 @@ const parentService = {
         winstonLogger.info('GET: parent info')
         winstonLogger.info(JSON.stringify(parentData,null,4))
 
-        let parentInfo = null
         if(parentData){
           parentInfo = {
             Name: parentData.fullName,
@@ -460,11 +462,6 @@ const parentService = {
             Gender: parentData.gender
           }
         }
-
-        return Promise.resolve({
-          statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_OK,
-          Data: parentInfo
-        })
         
       }).catch((e) => {
 
@@ -477,7 +474,194 @@ const parentService = {
         })
 
       })
+      
+      return Promise.resolve({
+        statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_OK,
+        Data: parentInfo
+      })
+
   },
+
+  async getParentInfo(parentName,parentID){
+
+    let parentInfo = null
+
+    winstonLogger.info('DETAILS')
+    winstonLogger.info(parentName)
+    winstonLogger.info(parentID)
+    await parentService._parentModel.
+      findOne({
+        // fullname: parentName,
+        parentID
+      }).
+      then((parentData) => {
+
+        winstonLogger.info('GET: parent info')
+        winstonLogger.info(JSON.stringify(parentData,null,4))
+
+        if(parentData){
+          parentInfo = {
+            Name: parentData.fullName,
+            // Address: parentData.Address,
+            // Email: parentData.email,
+            Gender: parentData.gender
+          }
+        }
+        
+      }).catch((e) => {
+
+        winstonLogger.error('ERROR: getting parent info')
+        winstonLogger.error(e.stack)
+
+        return Promise.resolve({
+          statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_ERROR,
+          Data: null
+        })
+
+      })
+      
+      return Promise.resolve({
+        statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_OK,
+        Data: parentInfo
+      })
+
+  },
+
+  async getParentContactInfo(parentName,parentID){
+
+    let parentInfo = null
+
+    winstonLogger.info('DETAILS')
+    winstonLogger.info(parentName)
+    winstonLogger.info(parentID)
+    await parentService._parentModel.
+      findOne({
+        // fullname: parentName,
+        parentID
+      }).
+      then((parentData) => {
+
+        winstonLogger.info('GET: parent Contact info')
+        winstonLogger.info(JSON.stringify(parentData,null,4))
+
+        if(parentData){
+          parentInfo = {
+            Name: parentData.fullName,
+            Address: parentData.Address,
+            Email: parentData.email
+          }
+        }
+        
+      }).catch((e) => {
+
+        winstonLogger.error('ERROR: getting parent Contact info')
+        winstonLogger.error(e.stack)
+
+        return Promise.resolve({
+          statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_ERROR,
+          Data: null
+        })
+
+      })
+      
+      return Promise.resolve({
+        statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_OK,
+        Data: parentInfo
+      })
+
+  },
+  async updateParentContactInfo(parentName,parentID,contactInfo){
+
+    let parentInfo = null
+
+    const options = {
+      new: true,
+      safe: true,
+      upsert: true
+    }
+
+    winstonLogger.info('DETAILS')
+    winstonLogger.info(parentName)
+    winstonLogger.info(parentID)
+    winstonLogger.info(JSON.stringify(contactInfo,null,4))
+
+    await parentService._parentModel.
+      findOneAndUpdate({
+        // fullname: parentName,
+        parentID
+        },
+        contactInfo,
+        options
+      ).
+      then((parentData) => {
+
+        winstonLogger.info('GET: parent Contact info')
+        winstonLogger.info(JSON.stringify(parentData,null,4))
+
+        if(parentData){
+          parentInfo = parentData
+        }
+        
+      }).catch((e) => {
+
+        winstonLogger.error('ERROR: getting parent Contact info')
+        winstonLogger.error(e.stack)
+
+        return Promise.resolve({
+          statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_ERROR,
+          Data: null
+        })
+
+      })
+      
+      return Promise.resolve({
+        statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_OK,
+        Data: parentInfo
+      })
+
+  },    
+  async getChildrenInfo(parentName,parentID){
+
+    let childInfo = null
+
+    winstonLogger.info('DETAILS')
+    winstonLogger.info(parentName)
+    winstonLogger.info(parentID)
+    
+    await parentService._parentModel.
+      findOne({
+        // fullname: parentName,
+        parentID
+      }).
+      then((parentData) => {
+
+        winstonLogger.info('GET: parent Contact info')
+        winstonLogger.info(JSON.stringify(parentData,null,4))
+
+        if(parentData.children){
+          childInfo = parentData.children
+        }
+        
+      }).catch((e) => {
+
+        winstonLogger.error('ERROR: getting parent Contact info')
+        winstonLogger.error(e.stack)
+
+        return Promise.resolve({
+          statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_ERROR,
+          Data: null
+        })
+
+      })
+     
+      return Promise.resolve({
+        statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_OK,
+        Data: childInfo
+      })
+
+  },
+
+
 
 }
 

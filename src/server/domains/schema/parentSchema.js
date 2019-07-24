@@ -36,6 +36,12 @@ const ParentSchema = new TSchema(
             trim: false,
             unique: true
         },
+        parentID: {
+            type: String,
+            required: false,
+            trim: false,
+            unique: true
+        },
         email: {
             type: String,
             required: false,
@@ -61,10 +67,23 @@ const ParentSchema = new TSchema(
           default: false
         },
         children:    [{
-            'child': {
+            'schoolName':{
+                type: String,
+                requried: false
+            },
+            'schoolID': {
+                type: String,
+                requried: false
+            },
+            'Name': {
+                type: String,
+                requried: false
+            },
+            'childRef': {
                 type: TSchema.Types.ObjectId,
                 ref: 'studentModel'
-        }}]
+            }
+        }]
         
     },
   

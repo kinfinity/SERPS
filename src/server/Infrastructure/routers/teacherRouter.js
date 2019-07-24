@@ -1,4 +1,4 @@
-import parentService from '../services/parent'
+import teacherService from '../services/teacher'
 import routeUtils from '../utils/routerOptions'
 import express from 'express'
 import bodyParser from 'body-parser'
@@ -9,39 +9,38 @@ import winstonLogger from '../utils/winstonLogger'
 
 /**
      * 
-     *  Build  parent API call routes
+     *  Build  teacher API call routes
      *  
      */
 
-  // Parent router for all parent calls 
-  const parentRouter = express.Router([routeUtils.routerOptions])
-  parentRouter.use(bodyParser.json())// to allow parsing json
+  // teacher router for all teacher calls 
+  const teacherRouter = express.Router([routeUtils.routerOptions])
+  teacherRouter.use(bodyParser.json())// to allow parsing json
 
   
   //Middleware
   const csrfMiddleware = csurf({cookie: true})// crorss site resource forgery Handling
 
   //  
-  parentRouter.use('/SERPS/Parent',routeUtils.asyncMiddleware(routeUtils.authParent))
-  parentRouter.use(cookieParser())
-  parentRouter.use(csrfMiddleware)
+  teacherRouter.use('/SERPS/Teacher',routeUtils.asyncMiddleware(routeUtils.authTeacher))
+  teacherRouter.use(cookieParser())
+  teacherRouter.use(csrfMiddleware)
 
-  parentRouter.get('/csrfTOKENstudent', csrfMiddleware, function (req, res) {
+  teacherRouter.get('/csrfTOKENstudent', csrfMiddleware, function (req, res) {
       // send the token to client
       res.json({ csrfToken: req.csrfToken()})
   })
     
-  parentRouter.post('/csrfTOKENstudent', csrfMiddleware, function (req, res) {
+  teacherRouter.post('/csrfTOKENstudent', csrfMiddleware, function (req, res) {
       //process the Token for validation
   })
   
-
   //
-  parentRouter.route('/SERPS/Parent/logOut').get(async (req,res) => {
+  teacherRouter.route('/SERPS/Teacher/logOut').get(async (req,res,next) => {
       try{
 
           // *
-          const payload = await parentService.signout({Token: req.params.Token})
+          const payload = await teacherService.signout({Token: req.params.Token})
           res.json(payload)
 
       }catch(e){
@@ -51,19 +50,21 @@ import winstonLogger from '../utils/winstonLogger'
   })
 
   // Info API routes
-  parentRouter.route('/SERPS/Parent')// profileInfo
+  teacherRouter.route('/SERPS/Teacher')// profileInfo
   .get(routeUtils.asyncMiddleware (async(req,res,next) => {
     // *
-    winstonLogger.info('PARENT-PROFILE')
+    winstonLogger.info('TEACHER-PROFILE')
 
     winstonLogger.info('REQUEST BODY')
     winstonLogger.info(JSON.stringify(req.body,null,4))
     
       try {
           // *
-          const payload = await parentService.getProfileInfo(
-            req.body.parentName,
-            req.body.parentID
+          const payload = await teacherService.getInfo(
+            req.body.schoolname,
+            req.body.schoolID,
+            req.body.teacherName,
+            req.body.teacherID
           )
 
           winstonLogger.info("PAYLOAD")
@@ -91,19 +92,21 @@ import winstonLogger from '../utils/winstonLogger'
 
   }))
 
-  parentRouter.route('/SERPS/Parent/contactInfo')
+  teacherRouter.route('/SERPS/Teacher/contactInfo')
   .get(routeUtils.asyncMiddleware (async(req,res,next) => {
     // *
-    winstonLogger.info('PARENT-PROFILE')
+    winstonLogger.info('TEACHER-PROFILE')
 
     winstonLogger.info('REQUEST BODY')
     winstonLogger.info(JSON.stringify(req.body,null,4))
     
       try {
           // *
-          const payload = await parentService.getContactInfo(
-            req.body.parentName,
-            req.body.parentID
+          const payload = await teacherService.getContactInfo(
+            req.body.schoolname,
+            req.body.schoolID,
+            req.body.teacherName,
+            req.body.teacherID
           )
 
           winstonLogger.info("PAYLOAD")
@@ -131,19 +134,21 @@ import winstonLogger from '../utils/winstonLogger'
 
   }))
   
-  parentRouter.route('/SERPS/Parent/contactInfo/update')
+  teacherRouter.route('/SERPS/Teacher/contactInfo/update')
   .get(routeUtils.asyncMiddleware (async(req,res,next) => {
     // *
-    winstonLogger.info('PARENT-PROFILE')
+    winstonLogger.info('TEACHER-PROFILE')
 
     winstonLogger.info('REQUEST BODY')
     winstonLogger.info(JSON.stringify(req.body,null,4))
     
       try {
           // *
-          const payload = await parentService.updateContactInfo(
-            req.body.parentName,
-            req.body.parentID,
+          const payload = await teacherService.updateContactInfo(
+            req.body.schoolname,
+            req.body.schoolID,
+            req.body.teacherName,
+            req.body.teacherID,
             req.body.contactInfo
           )
 
@@ -173,19 +178,21 @@ import winstonLogger from '../utils/winstonLogger'
   }))
   
   // * payment API routes
-  parentRouter.route('/SERPS/Parent/paymentInfo')
+  teacherRouter.route('/SERPS/Teacher/paymentInfo')
 .get(routeUtils.asyncMiddleware (async(req,res,next) => {
     // *
-    winstonLogger.info('PARENT-PROFILE')
+    winstonLogger.info('TEACHER-PROFILE')
 
     winstonLogger.info('REQUEST BODY')
     winstonLogger.info(JSON.stringify(req.body,null,4))
     
       try {
           // *
-          const payload = await parentService.getPaymentInfo(
-            req.body.parentName,
-            req.body.parentID
+          const payload = await teacherService.getPaymentInfo(
+            req.body.schoolname,
+            req.body.schoolID,
+            req.body.teacherName,
+            req.body.teacherID
           )
 
           winstonLogger.info("PAYLOAD")
@@ -198,7 +205,7 @@ import winstonLogger from '../utils/winstonLogger'
 
       } catch (e) {
 
-        winstonLogger.error('ERROR:getting parent payment info')
+        winstonLogger.error('ERROR:getting teacher payment info')
         winstonLogger.error(e.stack)
 
         res.json({
@@ -212,35 +219,37 @@ import winstonLogger from '../utils/winstonLogger'
     next()
 
   }))
-  parentRouter.route('/SERPS/Parent/paymentInfo/update')
+  teacherRouter.route('/SERPS/Teacher/paymentInfo/update')
   .get((req,res) => {
     try{}catch(e){}
     // *
-    const studentResults = parentService.getPaymentInfo()
+    const studentResults = teacherService.getPaymentInfo()
     next()
   })
-  parentRouter.route('/SERPS/Parent/paymentInfo/transactionHistory')
+  teacherRouter.route('/SERPS/Teacher/paymentInfo/transactionHistory')
   .get((req,res) => {
     try{}catch(e){}
     // *
-    const studentResults = parentService.viewParentPaymentTransactionHistory()
+    const studentResults = teacherService.viewteacherPaymentTransactionHistory()
     next()
   })
 
   // notification API routes
-  parentRouter.route('/SERPS/Parent/notifications')
+  teacherRouter.route('/SERPS/Teacher/notifications')
   .get(routeUtils.asyncMiddleware (async(req,res,next) => {
     // *
-    winstonLogger.info('PARENT-PROFILE')
+    winstonLogger.info('TEACHER-PROFILE')
 
     winstonLogger.info('REQUEST BODY')
     winstonLogger.info(JSON.stringify(req.body,null,4))
     
       try {
           // *
-          const payload = await parentService.getNotifications(
-            req.body.parentName,
-            req.body.parentID
+          const payload = await teacherService.getNotifications(
+            req.body.schoolname,
+            req.body.schoolID,
+            req.body.teacherName,
+            req.body.teacherID
           )
 
           winstonLogger.info("PAYLOAD")
@@ -253,7 +262,7 @@ import winstonLogger from '../utils/winstonLogger'
 
       } catch (e) {
 
-        winstonLogger.error('ERROR:getting parent payment info')
+        winstonLogger.error('ERROR:getting teacher payment info')
         winstonLogger.error(e.stack)
 
         res.json({
@@ -268,62 +277,4 @@ import winstonLogger from '../utils/winstonLogger'
 
   }))
 
-  // child(ren)[student(s)] API routes
-  parentRouter.route('/SERPS/Parent/Student/Results')
-  .get((req,res) => {
-    try{}catch(e){}
-    // *
-    const studentResults = parentService.viewStudentresults()
-    next()
-  })
-  parentRouter.route('/SERPS/Parent/Student/healthInfo')
-  .get((req,res) => {
-    try{}catch(e){}
-    // *
-    const studentResults = parentService.getHealthInfo()
-    next()
-  })
-  parentRouter.route('/SERPS/Parent/Student/healthInfo/update')
-  .get((req,res) => {
-    try{}catch(e){}
-    // *
-    const studentResults = parentService.updateHealthInfo()
-    next()
-  })
-  parentRouter.route('/SERPS/Parent/Student/healthStatus')
-  .get((req,res) => {
-    try{}catch(e){}
-    // *
-    const studentResults = parentService.getHealthStatus()
-    next()
-  })
-  parentRouter.route('/SERPS/Parent/Student/payTuition')
-  .get((req,res) => {
-    try{}catch(e){}
-    // *
-    const studentResults = parentService.payTution()
-    next()
-  })
-  parentRouter.route('/SERPS/Parent/Student/attendance')
-  .get((req,res) => {
-    try{}catch(e){}
-    // *
-    const studentResults = parentService.getAttendance()
-    next()
-  })
-  parentRouter.route('/SERPS/Parent/Student/activities')
-  .get((req,res) => {
-    try{}catch(e){}
-    // *
-    const studentResults = parentService.getActivities()
-    next()
-  })
-  parentRouter.route('/SERPS/Parent/Student/activity/Notification')
-  .get((req,res) => {
-    try{}catch(e){}
-    // *
-    const studentResults = parentService.getActivityNotification()
-    next()
-  })
-
-  module.exports = parentRouter
+  module.exports = teacherRouter

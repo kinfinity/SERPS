@@ -17,26 +17,32 @@ import winstonLogger from '../../Infrastructure/utils/winstonLogger';
 const   profileManagementController = {
 
     // teacher
-    async getTeacherInfo(teacherName,teacherID){
-        return teacherAdapter.getTeacherInfo(teacherName,teacherID)
+    async getTeacherInfo(schoolName,schoolID,teacherName,teacherID){
+        return teacherAdapter.getTeacherInfo(schoolName,schoolID,teacherName,teacherID)
     },
-    async updateTeacher(teacherName,teacherID,teacherData){
-        return teacherAdapter.updateTeacher(teacherName,teacherID,teacherData)
+    async getTeacherContactInfo(schoolName,schoolID,teacherName,teacherID){
+        return teacherAdapter.getTeacherContactInfo(schoolName,schoolID,teacherName,teacherID)
     },
-    async createStudentHealthReport(studentID,teacherID,healthData){
-        return studentAdapter.createStudentHealthReport(studentID,teacherID,healthData)
+    async updateTeacherContactInfo(schoolName,schoolID,teacherName,teacherID,contactInfo){
+        return teacherAdapter.updateTeacherContactInfo(schoolName,schoolID,teacherName,teacherID,contactInfo)
     },
-    async getStudentHealthReports(studentID,teacherID){
-        return studentAdapter.getStudentHealthReports(studentID,teacherID)
+    async updateTeacher(schoolName,schoolID,teacherName,teacherID,teacherData){
+        return teacherAdapter.updateTeacher(schoolName,schoolID,teacherName,teacherID,teacherData)
     },
-    async getStudentHealthReport(reportID,studentID,teacherID){
-        return studentAdapter.getStudentHealthReportsLast(reportID,studentID,teacherID)
+    async createStudentHealthReport(schoolName,schoolID,studentID,teacherID,healthData){
+        return studentAdapter.createStudentHealthReport(schoolName,schoolID,studentID,teacherID,healthData)
     },
-    async updateStudentHealthReport(studentID,teacherID){
-        return studentAdapter.updateStudentHealthReport(studentID,teacherID)
+    async getStudentHealthReports(schoolName,schoolID,studentID,teacherID){
+        return studentAdapter.getStudentHealthReports(schoolName,schoolID,studentID,teacherID)
     },
-    async removeStudentHealthReport(studentID,teacherID){
-        return studentAdapter.removeStudentHealthReport(studentID,teacherID)
+    async getStudentHealthReport(schoolName,schoolID,reportID,studentID,teacherID){
+        return studentAdapter.getStudentHealthReportsLast(schoolName,schoolID,reportID,studentID,teacherID)
+    },
+    async updateStudentHealthReport(schoolName,schoolID,studentID,teacherID){
+        return studentAdapter.updateStudentHealthReport(schoolName,schoolID,studentID,teacherID)
+    },
+    async removeStudentHealthReport(schoolName,schoolID,studentID,teacherID){
+        return studentAdapter.removeStudentHealthReport(schoolName,schoolID,studentID,teacherID)
     },
 
     // student
@@ -77,20 +83,17 @@ const   profileManagementController = {
     },
 
     // parent
-    async getPeresonalInfo(ParentName,ParentID){
-        return parentAdapter.getParentContactInfo(ParentName,ParentID)
+    async getParentInfo(parentName,parentID){
+        return parentAdapter.getParentInfo(parentName,parentID)
     },
-    async getParentContactInfo(ParentName,ParentID){
-        return parentAdapter.getParentContactInfo(ParentName,ParentID)
+    async getParentContactInfo(parentName,parentID){
+        return parentAdapter.getParentContactInfo(parentName,parentID)
     },
-    async updateParentContactInfo(contactInfo){
-        return parentAdapter.updateParentContactInfo(contactInfo)
+    async updateParentContactInfo(parentName,parentID,contactInfo){
+        return parentAdapter.updateParentContactInfo(parentName,parentID,contactInfo)
     },
-    async getParentAddressInfo(ParentName,ParentID){
-        return parentAdapter.getParentAddressInfo(ParentName,ParentID)
-    },
-    async updateParentAddressInfo(addressInfo){
-        return parentAdapter.updateParentContactInfo(addressInfo)
+    async getChildrenInfo(parentName,parentID){
+        return parentAdapter.getChildrenInfo(parentName,parentID)
     },
     
 
@@ -101,8 +104,8 @@ const   profileManagementController = {
     async updateSchool(schoolName,schoolID,SchoolData){
         return schoolAdapter.updateSchool(schoolName,schoolID,SchoolData)
     },
-    async getSchoolContactInfo(ParentName,ParentID){
-        return schoolAdapter.getSchoolContactInfo(ParentName,ParentID)
+    async getSchoolContactInfo(parentName,parentID){
+        return schoolAdapter.getSchoolContactInfo(parentName,parentID)
     },
     async updateSchoolContactInfo(shoolName,schoolID,contactInfo){
         return schoolAdapter.updateSchoolContactInfo(shoolName,schoolID,contactInfo)

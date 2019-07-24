@@ -1,12 +1,11 @@
 import schoolService from '../services/school'
 import studentService from '../services/student'
 import parentService from '../services/parent'
+import teacherService from '../services/teacher'
 import routeUtils from '../utils/routerOptions'
 import express from 'express'
-import authorisationService from '../../domains/services/authorisationService'
 import cloudinaryCon from '../plugins/cloudinaryCon'
 import winstonLogger from '../utils/winstonLogger'
-import shortid from 'shortid'
 import jsStringCompression from 'js-string-compression'
 import publicEnums from '../../app/publicEnums'
 
@@ -36,18 +35,6 @@ const hm = new jsStringCompression.Hauffman()
   openAccessRouter.route('/SERPS/schoolSignUp').get(routeUtils.asyncMiddleware(async (req,res,next) => {
   
     winstonLogger.info('SCHOOL-SIGNUP')
-    
-    if(!req.body) {
-
-        winstonLogger.error('ERROR: WRONG REQUEST PARAMS')
-
-        res.json({
-            state: 'failure',
-            statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_PARAM_ERROR,
-            Data: null
-        })
-
-    }
 
     winstonLogger.info('REQUEST BODY')
     winstonLogger.info(JSON.stringify(req.body,null,4))
@@ -119,18 +106,6 @@ const hm = new jsStringCompression.Hauffman()
 openAccessRouter.route('/SERPS/schoolLogin').get(routeUtils.asyncMiddleware(async (req,res,next) => {
 
     winstonLogger.info('SCHOOL-LOGIN')
-    
-    if(!req.body) {
-
-        winstonLogger.error('ERROR: WRONG REQUEST PARAMS')
-
-        res.json({
-            state: 'failure',
-            statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_PARAM_ERROR,
-            Data: null
-        })
-
-    }
 
     winstonLogger.info('REQUEST BODY')
     winstonLogger.info(JSON.stringify(req.body,null,4))
@@ -145,16 +120,16 @@ openAccessRouter.route('/SERPS/schoolLogin').get(routeUtils.asyncMiddleware(asyn
           })
           winstonLogger.info("PAYLOAD")
           winstonLogger.info(JSON.stringify(payload))
-
+          payload.state = 'failure'
           if(payload){
             payload.state = 'success'
-            res.json(payload)
           }
+          res.json(payload)
 
       } catch (e) {
 
         winstonLogger.error('ERROR: authentication')
-        winstonLogger.error(e)
+        winstonLogger.error(e.stack)
 
         res.json({
           state: 'failure',
@@ -176,7 +151,7 @@ openAccessRouter.route('/SERPS/studentSignUp').get(routeUtils.asyncMiddleware(as
     winstonLogger.info('REQUEST BODY')
     winstonLogger.info(JSON.stringify(req.body,null,4))
    
-    // const profiler = winstonLogger.startTimer()
+    const profiler = winstonLogger.startTimer()
 
     try{
         
@@ -191,9 +166,11 @@ openAccessRouter.route('/SERPS/studentSignUp').get(routeUtils.asyncMiddleware(as
             password: req.body.password,
             classAlias: req.body.classAlias
         })
-        if(payloadS){
+        winstonLogger.info('PAYLOAD:')
+        winstonLogger.info(JSON.stringify(payloadS,null,4))
+        payloadS.state = 'failure'
+        if(payload){
           payloadS.state = 'success'
-          winstonLogger.info(JSON.stringify(payloadS,null,4))
         }
         // Send the payload to client
         res.json(payloadS)
@@ -211,25 +188,13 @@ openAccessRouter.route('/SERPS/studentSignUp').get(routeUtils.asyncMiddleware(as
 
     }
     
-    // profiler.done({ message: 'End of student_signup'})
+    profiler.done({ message: 'End of student_signup'})
   
   }))
   openAccessRouter.route('/SERPS/studentLogin').get(routeUtils.asyncMiddleware (async(req,res,next) => {
      
     winstonLogger.info('STUDENT-LOGIN')
     
-    if(req.body === null) {
-
-        winstonLogger.error('ERROR: WRONG REQUEST PARAMS')
-
-        res.json({
-            state: 'failure',
-            statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_PARAM_ERROR,
-            Data: null
-        })
-
-    }
-
     winstonLogger.info('REQUEST BODY')
     winstonLogger.info(JSON.stringify(req.body,null,4))
    
@@ -243,14 +208,16 @@ openAccessRouter.route('/SERPS/studentSignUp').get(routeUtils.asyncMiddleware(as
           })
           winstonLogger.info("PAYLOAD")
           winstonLogger.info(JSON.stringify(payload,null,4))
-
-          payload.state = 'success'
+          payload.state = 'failure'
+          if(payload){
+            payload.state = 'success'
+          }
           res.json(payload)
           
       } catch (e) {
 
         winstonLogger.error('ERROR: authentication')
-        winstonLogger.error(e)
+        winstonLogger.error(e.stack)
 
         res.json({
           state: 'failure',
@@ -264,9 +231,6 @@ openAccessRouter.route('/SERPS/studentSignUp').get(routeUtils.asyncMiddleware(as
 
   }))
 
-
-  
-// Authentication routes
 openAccessRouter.route('/SERPS/parentSignUp').get(routeUtils.asyncMiddleware(async(req,res,next) => {
     
     winstonLogger.info('PARENT-SIGNUP')
@@ -288,8 +252,13 @@ openAccessRouter.route('/SERPS/parentSignUp').get(routeUtils.asyncMiddleware(asy
             Address: req.body.Address
         })
 
+        winstonLogger.info('PAYLOAD:')
+        winstonLogger.info(JSON.stringify(payloadS,null,4))
         // Send the payload to client
-        payloadS.state = 'success'
+        payloadS.state = 'failure'
+          if(payload){
+            payloadS.state = 'success'
+          }
         res.json(payloadS)
 
     }catch(e) {
@@ -313,18 +282,6 @@ openAccessRouter.route('/SERPS/parentSignUp').get(routeUtils.asyncMiddleware(asy
   openAccessRouter.route('/SERPS/parentLogin').get(routeUtils.asyncMiddleware (async(req,res,next) => {
      
     winstonLogger.info('PARENT-LOGIN')
-    
-    if(req.body === null) {
-
-        winstonLogger.error('ERROR: WRONG REQUEST PARAMS')
-
-        res.json({
-            state: 'failure',
-            statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_PARAM_ERROR,
-            Data: null
-        })
-
-    }
 
     winstonLogger.info('REQUEST BODY')
     winstonLogger.info(JSON.stringify(req.body,null,4))
@@ -339,14 +296,16 @@ openAccessRouter.route('/SERPS/parentSignUp').get(routeUtils.asyncMiddleware(asy
           })
           winstonLogger.info("PAYLOAD")
           winstonLogger.info(JSON.stringify(payload,null,4))
-
-          payload.state = 'success'
+          payload.state = 'failure'
+          if(payload){
+            payload.state = 'success'
+          }
           res.json(payload)
           
       } catch (e) {
 
         winstonLogger.error('ERROR: authentication')
-        winstonLogger.error(e)
+        winstonLogger.error(e.stack)
 
         res.json({
           state: 'failure',
@@ -359,5 +318,94 @@ openAccessRouter.route('/SERPS/parentSignUp').get(routeUtils.asyncMiddleware(asy
       next()
 
   }))
+  
+  //Teacher authentication Routes
+openAccessRouter.route('/SERPS/teacherSignUp').get(routeUtils.asyncMiddleware(async(req,res,next) => {
+    
+  winstonLogger.info('TEACHER-SIGNUP')
+
+  winstonLogger.info('REQUEST BODY')
+  winstonLogger.info(JSON.stringify(req.body,null,4))
+ 
+  const profiler = winstonLogger.startTimer()
+
+  try{
+      
+      const payloadS = await teacherService.signupTeacher({
+          Name: req.body.Name,
+          schoolName: req.body.schoolName,
+          email: req.body.email,
+          password: req.body.password,
+          gender: req.body.gender,
+          birthDate: req.body.birthDate,
+          Address: req.body.Address
+      })
+      winstonLogger.info('PAYLOAD:')
+      winstonLogger.info(JSON.stringify(payloadS,null,4))
+
+      // Send the payload to client
+      payload.state = 'failure'
+          if(payload){
+            payload.state = 'success'
+          }
+      res.json(payloadS)
+
+  }catch(e) {
+    
+    winstonLogger.error('ERROR: signUp')
+    winstonLogger.error(e.stack)
+
+     res.json({
+      status: 'failure',
+        statusCode: publicEnums.SERPS_STATUS_CODES.INTERNAL_SERVER_ERROR,
+        Token: null
+    })
+
+  }
+  
+  profiler.done({ message: 'End of teacher_signup'})
+  
+  next()
+
+}))
+openAccessRouter.route('/SERPS/teacherLogin').get(routeUtils.asyncMiddleware (async(req,res,next) => {
+   
+  winstonLogger.info('TEACHER-LOGIN')
+
+  winstonLogger.info('REQUEST BODY')
+  winstonLogger.info(JSON.stringify(req.body,null,4))
+ 
+    try {
+        
+        // *
+
+        const payload = await teacherService.authenticate({
+          email: req.body.email,
+          password: req.body.password
+        })
+        winstonLogger.info("PAYLOAD")
+        winstonLogger.info(JSON.stringify(payload,null,4))
+        payload.state = 'failure'
+        if(payload){
+          payload.state = 'success'
+        }
+        res.json(payload)
+        
+    } catch (e) {
+
+      winstonLogger.error('ERROR: authentication')
+      winstonLogger.error(e.stack)
+
+      res.json({
+        state: 'failure',
+        statusCode: publicEnums.SERPS_STATUS_CODES.INTERNAL_SERVER_ERROR,
+        Token: null
+      })
+
+    }
+
+    next()
+
+}))
 
   module.exports = openAccessRouter

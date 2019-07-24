@@ -183,8 +183,8 @@ async signupParent(params) {
      * 
      */
     // paymentConotroller
-    async createParentPaymentInfo(ParentPaymentInfoAlias,ParentPaymentInfoData){
-      return paymentManagementController.createParentPaymentInfo(ParentPaymentInfoAlias,ParentPaymentInfoData)
+    async createParentPaymentInfo(parentName,parentID){
+      return paymentManagementController.getPaymentInfo(parentName,parentID)
     },
     async getPaymentInfo(ParentPaymentInfoAlias){
         return paymentManagementController.getParentPaymentInfo(ParentPaymentInfoAlias)
@@ -192,28 +192,35 @@ async signupParent(params) {
     async updatePaymentInfo(ParentPaymentInfoAlias,ParentPaymentInfoData){
         return paymentManagementController.updateParentPaymentInfo(ParentPaymentInfoAlias,ParentPaymentInfoData)
     },
-    async viewParentPaymentTransactionHistory(ParentName,ParentID){// TransactionID Term bank[parent] accNo Receipt
-        return paymentManagementController.viewParentPaymentTransactionHistory(ParentName,ParentID)
+    async viewParentPaymentTransactionHistory(parentName,parentID){// TransactionID Term bank[parent] accNo Receipt
+        return paymentManagementController.viewParentPaymentTransactionHistory(parentName,parentID)
     },
-    async payTution(ParentName,ParentID,StudentID){// TransactionID Term bank[parent] accNo Receipt
-      return paymentManagementController.payTution(ParentName,ParentID,StudentID)
-  },
+    async payTution(parentName,parentID,StudentID){// TransactionID Term bank[parent] accNo Receipt
+      return paymentManagementController.payTution(parentName,parentID,StudentID)
+    },
+    // paymentManagementController
+    async getPaymentInfo(SchoolName,SchoolID){
+      return paymentManagementController.getParentPaymentInfo(SchoolName,SchoolID)
+    },
+    async updatePaymentInfo(SchoolName,schoolID,paymentInfo){
+        return paymentManagementController.updateParentPaymentInfo(SchoolName,schoolID,paymentInfo)
+    },
+    async viewPaymentTransactionHistory(SchoolName,SchoolID){// TransactionID month teacher bank[Teacher] accNo Receipt/Amount
+        return paymentManagementController.viewParentPaymentTransactionHistory(SchoolName,SchoolID) 
+    },
 
     // profileManagementController
-    async createProfileInfo(profileInfo){
-      return profileManagementController.createParentProfileInfo(profileInfo)
+    async getProfileInfo(parentName,parentID){
+      return profileManagementController.getParentInfo(parentName,parentID)
     },
-    async getProfileInfo(ParentName,ParentID){
-      return profileManagementController.getParentProfileInfo(ParentName,ParentID)
+    async getContactInfo(parentName,parentID){
+      return profileManagementController.getParentContactInfo(parentName,parentID)
     },
-    async getContactInfo(ParentName,ParentID){
-      return profileManagementController.getParentContactInfo(ParentName,ParentID)
+    async updateContactInfo(parentName,parentID,contactInfo){
+        return profileManagementController.updateParentContactInfo(parentName,parentID,contactInfo)
     },
-    async updateContactInfo(contactInfo){
-        return profileManagementController.updateParentContactInfo(contactInfo)
-    },
-    async getAddressInfo(ParentName,ParentID){
-        return profileManagementController.getParentAddressInfo(ParentName,ParentID)
+    async getAddressInfo(parentName,parentID){
+        return profileManagementController.getParentAddressInfo(parentName,parentID)
     },
     async updateAddressInfo(addressInfo){
         return profileManagementController.updateParentContactInfo(addressInfo)
@@ -229,8 +236,51 @@ async signupParent(params) {
     },
 
     // notificationController
-    async getNotifications(){
-      return notificationController.getLatest() // max=10
+    async getNotifications(parentName,parentID){
+
+      let schools = null , notifications = []
+
+      winstonLogger.info('GET CHILD(REN) SCHOOL(S):')
+      winstonLogger.info(parentName)
+      winstonLogger.info(parentID)
+
+      await profileManagementController.getChildrenInfo(parentName,parentID).
+      then((studentInfo) => {
+
+        winstonLogger.info('CHILDRENs Info:')
+        winstonLogger.info(JSON.stringify(studentInfo,null,4))
+
+        schools = studentInfo
+
+      }).
+      catch((e) => {
+
+        winstonLogger.error('ERROR: getting children Info')
+        winstonLogger.error(e.stack)
+
+        return Promise.resolve({
+          statusCode: publicEnums.SERPS_STATUS_CODES.INTERNAL_SERVER_ERROR,
+          data: null
+        })
+
+      })
+      winstonLogger.info('SCHOOLS:')
+      winstonLogger.info(JSON.stringify(schools,null,4))
+
+      let schoolName = null, schoolID = null
+
+      for(let index in schools){
+        if(Number.isInteger(parseInt(index))){
+          //
+          schoolName = schools[index].schoolName
+          schoolID = schools[index].schoolID
+          notifications.push(Promise.resolve(notificationController.getNotifications(schoolName,schoolID)))
+
+        }
+      }
+
+       return notifications
+
     },
 
     // educationManagementController

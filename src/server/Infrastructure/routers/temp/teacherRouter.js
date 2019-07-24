@@ -1,1 +1,0 @@
-import teacherService from '../services/teacher'

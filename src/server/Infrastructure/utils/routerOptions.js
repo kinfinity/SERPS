@@ -118,7 +118,7 @@ const authParent = async (req, res, next) => {
     if(resx){
       winstonLogger.info('RES:')
       winstonLogger.info(JSON.stringify(resx,null,4))
-      req.body.schoolID = resx.schoolID
+      req.body.parentName = resx.fullName
       req.body.parentID = resx.parentID
       req.body.authorized = true
     }else{
@@ -157,7 +157,9 @@ const authTeacher = async (req, res, next) => {
     if(resx){
       winstonLogger.info('RES:')
       winstonLogger.info(JSON.stringify(resx,null,4))
+      req.body.schoolName = resx.schoolName
       req.body.schoolID = resx.schoolID
+      req.body.teacherName = resx.teacherName
       req.body.teacherID = resx.teacherID
       req.body.authorized = true
     }else{

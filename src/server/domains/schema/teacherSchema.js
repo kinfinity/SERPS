@@ -16,19 +16,51 @@ const TeacherSchema = new TSchema(
         Name: {
             first:{
                 type: String,
-                required: true,
                 unique: true
             },
             middle: {
                 type: String,
-                required: true,
                 unique: true
             },
             last: {
                 type: String,
-                required: true,
                 unique: true
             }
+        },
+        fullName:{
+          type: String,
+          required: true,
+          unique: true
+        },
+        email:{
+          type: String,
+          required: true,
+          unique: true
+        },
+        password:{
+          type: String,
+          required: true,
+          unique: true
+        },
+        Address:{
+          type: String,
+          required: true,
+          unique: true
+        },
+        schoolName:{
+          type: String,
+          required: true,
+          unique: true
+        },
+        schoolID:{
+          type: String,
+          required: true,
+          unique: true
+        },
+        teacherID:{
+          type: String,
+          required: true,
+          unique: true
         },
         birthDate: {
             type: Date,

@@ -160,7 +160,111 @@ const parentAdapter = {
     })
 
     return response
-  }
+  },
+
+  async getParentInfo(parentName,parentID){
+
+    let response = null
+
+    await parentService.getParentInfo(parentName,parentID).
+    then((resolve) => {
+
+      winstonLogger.info('GET: parentInfo')
+      response = Promise.resolve(resolve)
+
+    }).
+    catch((err) => {
+
+      winstonLogger.error('ERROR: geteting parentInfo')
+      winstonLogger.error(e.stack)
+
+      reponse = {
+        statusCode: publicEnums.SERPS_STATUS_CODES.INTERNAL_SERVER_ERROR,
+        Data: false
+      }
+
+    })
+
+    return response
+  },
+
+  async getParentContactInfo(parentName,parentID){
+
+    let response = null
+
+    await parentService.getParentContactInfo(parentName,parentID).
+    then((resolve) => {
+
+      winstonLogger.info('GET: parentContactInfo')
+      response = Promise.resolve(resolve)
+
+    }).
+    catch((err) => {
+
+      winstonLogger.error('ERROR: geteting parentContactInfo')
+      winstonLogger.error(e.stack)
+
+      reponse = {
+        statusCode: publicEnums.SERPS_STATUS_CODES.INTERNAL_SERVER_ERROR,
+        Data: false
+      }
+
+    })
+
+    return response
+  },
+  
+  async updateParentContactInfo(parentName,parentID,contactInfo){
+
+    let response = null
+
+    await parentService.updateParentContactInfo(parentName,parentID,contactInfo).
+    then((resolve) => {
+
+      winstonLogger.info('UPDATE: parentContactInfo')
+      response = Promise.resolve(resolve)
+
+    }).
+    catch((err) => {
+
+      winstonLogger.error('ERROR: updating parentContactInfo')
+      winstonLogger.error(err.stack)
+
+      reponse = {
+        statusCode: publicEnums.SERPS_STATUS_CODES.INTERNAL_SERVER_ERROR,
+        Data: false
+      }
+
+    })
+
+    return response
+  },
+
+  async getChildrenInfo(parentName,parentID){
+
+    let response = null
+
+    await parentService.getChildrenInfo(parentName,parentID).
+    then((resolve) => {
+
+      winstonLogger.info('UPDATE: parentContactInfo')
+      response = Promise.resolve(resolve)
+
+    }).
+    catch((err) => {
+
+      winstonLogger.error('ERROR: updating parentContactInfo')
+      winstonLogger.error(err.stack)
+
+      reponse = {
+        statusCode: publicEnums.SERPS_STATUS_CODES.INTERNAL_SERVER_ERROR,
+        Data: false
+      }
+
+    })
+
+    return response
+  },
 
 }
 

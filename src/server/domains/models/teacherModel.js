@@ -14,7 +14,7 @@ const TeacherSchema = require('../schema/teacherSchema')
 // Preparatory steps before save to model(pre-save)
 TeacherSchema.default.pre('save', function(next) {
 
-    now = new Date()
+    const now = new Date()
     this.updated_at = now
     if ( !this.created_at ) {
         this.created_at = now
