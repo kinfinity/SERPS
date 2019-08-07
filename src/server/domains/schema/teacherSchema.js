@@ -52,11 +52,11 @@ const TeacherSchema = new TSchema(
           required: true,
           unique: true
         },
-        schoolID:{
-          type: String,
-          required: true,
-          unique: true
-        },
+        // schoolID:{
+        //   type: String,
+        //   required: true,
+        //   unique: true
+        // },
         teacherID:{
           type: String,
           required: true,

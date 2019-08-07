@@ -31,7 +31,7 @@
  */
 
 import Password from '../utils/password'
-import SchoolModel from '../models/SchoolModel'
+import SchoolModel from '../models/schoolModel'
 import SchoolSessionModel from '../models/SchoolSessionModel'
 import tokenService from '../services/tokenService'
 import winstonLogger from '../../Infrastructure/utils/winstonLogger'
@@ -184,7 +184,8 @@ const schoolService = {
     catch((err) => {
 
       //
-      winstonLogger.info('ERROR: searching for name')
+      winstonLogger.error('ERROR: searching for name')
+      winstonLogger.error(err.stack)
       response2 = false
 
     })

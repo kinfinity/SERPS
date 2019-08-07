@@ -59,11 +59,11 @@ const teacherAdapter = {
 },
 
   // Authenticates already existing user
-  async authenticate(email, password) {
+  async authenticate(detail, password) {
   
     let response = null
 
-    await teacherService.authenticateUser({email, password}).
+    await teacherService.authenticateUser({detail, password}).
     then((result) => {
 
       // Authentication succeeded

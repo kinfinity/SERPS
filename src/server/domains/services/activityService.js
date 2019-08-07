@@ -17,7 +17,7 @@
  *
  */
 
-import ActivityModel from '../models/ActivityModel'
+import ActivityModel from '../models/activityModel'
 import SchoolModel from '../models/schoolModel'
 import winstonLogger from  '../../Infrastructure/utils/winstonLogger'
 import publicEnums from '../../app/publicEnums'

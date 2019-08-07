@@ -9,7 +9,7 @@
  */
 
 const mongoose = require('../../Infrastructure/plugins/mongooseCon')
-const SchoolSessionSchema = require('../schema/SchoolSessionSchema')
+const SchoolSessionSchema = require('../schema/schoolSessionSchema')
 
 // Preparatory steps before save to model(pre-save)
 SchoolSessionSchema.default.pre('save', function(next) {

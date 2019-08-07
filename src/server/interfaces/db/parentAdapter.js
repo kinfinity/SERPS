@@ -57,11 +57,11 @@ const parentAdapter = {
 
   },
   // Authenticates already existing user
-  async authenticate(email, password) {
+  async authenticate(detail, password) {
   
     let response = null
 
-    await parentService.authenticateUser({email, password}).
+    await parentService.authenticateUser({detail, password}).
     then((result) => {
 
       // Authentication succeeded

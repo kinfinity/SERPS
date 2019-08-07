@@ -31,7 +31,7 @@
  */
 
 import Password from '../utils/password'
-import ParentModel from '../models/ParentModel'
+import ParentModel from '../models/parentModel'
 import tokenService from './tokenService'
 import winstonLogger from '../../Infrastructure/utils/winstonLogger'
 import publicEnums from '../../app/publicEnums'
@@ -166,49 +166,73 @@ const parentService = {
   // Authenticate an already existing user
   async authenticateUser(parentData) {
 
-    winstonLogger.info('student service')
+    winstonLogger.info('parent service')
     winstonLogger.info(JSON.stringify(parentData,null,4))
 
-    let response = null, tempData = null, id = null
+    let response = null
+    let response1 = null
+    let response2 = null
+    let tempData = null
+    let id = null
 
     // Try email
-    await parentService.
-    _parentModel.
-    findOne({email: parentData.email}).
+    await parentService._parentModel.
+    findOne({email: parentData.detail}).
     then((Data) => {
 
-      winstonLogger.info('searching for email')
-      winstonLogger.info(JSON.stringify(Data,null,4))
       // Get data from DB
       if(Data) {
-        winstonLogger.info('email found')
-        winstonLogger.info(JSON.stringify(Data,null,4))
+
+        winstonLogger.info('Email found:')
         tempData = Data
-        id = parentData.email
-        response = true
+        winstonLogger.info(JSON.stringify(Data.email,null,4))
+        response1 = true
+        id = parentData.detail
+
       }
 
     }).
     catch((err) => {
       
-      winstonLogger.error('ERROR: searching for email')
-      winstonLogger.error(err.stack)
       //
-      return Promise.resolve({
-        statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_ERROR,
-        Data: false
-      })
+      response1 = false
 
     })
 
+    // Try Name
+    await parentService._parentModel.
+    findOne({schoolID: parentData.detail}).
+    then((Data) => {
 
-    if (!response) {
+      // Get data from DB
+      if(Data) {
 
-      winstonLogger.info('email does not exists')
+        winstonLogger.info('schoolID found:')
+        tempData = Data
+        winstonLogger.info(Data.schoolID)
+        response2 = true
+        id = parentData.detail
 
+      }
+
+    }).
+    catch((err) => {
+
+      //
+      winstonLogger.error('ERROR: searching for name')
+      winstonLogger.error(err.stack)
+      response2 = false
+
+    })
+
+    if (!(response1 || response2)){
+
+      // Break out
+      winstonLogger.info(`ERROR AUTHENTICATING :::`)
+      // Return false and and empty object
       return Promise.resolve({
         statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_ERROR,
-        Data: false
+        Token: null
       })
 
     }

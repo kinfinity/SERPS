@@ -5,7 +5,7 @@ import express from 'express'
 import winstonLogger from '../utils/winstonLogger'
 // import shortid from 'shortid'
 import csurf from 'csurf'
-import cookieParser from 'cookie-Parser'
+import cookieParser from 'cookie-parser'
 import publicEnums from '../../app/publicEnums'
 import jsStringCompression from 'js-string-compression'
 

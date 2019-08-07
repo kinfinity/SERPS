@@ -55,17 +55,20 @@ const wrapper = {
 }
 
 // 
-const routersPath = '../routers'
+const routersPath = '../routerServices/'
 const routerList = fs
-        .readdirSync(`${__dirname}\\${routersPath}`)
+        .readdirSync(`${__dirname}//${routersPath}`)
         .filter((filename) => filename.match(/\.js$/))
 
+let index_ = 0
 //
 routerList.forEach((routerName) => {
 
+    winstonLogger.info(`routerService[${index_}]: ${routerName}`)
+    index_ += 1
     routerName.trim()
     routerName.split('.')[0]
-    routerName = `../routers/${routerName}`
+    routerName = `../routerServices/${routerName}`
     
     // Default route
     app.use('/', routeUtils.asyncMiddleware(async(req,res,next) => next()))

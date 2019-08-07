@@ -34,7 +34,7 @@ import StudentModel from '../models/studentModel'
 import tokenService from './tokenService'
 import publicEnums from '../../app/publicEnums'
 import winstonLogger from '../../Infrastructure/utils/winstonLogger'
-import SchoolModel from '../models/SchoolModel'
+import SchoolModel from '../models/schoolModel'
 import shortid from 'short-id'
 
 
@@ -235,46 +235,70 @@ const studentService = {
     winstonLogger.info('student service')
     winstonLogger.info(JSON.stringify(studentData,null,4))
 
-    let response = null, tempData = null, id = null
+    let response = null
+    let response1 = null
+    let response2 = null
+    let tempData = null
+    let id = null
 
     // Try email
-    await studentService.
-    _studentModel.
-    findOne({email: studentData.email}).
+    await studentService._studentModel.
+    findOne({email: studentData.detail}).
     then((Data) => {
 
-      winstonLogger.info('searching for email')
-      winstonLogger.info(JSON.stringify(Data,null,4))
       // Get data from DB
       if(Data) {
-        winstonLogger.info('email found')
-        winstonLogger.info(JSON.stringify(Data,null,4))
+
+        winstonLogger.info('Email found:')
         tempData = Data
-        id = studentData.email
-        response = true
+        winstonLogger.info(JSON.stringify(Data.email,null,4))
+        response1 = true
+        id = studentData.detail
+
       }
 
     }).
     catch((err) => {
       
-      winstonLogger.error('ERROR: searching for email')
-      winstonLogger.error(err.stack)
       //
-      return Promise.resolve({
-        statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_ERROR,
-        Data: false
-      })
+      response1 = false
 
     })
 
+    // Try Name
+    await studentService._studentModel.
+    findOne({studentID: studentData.detail}).
+    then((Data) => {
 
-    if (!response) {
+      // Get data from DB
+      if(Data) {
 
-      winstonLogger.info('email does not exists')
+        winstonLogger.info('schoolID found:')
+        tempData = Data
+        winstonLogger.info(Data.schoolID)
+        response2 = true
+        id = studentData.detail
 
+      }
+
+    }).
+    catch((err) => {
+
+      //
+      winstonLogger.error('ERROR: searching for name')
+      winstonLogger.error(err.stack)
+      response2 = false
+
+    })
+
+    if (!(response1 || response2)){
+
+      // Break out
+      winstonLogger.info(`ERROR AUTHENTICATING :::`)
+      // Return false and and empty object
       return Promise.resolve({
         statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_ERROR,
-        Data: false
+        Token: null
       })
 
     }

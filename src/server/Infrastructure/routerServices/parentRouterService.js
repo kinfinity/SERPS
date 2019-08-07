@@ -3,7 +3,7 @@ import routeUtils from '../utils/routerOptions'
 import express from 'express'
 import bodyParser from 'body-parser'
 import csurf from 'csurf'
-import cookieParser from 'cookie-Parser'
+import cookieParser from 'cookie-parser'
 import winstonLogger from '../utils/winstonLogger'
 
 

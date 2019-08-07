@@ -148,28 +148,29 @@ const signUpController = {
   async createStudent(params) {
     
     let sData = null 
-    await studentAdapter.persist(params).then((Data) => {
+    await studentAdapter.persist(params).then((xData) => {
 
       winstonLogger.info('Controller Data')
-      winstonLogger.info(JSON.stringify(Data,null,4))
+      winstonLogger.info(JSON.stringify(xData,null,4))
 
-        if(!Data){
+        if(!xData){
           //if student wasn't created properly
           winstonLogger.error("Data wasn't persisted")
-          return Data
+          return xData
         }
           // fire Events then send payload
           winstonLogger.info('FIRING_EVENT: student-registered')
+          winstonLogger.info(JSON.stringify(xData,null,4))
           
           schoolEvent.
           emit(
               'student-registered',
               {
-                email: Data.email,
-                name: Data.fullName 
+                email: xData.Data.email,
+                name: xData.Data.fullName 
               } 
           )// send a few params
-          sData = Data
+          sData = xData
 
     }).catch((e) => {
 

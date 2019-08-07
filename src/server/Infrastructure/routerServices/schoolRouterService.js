@@ -9,7 +9,7 @@ import redisCache from '../utils/redisClient'
 import csurf from 'csurf'
 import publicEnums from '../../app/publicEnums'
 import jsStringCompression from 'js-string-compression'
-import cookieParser from 'cookie-Parser'
+import cookieParser from 'cookie-parser'
 
 /**
  * base64 image strings are compress b4 sent to server
@@ -18,7 +18,6 @@ import cookieParser from 'cookie-Parser'
  */
 const hm = new jsStringCompression.Hauffman()
 
-winstonLogger.info('::::schoolRouter')
     /*      
      *  Build  school API call routes
      *  

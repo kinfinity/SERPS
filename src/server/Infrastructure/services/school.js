@@ -59,9 +59,8 @@ export default {
     let payloadA = null
     // authenticate school -> creates token
      await this.authenticate({
-        email: Data.email,
-        password: Data.password,
-        username: Data.username || null
+        detail: Data.email,
+        password: Data.password
     }).then((result) => payloadA = result)
     .catch((err) => {
 
@@ -83,7 +82,7 @@ export default {
     // Holder for response data
     let payload = null
     winstonLogger.info('AUTHENTICATION')
-    winstonLogger.info(params)
+    winstonLogger.info(JSON.stringify(params,null,4))
     // Call controller which handles authentication
     await authenticationController.authenticateSchoolAdmin(
       params.detail,
@@ -97,7 +96,8 @@ export default {
     }).
     catch((err) => {
 
-
+        winstonLogger.error('ERROR: AUTHENTICATING')
+        winstonLogger.error(err.stack)
       // failed authenticating user send errorCode[statusCode] and empty token
       payload = {
           statusCode: '',

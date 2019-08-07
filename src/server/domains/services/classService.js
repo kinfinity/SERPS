@@ -17,7 +17,7 @@
  *
  */
 
-import ClassModel from '../models/ClassModel'
+import ClassModel from '../models/classModel'
 import SchoolModel from '../models/schoolModel'
 import winstonLogger from  '../../Infrastructure/utils/winstonLogger'
 import publicEnums from '../../app/publicEnums'
