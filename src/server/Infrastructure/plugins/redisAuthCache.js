@@ -8,7 +8,7 @@
  */
 
 
-const redisClient = {
+const redisAuthCache = {
 
     /**
      *  whitelist manipulation in redis cacheDB
@@ -44,4 +44,4 @@ const redisClient = {
 
  }
 
- export default redisClient
+ export default redisAuthCache
