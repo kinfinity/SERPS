@@ -6,6 +6,7 @@ import jsStringCompression from 'js-string-compression'
 import publicEnums from '../../app/publicEnums'
 import signUpController from '../../interfaces/controllers/signUpController'
 import authenticationController from '../../interfaces/controllers/authenticationController'
+import RedisCache from '../utils/redisClient';
 
 /**
  * base64 image strings are compress b4 sent to server
@@ -132,20 +133,35 @@ openAccessRouterService.route('/SERPS/schoolLogin').get(routeUtils.asyncMiddlewa
     winstonLogger.info(JSON.stringify(req.body,null,4))
    
       try {
-          
-          // *
-          const payload = await authenticationController.authenticateSchoolAdmin(
-            req.body.detail,
-            req.body.password
-          )
-          winstonLogger.info("PAYLOAD")
-          winstonLogger.info(JSON.stringify(payload))
-          payload.state = 'failure'
-          if(payload){
-            payload.state = 'success'
-          }
-          res.json(payload)
 
+        /**
+          
+          // *test cache
+          RedisCache.setSync(req.body.detail, "testToken")
+          //
+          winstonLogger.info('CHECK: redisCache')
+          winstonLogger.info(JSON.stringify(RedisCache.getSync(req.body.detail),null,4))
+
+          if(!RedisCache.getSync(req.body.detail)){
+        */
+            const payload = await authenticationController.authenticateSchoolAdmin(
+              req.body.detail,
+              req.body.password
+            )
+            winstonLogger.info("PAYLOAD")
+            winstonLogger.info(JSON.stringify(payload))
+            payload.state = 'failure'
+            if(payload){
+              payload.state = 'success'
+            }
+            res.json(payload)
+
+        /**
+          }
+          else{
+            res.json({message: "INFO: User Already Logged In"})
+          }
+        */ 
       } catch (e) {
 
         winstonLogger.error('ERROR: authentication')

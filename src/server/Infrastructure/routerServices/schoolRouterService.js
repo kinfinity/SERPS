@@ -1,4 +1,3 @@
-import schoolService from '../services/school'
 import routeUtils from '../utils/routerOptions'
 import express from 'express'
 import authorisationService from '../../domains/services/authorisationService'
@@ -10,6 +9,13 @@ import csurf from 'csurf'
 import publicEnums from '../../app/publicEnums'
 import jsStringCompression from 'js-string-compression'
 import cookieParser from 'cookie-parser'
+import profileManagementController from '../../interfaces/controllers/profileManagementController'
+import paymentManagementController from '../../interfaces/controllers/paymentManagementController'
+import schoolSessionController from '../../interfaces/controllers/schoolSessionController'
+import notificationController from '../../interfaces/controllers/notificationController'
+import timeTableController from '../../interfaces/controllers/timeTableController'
+import educationManagementController from '../../interfaces/controllers/educationManagementController'
+import documentsController from '../../interfaces/controllers/documentsController'
 
 /**
  * base64 image strings are compress b4 sent to server
@@ -59,8 +65,8 @@ const hm = new jsStringCompression.Hauffman()
           winstonLogger.info(authResult)
           // authorisation should send back basic info to use for 
 
-          // *
-          const payload = await schoolService.signout({Token: req.body.Token})
+          // * REVIEW
+         // const payload = await schoolService.signout({Token: req.body.Token})
           winstonLogger.info("PAYLOAD")
           winstonLogger.info(payload)
 
@@ -97,7 +103,7 @@ const hm = new jsStringCompression.Hauffman()
     try {
         
         // * REVIEW to make sure schools can access only their school data when authorised
-        const schoolProfileInfo = await schoolService.getProfileInfo(
+        const schoolProfileInfo = await profileManagementController.getSchoolInfo(
           req.body.schoolName,
           req.body.schoolID
         )
@@ -139,7 +145,7 @@ const hm = new jsStringCompression.Hauffman()
         
         // *
         winstonLogger.info('SCHOOL')
-        const schoolContactInfo = await schoolService.getContactInfo(
+        const schoolContactInfo = await profileManagementController.getSchoolContactInfo(
             req.body.schoolName,
             req.body.schoolID
         )
@@ -177,7 +183,7 @@ const hm = new jsStringCompression.Hauffman()
     try {
       
         // *
-        const result = await schoolService.updateContactInfo(
+        const result = await profileManagementController.updateSchoolContactInfo(
             req.body.schoolName,
             req.body.schoolID,
             req.body.contactInfo
@@ -221,7 +227,7 @@ const hm = new jsStringCompression.Hauffman()
     try {
         
         // *
-        const paymentInfo = await schoolService.getSchoolPaymentInfo(
+        const paymentInfo = await paymentManagementController.getSchoolPaymentInfo(
             req.body.schoolName,
             req.body.schoolID
         )
@@ -261,7 +267,7 @@ const hm = new jsStringCompression.Hauffman()
     try {
         
         // *
-        const result = await schoolService.updateSchoolPaymentInfo(
+        const result = await paymentManagementController.updateSchoolPaymentInfo(
             req.body.schoolName,
             req.body.schoolID,
             req.body.paymentInfo
@@ -301,7 +307,7 @@ const hm = new jsStringCompression.Hauffman()
 
     try {
         // *
-        const transactionHistory = await schoolService.viewSchoolPaymentTransactionHistory(
+        const transactionHistory = await paymentManagementController.viewSchoolPaymentTransactionHistory(
           req.body.schoolName,
           req.body.schoolID
         )
@@ -343,8 +349,9 @@ const hm = new jsStringCompression.Hauffman()
       winstonLogger.info(JSON.stringify(req.body,null,4))
   
       try {
+          
           // *
-          const result = await schoolService.getSchoolSession(
+          const result = await schoolSessionController.getSchoolSession(
             req.body.schoolName,
             req.body.schoolID
           )
@@ -385,7 +392,7 @@ const hm = new jsStringCompression.Hauffman()
 
     try {
         // *
-        const result = await schoolService.createSchoolSession(
+        const result = await schoolSessionController.createSchoolSession(
           req.body.schoolName,
           req.body.schoolID,
           req.body.notifications,
@@ -432,7 +439,7 @@ schoolRouter.route('/SERPS/School/Session/update') // REVIEW
 
     try {
         // *
-        const result = await schoolService.updateSchoolSession(
+        const result = await schoolSessionController.updateSchoolSession(
           req.body.schoolName,
           req.body.schoolID,{
               name:req.body.name,
@@ -477,9 +484,9 @@ schoolRouter.route('/SERPS/School/Session/update') // REVIEW
     winstonLogger.info(JSON.stringify(req.body,null,4))
 
     try {
-      
+        
         // *
-        const notifications = await schoolService.getNotifications(
+        const notifications = await notificationController.getNotifications(
             schoolName = req.body.schoolName,
             schoolID = req.body.schoolID
         )
@@ -521,7 +528,7 @@ schoolRouter.route('/SERPS/School/Session/update') // REVIEW
     try {
       
         // *
-        const result = await schoolService.createNotification(//noteTitle,noteID,noteImage,noteText
+        const result = await notificationController.createNotification(//noteTitle,noteID,noteImage,noteText
             req.body.schoolName,
             req.body.schoolID,
             req.body.noteTitle,
@@ -600,7 +607,7 @@ schoolRouter.route('/SERPS/School/Session/update') // REVIEW
     try {
         
         // *
-        const result = await schoolService.updateNotification(//SchoolName,SchoolID,noteID,Data
+        const result = await notificationController.updateNotification(//SchoolName,SchoolID,noteID,Data
             schoolName = req.body.schoolName,
             schoolID = req.body.schoolID,
             noteTitle = req.body.noteTitle,
@@ -639,7 +646,7 @@ schoolRouter.route('/SERPS/School/Session/update') // REVIEW
     try {
         
         // *
-        const result = await schoolService.deleteNotification(
+        const result = await notificationController.deleteNotification(
             req.body.schoolName,
             req.body.schoolID,
             req.body.noteTitle,
@@ -693,7 +700,7 @@ schoolRouter.route('/SERPS/School/createSchoolSession')
   try {
     
       // *
-      const results = await schoolService.createSchoolSession(
+      const results = await schoolSessionController.createSchoolSession(
           schoolName = req.body.schoolName,
           schoolID = req.body.schoolID,
           sessionData = req.body.sessionData
@@ -748,7 +755,7 @@ schoolRouter.route('/SERPS/School/activateNextTerm')
   try {
     
       // *
-      const results = await schoolService.activateNextTerm(
+      const results = await schoolSessionController.activateNextTerm(
           schoolName = req.body.schoolName,
           schoolID = req.body.schoolID,
           TermData = req.body.TermData // REVIEW
@@ -788,7 +795,7 @@ schoolRouter.route('/SERPS/School/activateNextTerm')
 
     try {
         
-        const result = schoolService.createTimetable(
+        const result = await timeTableController.createTimetable(
             req.body.schoolName,
             req.body.schoolID,
             req.body.classAlias,
@@ -820,7 +827,7 @@ schoolRouter.route('/SERPS/School/activateNextTerm')
     try {
       
         // *
-        const timeTable = await schoolService.getClassTimetable(
+        const timeTable = await timeTableController.getClassTimetable(
             req.body.schoolName,
             req.body.schoolID,
             req.body.classAlias
@@ -837,7 +844,7 @@ schoolRouter.route('/SERPS/School/activateNextTerm')
     try {
         
         // *
-        const result = await schoolService.updateTimetable(
+        const result = await timeTableController.updateTimetable(
           req.body.ClassAlias,
           req.body.subject,
           req.body.timeSlot
@@ -854,7 +861,7 @@ schoolRouter.route('/SERPS/School/activateNextTerm')
     try {
         
         // *
-        const result = await schoolService.deleteTimetable(
+        const result = await timeTableController.deleteTimetable(
           req.body.classAlias,
           req.body.timeTableID
         )
@@ -870,7 +877,7 @@ schoolRouter.route('/SERPS/School/activateNextTerm')
     try {
         
         // *
-        const result = await schoolService.archiveTimetable(
+        const result = await timeTableController.archiveTimetable(
             req.body.classAlias,
             req.body.timeTableID
         )
@@ -891,8 +898,9 @@ schoolRouter.route('/SERPS/School/activateNextTerm')
     winstonLogger.info(JSON.stringify(req.body,null,4))
 
     try {
+        
         // *
-        const result = await schoolService.createClass(
+        const result = await educationManagementController.createClass(
           req.body.schoolName,
           req.body.schoolID,
           req.body.classAlias,
@@ -934,7 +942,7 @@ schoolRouter.route('/SERPS/School/activateNextTerm')
 
     try {
         // *
-        const classData = await schoolService.getClass(
+        const classData = await educationManagementController.getClass(
           req.body.schoolName,
           req.body.schoolID,
           req.body.classAlias
@@ -978,7 +986,7 @@ schoolRouter.route('/SERPS/School/subjectHolder')
 
     try {
         // *
-        const classData = await schoolService.getClass(
+        const classData = await educationManagementController( // FIX-REVIEW
           req.body.schoolName,
           req.body.schoolID,
           req.body.classAlias
@@ -1018,7 +1026,7 @@ schoolRouter.route('/SERPS/School/subjectHolder/create')
 
     try {
         // *
-        const result = await schoolService.createSubjectHolder(
+        const result = await educationManagementController.createSubjectHolder(
           req.body.schoolName,
           req.body.schoolID,
           req.body.subjectName,
@@ -1059,7 +1067,7 @@ schoolRouter.route('/SERPS/School/subjectHolder/remove')
 
     try {
         // *
-        const result = await schoolService.removeSubjectHolder(
+        const result = await educationManagementController.removeSubjectHolder(
           req.body.schoolName,
           req.body.schoolID,
           req.body.subjectName
@@ -1099,7 +1107,7 @@ schoolRouter.route('/SERPS/School/class/createSubject')
 
     try {
         // *
-        const result = await schoolService.createSubject(
+        const result = await educationManagementController.createSubject(
             req.body.schoolName,
             req.body.schoolID,
             req.body.classAlias,
@@ -1142,7 +1150,7 @@ schoolRouter.route('/SERPS/School/class/createSubject')
 
     try {
         // *
-        const result = await schoolService.removeSubject(
+        const result = await educationManagementController.removeSubject(
             req.body.schoolName,
             req.body.schoolID,
             req.body.classAlias,
@@ -1184,7 +1192,7 @@ schoolRouter.route('/SERPS/School/class/createSubject')
 
     try {
         // *
-        const result = await schoolService.updateClass(
+        const result = await educationManagementController.updateClass(
             req.body.schoolName,
             req.body.schoolID,
             req.body.classAlias,
@@ -1226,7 +1234,7 @@ schoolRouter.route('/SERPS/School/class/createSubject')
 
     try {
         // *
-        const result = await schoolService.getSubject(
+        const result = await educationManagementController.getSubject(
             req.body.schoolName,
             req.body.schoolID,
             req.body.classAlias,    
@@ -1268,7 +1276,7 @@ schoolRouter.route('/SERPS/School/class/createSubject')
 
     try {
         // *
-        const result = await schoolService.removeClass(
+        const result = await educationManagementController.removeClass(
             req.body.schoolName,
             req.body.schoolID,
             req.body.classAlias
@@ -1310,7 +1318,7 @@ schoolRouter.route('/SERPS/School/class/createSubject')
 
     try {
         // *
-        const result = await schoolService.assignClassTeacher(
+        const result = await educationManagementController.assignClassTeacher(
             req.body.schoolName,
             req.body.schoolID,
             req.body.classAlias,
@@ -1353,7 +1361,7 @@ schoolRouter.route('/SERPS/School/class/createSubject')
 
     try {
         // *
-        const result = await schoolService.createActivity(
+        const result = await educationManagementController.createActivity(
             req.body.schoolName,
             req.body.schoolID,
             req.body.activityAlias,
@@ -1398,7 +1406,7 @@ schoolRouter.route('/SERPS/School/class/createSubject')
 
     try {
         // *
-        const result = await schoolService.getActivity(
+        const result = await educationManagementController.getActivity(
             req.body.schoolName,
             req.body.schoolID,
             req.body.activityAlias
@@ -1440,7 +1448,7 @@ schoolRouter.route('/SERPS/School/class/createSubject')
 
     try {
         // *
-        const result = await schoolService.updateActivity(
+        const result = await educationManagementController.updateActivity(
             req.body.schoolName,
             req.body.schoolID,
             req.body.activityAlias,
@@ -1483,7 +1491,7 @@ schoolRouter.route('/SERPS/School/class/createSubject')
 
     try {
         // *
-        const result = await schoolService.removeActivity(
+        const result = await educationManagementController.removeActivity(
             req.body.schoolName,
             req.body.schoolID,
             req.body.activityAlias
@@ -1525,7 +1533,7 @@ schoolRouter.route('/SERPS/School/class/createSubject')
 
     try {
         // *
-        const result = await schoolService.assignActivityTeacher(
+        const result = await educationManagementController.assignActivityTeacher(
             req.body.schoolName,
             req.body.schoolID,
             req.body.activityAlias,
@@ -1563,7 +1571,7 @@ schoolRouter.route('/SERPS/School/class/createSubject')
     try {
       
         // *
-        const result = await schoolService.reassignActivityTeacher(
+        const result = await educationManagementController.reassignActivityTeacher(
             req.body.activityAlias,
             req.body.oldTeacher,
             req.body.newTeacher
@@ -1582,7 +1590,7 @@ schoolRouter.route('/SERPS/School/class/createSubject')
     try {
       
         // *
-        const result = await schoolService.viewPendingResults()
+        const result = await  educationManagementController.viewPendingResults()
         res.json(result)
         
     } catch (e) {
@@ -1595,7 +1603,7 @@ schoolRouter.route('/SERPS/School/class/createSubject')
     try {
     
         // *
-        const result = await schoolService.validatePendingResult(
+        const result = await educationManagementController.validatePendingResult(
             req.body.SubjectID,
             req.body.classAlias
         )
@@ -1613,7 +1621,7 @@ schoolRouter.route('/SERPS/School/class/createSubject')
     try {
     
         // *
-        const result = await schoolService.viewRegisteredStudents()
+        const result = await educationManagementController.viewRegisteredStudents()
         res.json(result)
         
     } catch (e) {
@@ -1626,7 +1634,7 @@ schoolRouter.route('/SERPS/School/class/createSubject')
     try {
     
         // *
-        const result = await schoolService.viewRegisteredStudent(
+        const result = await educationManagementController.viewRegisteredStudent(
             req.body.studentID
         )
         res.json(result)
@@ -1644,7 +1652,7 @@ schoolRouter.route('/SERPS/School/class/createSubject')
         res.sendStatus(500).json(e)
     }
     // *
-    const result = schoolService.validatere(studentID)
+    const result = educationManagementController.validateRegisteredStudent(studentID)
     next()
 }))
 
@@ -1652,9 +1660,9 @@ schoolRouter.route('/SERPS/School/class/createSubject')
   schoolRouter.route('/SERPS/School/class/Subject/')
   .get(routeUtils.asyncMiddleware (async (req,res, next) => {
     try {
-    
+        
         // *
-        const lectureNotes = await schoolService.getLectureNotes(
+        const lectureNotes = await documentsController.getLectureNotes(
             req.body.subject,
             req.body.classAlias
         )
@@ -1673,7 +1681,7 @@ schoolRouter.route('/SERPS/School/class/createSubject')
     try {
     
         // *
-        const lectureNote = await schoolService.getLectureNote(
+        const lectureNote = await documentsController.getLectureNote(
             req.body.subject,
             req.body.classAlias,
             req.body.lectureNoteID
@@ -1690,7 +1698,7 @@ schoolRouter.route('/SERPS/School/class/createSubject')
     try {
     
         // *
-        const result = await schoolService.validateLectureNote(
+        const result = await documentsController.validateLectureNote(
             req.body.subject,
             req.body.classAlias,
             req.body.lectureNoteID
@@ -1703,26 +1711,13 @@ schoolRouter.route('/SERPS/School/class/createSubject')
     next()
 }))
 
-  //
-  schoolRouter.route('/SERPS/School/createClassSequence')
-  .get(routeUtils.asyncMiddleware (async (req,res, next) => {
-    try {
-    
-        // *
-        const result = await schoolService.createclass()
-        res.json(result)
-        
-    } catch (e) {
-        res.sendStatus(500).json(e)
-    }
-    next()
-}))
+ 
   schoolRouter.route('/SERPS/School/createGradeRanges')
   .get(routeUtils.asyncMiddleware (async (req,res, next) => {
     try {
     
         // *
-        const result = await schoolService.createGradeRanges(gradeData)
+        const result = await educationManagementController.createGradeRanges(gradeData)//REVIEW
         res.json(result)
         
     } catch (e) {
@@ -1742,7 +1737,7 @@ schoolRouter.route('/SERPS/School/openAdmission')
 
   try {
       // *
-      const result = await schoolService.openAdmission(
+      const result = await schoolSessionController.openAdmission(
           req.body.schoolName,
           req.body.schoolID,
           req.body.public_ACCESS_CODE
@@ -1785,7 +1780,7 @@ schoolRouter.route('/SERPS/School/closeAdmission')
 
   try {
       // *
-      const result = await schoolService.closeAdmission(
+      const result = await schoolSessionController.closeAdmission(
           req.body.schoolName,
           req.body.schoolID 
       )
@@ -1827,7 +1822,7 @@ schoolRouter.route('/SERPS/School/admission')
 
   try {
       // *
-      const result = await schoolService.getAdmissionStatus(
+      const result = await schoolSessionController.getAdmissionStatus(
           req.body.schoolName,
           req.body.schoolID
       )

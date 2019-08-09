@@ -1,5 +1,6 @@
 const redis = require('redis')
 import {promisify} from 'util'
+import winstonLogger from './winstonLogger';
 var assert = require('assert')
 
 // create and connect redis client to local instance.
@@ -23,7 +24,7 @@ const  options = {
         return Math.min(options.attempt * 100, 3000)
     }
 }
-const client = redis.createClient(options)
+let client = redis.createClient(options)
 // error Handling
 client.on('error', function (err) {
     assert(err instanceof Error)
@@ -35,8 +36,97 @@ client.on('error', function (err) {
 })
 
 // rebind and Promisify get and set
-const getAsync = promisify(client.get).bind(client)
-const setAsync = promisify(client.set).bind(client)
-const RedisCache = {getAsync,setAsync} 
+const getAsync = () => {
 
+    winstonLogger.info('cacheGET:')
+    winstonLogger.info(client.connected)
+    if(client.connected){
+        return promisify(client.get).bind(client)
+    }else{
+        try{
+            winstonLogger.info('reconnecting ... ')
+            client.shutdown()
+            client = redis.createClient(options)
+            const get = promisify(redis.createClient(options).get).bind(client)
+            return Promise.resolve(get)
+        }catch(e){
+
+            winstonLogger.error('ERROR: getting cache')
+            winstonLogger.error(e.message)
+            winstonLogger.error(e.stack)
+
+        }
+    }
+
+}
+const setAsync = () => {
+
+    winstonLogger.info('cacheSET:')
+    winstonLogger.info(client.connected)
+    if(client.connected){
+        return promisify(client.set).bind(client)
+    }else{
+        try{
+            winstonLogger.info('reconnecting ... ')
+            client.shutdown()
+            client = redis.createClient(options)
+            const set = promisify(redis.createClient(options).set).bind(client)
+            return Promise.resolve(set)
+        }catch(e){
+
+            winstonLogger.error('ERROR: setting cache')
+            winstonLogger.error(e.message)
+            winstonLogger.error(e.stack)
+            
+        }
+    }
+
+}
+
+const getSync =  (key) => {
+
+    winstonLogger.info(`cacheGET: connected? ${client.connected}`)
+    if(client.connected){
+        winstonLogger.info('returning cache data')
+        return client.get(key,(Data)=>{
+            winstonLogger.info(`RESULT: ${Data}`)
+        })
+    }else{
+        try{
+            winstonLogger.info('reconnecting ... ')
+            client.shutdown()
+            client = redis.createClient(options)
+            return client.get(key,Data)
+        }catch(e){
+
+            winstonLogger.error('ERROR: getting cache')
+            winstonLogger.error(e.message)
+            winstonLogger.error(e.stack)
+            
+        }
+    }
+}
+const setSync =  (key,Data) => {
+
+    winstonLogger.info(`cacheGET: connected? ${client.connected}`)
+    if(client.connected){
+        winstonLogger.info('returning cache data')
+        return client.set(key,Data)
+    }else{
+        try{
+            winstonLogger.info('reconnecting ... ')
+            client.shutdown()
+            client = redis.createClient(options)
+            return client.set(key,Data)
+        }catch(e){
+
+            winstonLogger.error('ERROR: setting cache')
+            winstonLogger.error(e.message)
+            winstonLogger.error(e.stack)
+            
+        }
+    }
+}
+
+const RedisCache = {getAsync,setAsync,getSync,setSync} 
 export default RedisCache

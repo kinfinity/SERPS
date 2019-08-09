@@ -1,4 +1,3 @@
-import studentService from '../services/student'
 import routeUtils from '../utils/routerOptions'
 import express from 'express'
 // import cloudinaryCon from '../../plugins/cloudinaryCon'
@@ -8,6 +7,12 @@ import csurf from 'csurf'
 import cookieParser from 'cookie-parser'
 import publicEnums from '../../app/publicEnums'
 import jsStringCompression from 'js-string-compression'
+import profileManagementController from '../../interfaces/controllers/profileManagementController';
+import notificationController from '../../interfaces/controllers/notificationController';
+import educationManagementController from '../../interfaces/controllers/educationManagementController';
+import timeTableController from '../../interfaces/controllers/timeTableController';
+import accountManagementController from '../../interfaces/controllers/accountManagementController';
+import documentsController from '../../interfaces/controllers/documentsController';
 
 
 /**
@@ -45,7 +50,7 @@ import jsStringCompression from 'js-string-compression'
     
       try {
           // *
-          const payload = await studentService.signout({Token: req.body.Token})
+          // const payload = await studentService.signout({Token: req.body.Token})
           winstonLogger.info("PAYLOAD")
           winstonLogger.info(payload)
 
@@ -79,7 +84,7 @@ import jsStringCompression from 'js-string-compression'
     
       try {
           // *
-          const payload = await studentService.getStudentPersonalInfo(
+          const payload = await profileManagementController.getStudentPersonalInfo(
             req.body.schoolName,
             req.body.fullName,
             req.body.studentID
@@ -119,7 +124,7 @@ import jsStringCompression from 'js-string-compression'
     
       try {
           // *
-          const payload = await studentService.updateContactInfo(
+          const payload = await profileManagementController.updateStudentContactInfo(
             req.body.schoolName,
             req.body.fullName,
             req.body.studentID,
@@ -160,7 +165,7 @@ import jsStringCompression from 'js-string-compression'
     
       try {
           // *
-          const payload = await studentService.getStudentAcademictInfo(
+          const payload = await profileManagementController.getStudentAcademicInfo(
             req.body.schoolName,
             req.body.fullName,
             req.body.studentID
@@ -200,8 +205,9 @@ import jsStringCompression from 'js-string-compression'
     winstonLogger.info(JSON.stringify(req.body,null,4))
     
       try {
+        
           // *
-          const payload = await studentService.getGuardianInfo(
+          const payload = await profileManagementController.getGuardianInfo(
             req.body.schoolName,
             req.body.fullName,
             req.body.studentID
@@ -242,8 +248,9 @@ import jsStringCompression from 'js-string-compression'
     winstonLogger.info(JSON.stringify(req.body,null,4))
     
       try {
+        
           // *
-          const payload = await studentService.getNotifications(
+          const payload = await notificationController.getNotifications(
             req.body.schoolName,
             req.body.schoolID,
             req.body.fullName,
@@ -286,7 +293,7 @@ import jsStringCompression from 'js-string-compression'
     
       try {
           // *
-          const payload = await studentService.getActivities(
+          const payload = await educationManagementController.getStudentActivities(
             req.body.schoolName,
             req.body.schoolID,
             req.body.studentName,
@@ -337,7 +344,7 @@ import jsStringCompression from 'js-string-compression'
     
       try {
           // *
-          const payload = await studentService.getActivityNotification(
+          const payload = await educationManagementController.getActivityNotification(
             req.body.studentName,
             req.body.studentID,
             req.body.contactInfo
@@ -376,8 +383,9 @@ import jsStringCompression from 'js-string-compression'
     winstonLogger.info(JSON.stringify(req.body,null,4))
     
       try {
+        
           // *
-          const payload = await studentService.getTimetable(
+          const payload = await timeTableController.getClassTimetable(
             req.body.schoolName,
             req.body.classAlias
           )
@@ -418,8 +426,9 @@ import jsStringCompression from 'js-string-compression'
     winstonLogger.info(JSON.stringify(req.body,null,4))
     
       try {
+        
           // *
-          const payload = await studentService.generateParentKey(
+          const payload = await accountManagementController.generateParentKey(
             req.body.schoolName,
             req.body.schoolID,
             req.body.studentName,
@@ -473,8 +482,9 @@ import jsStringCompression from 'js-string-compression'
     winstonLogger.info(JSON.stringify(req.body,null,4))
     
       try {
+        
           // *
-          const payload = await studentService.getLectureNotes(
+          const payload = await documentsController.getLectureNotes(
             req.body.studentName,
             req.body.studentID,
             req.body.contactInfo
@@ -525,8 +535,9 @@ import jsStringCompression from 'js-string-compression'
     winstonLogger.info(JSON.stringify(req.body,null,4))
     
       try {
+        
           // *
-          const payload = await studentService.viewresults(
+          const payload = await educationManagementController.getStudentResults(
             req.body.studentName,
             req.body.studentID,
             req.body.contactInfo

@@ -1,10 +1,11 @@
-import parentService from '../services/parent'
 import routeUtils from '../utils/routerOptions'
 import express from 'express'
 import bodyParser from 'body-parser'
 import csurf from 'csurf'
 import cookieParser from 'cookie-parser'
 import winstonLogger from '../utils/winstonLogger'
+import profileManagementController from '../../interfaces/controllers/profileManagementController';
+import paymentManagementController from '../../interfaces/controllers/paymentManagementController';
 
 
 /**
@@ -41,7 +42,7 @@ import winstonLogger from '../utils/winstonLogger'
       try{
 
           // *
-          const payload = await parentService.signout({Token: req.params.Token})
+          //const payload = await parentService.signout({Token: req.params.Token})
           res.json(payload)
 
       }catch(e){
@@ -60,8 +61,9 @@ import winstonLogger from '../utils/winstonLogger'
     winstonLogger.info(JSON.stringify(req.body,null,4))
     
       try {
+        
           // *
-          const payload = await parentService.getProfileInfo(
+          const payload = await profileManagementController.getParentInfo(
             req.body.parentName,
             req.body.parentID
           )
@@ -101,7 +103,7 @@ import winstonLogger from '../utils/winstonLogger'
     
       try {
           // *
-          const payload = await parentService.getContactInfo(
+          const payload = await profileManagementController.getParentContactInfo(
             req.body.parentName,
             req.body.parentID
           )
@@ -141,7 +143,7 @@ import winstonLogger from '../utils/winstonLogger'
     
       try {
           // *
-          const payload = await parentService.updateContactInfo(
+          const payload = await profileManagementController.updateParentContactInfo(
             req.body.parentName,
             req.body.parentID,
             req.body.contactInfo
@@ -174,7 +176,7 @@ import winstonLogger from '../utils/winstonLogger'
   
   // * payment API routes
   parentRouter.route('/SERPS/Parent/paymentInfo')
-.get(routeUtils.asyncMiddleware (async(req,res,next) => {
+  .get(routeUtils.asyncMiddleware (async(req,res,next) => {
     // *
     winstonLogger.info('PARENT-PROFILE')
 
@@ -183,7 +185,7 @@ import winstonLogger from '../utils/winstonLogger'
     
       try {
           // *
-          const payload = await parentService.getPaymentInfo(
+          const payload = await paymentManagementController.getParentPaymentInfo(
             req.body.parentName,
             req.body.parentID
           )
@@ -213,19 +215,20 @@ import winstonLogger from '../utils/winstonLogger'
 
   }))
   parentRouter.route('/SERPS/Parent/paymentInfo/update')
-  .get((req,res) => {
+  .get(routeUtils.asyncMiddleware (async(req,res,next) => {
     try{}catch(e){}
     // *
-    const studentResults = parentService.getPaymentInfo()
+    const studentResults = await paymentManagementController.getParentPaymentInfo()
     next()
-  })
+  }))
   parentRouter.route('/SERPS/Parent/paymentInfo/transactionHistory')
-  .get((req,res) => {
+  .get(routeUtils.asyncMiddleware (async(req,res,next) => {
     try{}catch(e){}
+    
     // *
-    const studentResults = parentService.viewParentPaymentTransactionHistory()
+    const studentResults = await paymentManagementController.viewParentPaymentTransactionHistory()
     next()
-  })
+  }))
 
   // notification API routes
   parentRouter.route('/SERPS/Parent/notifications')
@@ -238,7 +241,7 @@ import winstonLogger from '../utils/winstonLogger'
     
       try {
           // *
-          const payload = await parentService.getNotifications(
+          const payload = await utils.getNotifications(
             req.body.parentName,
             req.body.parentID
           )
@@ -270,60 +273,113 @@ import winstonLogger from '../utils/winstonLogger'
 
   // child(ren)[student(s)] API routes
   parentRouter.route('/SERPS/Parent/Student/Results')
-  .get((req,res) => {
+  .get(routeUtils.asyncMiddleware (async(req,res,next) => {
     try{}catch(e){}
     // *
-    const studentResults = parentService.viewStudentresults()
+    //const studentResults = parentService.viewStudentresults()
     next()
-  })
+  }))
   parentRouter.route('/SERPS/Parent/Student/healthInfo')
-  .get((req,res) => {
+  .get(routeUtils.asyncMiddleware (async(req,res,next) => {
     try{}catch(e){}
     // *
-    const studentResults = parentService.getHealthInfo()
+    const studentResults = await profileManagementController.getStudentHealthInfo()
     next()
-  })
+  }))
   parentRouter.route('/SERPS/Parent/Student/healthInfo/update')
-  .get((req,res) => {
+  .get(routeUtils.asyncMiddleware (async(req,res,next) => {
     try{}catch(e){}
     // *
-    const studentResults = parentService.updateHealthInfo()
+    const studentResults = await profileManagementController.getStudentHealthReport()
     next()
-  })
+  }))
   parentRouter.route('/SERPS/Parent/Student/healthStatus')
-  .get((req,res) => {
+  .get(routeUtils.asyncMiddleware (async(req,res,next) => {
     try{}catch(e){}
     // *
-    const studentResults = parentService.getHealthStatus()
+    const studentResults = await profileManagementController.getStudentHealthReports()
     next()
-  })
+  }))
   parentRouter.route('/SERPS/Parent/Student/payTuition')
-  .get((req,res) => {
+  .get(routeUtils.asyncMiddleware (async(req,res,next) => {
     try{}catch(e){}
     // *
-    const studentResults = parentService.payTution()
+    const studentResults = await paymentManagementController.payTution()
     next()
-  })
+  }))
   parentRouter.route('/SERPS/Parent/Student/attendance')
-  .get((req,res) => {
+  .get(routeUtils.asyncMiddleware (async(req,res,next) => {
     try{}catch(e){}
     // *
-    const studentResults = parentService.getAttendance()
+    const studentResults = await educationManagementController.getStudentAttendance()
     next()
-  })
+  }))
   parentRouter.route('/SERPS/Parent/Student/activities')
-  .get((req,res) => {
+  .get(routeUtils.asyncMiddleware (async(req,res,next) => {
     try{}catch(e){}
     // *
-    const studentResults = parentService.getActivities()
+    const studentResults = await educationManagementController.getStudentActivities()
     next()
-  })
+  }))
   parentRouter.route('/SERPS/Parent/Student/activity/Notification')
-  .get((req,res) => {
+  .get(routeUtils.asyncMiddleware (async(req,res,next) => {
     try{}catch(e){}
     // *
-    const studentResults = parentService.getActivityNotification()
+    const studentResults = await educationManagementController.getActivityNotification()
     next()
-  })
+  }))
 
+
+
+  //
+  const utils = {
+    getNotifications: async(parentName,parentID) => {
+
+      let schools = null , notifications = []
+  
+      winstonLogger.info('GET CHILD(REN) SCHOOL(S):')
+      winstonLogger.info(parentName)
+      winstonLogger.info(parentID)
+  
+      await profileManagementController.getChildrenInfo(parentName,parentID).
+      then((studentInfo) => {
+  
+        winstonLogger.info('CHILDRENs Info:')
+        winstonLogger.info(JSON.stringify(studentInfo,null,4))
+  
+        schools = studentInfo
+  
+      }).
+      catch((e) => {
+  
+        winstonLogger.error('ERROR: getting children Info')
+        winstonLogger.error(e.stack)
+  
+        return Promise.resolve({
+          statusCode: publicEnums.SERPS_STATUS_CODES.INTERNAL_SERVER_ERROR,
+          data: null
+        })
+  
+      })
+      winstonLogger.info('SCHOOLS:')
+      winstonLogger.info(JSON.stringify(schools,null,4))
+  
+      let schoolName = null, schoolID = null
+  
+      for(let index in schools){
+        if(Number.isInteger(parseInt(index))){
+          //
+          schoolName = schools[index].schoolName
+          schoolID = schools[index].schoolID
+          notifications.push(Promise.resolve(notificationController.getNotifications(schoolName,schoolID)))
+  
+        }
+      }
+  
+       return notifications
+  
+    },
+
+  }
+  
   module.exports = parentRouter

@@ -1,4 +1,4 @@
-import auth from '../services/auth'
+import auth from '../../interfaces/controllers/authorisationController'
 import winstonLogger from './winstonLogger'
 import publicEnums from '../../app/publicEnums';
 
@@ -35,7 +35,7 @@ const authSchool = async (req, res, next) => {
     req.baseUrl // scope must match base url filtered and lowerCase e.g /School -> school
     
     //authorise token gotten
-    const resx = await auth.authoriseSchool(bearerToken)
+    const resx = await auth.authoriseSchoolAdmin(bearerToken)
     if(resx){
       winstonLogger.info('RES:')
       winstonLogger.info(JSON.stringify(resx,null,4))
