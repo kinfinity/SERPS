@@ -165,7 +165,7 @@ const authTeacher = async (req, res, next) => {
     }else{
       winstonLogger.info('__AUTHORIZED__: false')
       req.body.authorized = false
-      res.json({})
+      res.json({}) 
     }
     
     if(req.body.authorized){
