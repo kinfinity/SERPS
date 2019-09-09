@@ -4,7 +4,7 @@ services:
         image: "node:12"
         build: ./
         # command: npm i
-        command: npm run serve
+        command: npm run start
         ports: ["50051:50051"]
         volumes: ["./:/usr/src/app","/usr/src/app/node_modules"]
     #     depends_on: ["serpsDataStore"]

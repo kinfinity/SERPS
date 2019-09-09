@@ -6,7 +6,7 @@ import jsStringCompression from 'js-string-compression'
 import publicEnums from '../../app/publicEnums'
 import signUpController from '../../interfaces/controllers/signUpController'
 import authenticationController from '../../interfaces/controllers/authenticationController'
-import RedisCache from '../utils/redisClient';
+import RedisCache from '../utils/redisAuthCache'
 
 /**
  * base64 image strings are compress b4 sent to server

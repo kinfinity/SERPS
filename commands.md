@@ -14,3 +14,7 @@ docker exec -it <container id> /bin/bash
     *docker-compose build
     *docker-machine ip
     *docker-compose up
+
+
+
+heroku logs -t --app your-app-name It

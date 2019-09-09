@@ -17,4 +17,4 @@ COPY . /usr/src/app
 EXPOSE 50051
 
 #launch server
-CMD [ "npm","serve" ]
+CMD [ "npm","start" ]
