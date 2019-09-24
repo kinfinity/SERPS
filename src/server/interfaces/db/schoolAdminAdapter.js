@@ -75,8 +75,10 @@ const schoolAdminAdapter = {
       winstonLogger.error(e)
 
       response = {
-        'statusCode': publicEnums.SERPS_STATUS_CODES.REQUEST_ERROR,
-        'Token':null
+        state: 'failure',
+        statusCode: publicEnums.SERPS_STATUS_CODES.INTERNAL_SERVER_ERROR,
+        statusMessage: publicEnums.SERPS_STATUS_MESSAGES.INTERNAL_SERVER_ERROR,
+        Token: null
       }
 
     })
@@ -96,7 +98,19 @@ const schoolAdminAdapter = {
         winstonLogger.info('Authorising:')
         winstonLogger.info(JSON.stringify(resolve,null,4))
 
-        response = resolve
+        if(resolve){
+          response = resolve
+        }else{
+
+          response = {
+            state: 'FAILURE',
+            statusCode: publicEnums.SERPS_STATUS_CODES.NO_TOKEN,
+            statusMessage: publicEnums.SERPS_STATUS_MESSAGES.EMPTY_TOKEN,
+            Data: null
+          }
+
+        }
+        
 
     }).
     catch((err) => {
@@ -104,9 +118,12 @@ const schoolAdminAdapter = {
       winstonLogger.error('ERROR:')
       winstonLogger.error(err.stack)
       winstonLogger.error(err.message)
+
       response = {
-          statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_ERROR,
-          Data :null
+        state: 'FAILURE',
+        statusCode: publicEnums.SERPS_STATUS_CODES.INTERNAL_SERVER_ERROR,
+        statusMessage: publicEnums.SERPS_STATUS_MESSAGES.INTERNAL_SERVER_ERROR,
+        Data: null
       }
 
     })
@@ -161,8 +178,10 @@ const schoolAdminAdapter = {
       winstonLogger.error(e)
 
       response = {
-          statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_ERROR,
-          Data :null
+        state: "FAILURE",
+        statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_ERROR,
+        statusMessage: publicEnums.SERPS_STATUS_MESSAGES.INTERNAL_SERVER_ERROR,
+        Data :null
       }
 
     })
@@ -231,7 +250,9 @@ const schoolAdminAdapter = {
       winstonLogger.error(e)
 
       reponse = {
-        statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_ERROR,
+        state: 'failure',
+        statusCode: publicEnums.SERPS_STATUS_CODES.INTERNAL_SERVER_ERROR,
+        statusMessage: publicEnums.SERPS_STATUS_MESSAGES.INTERNAL_SERVER_ERROR,
         Data: null
       }
 

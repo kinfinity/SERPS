@@ -53,7 +53,12 @@ const signUpController = {
           winstonLogger.error('error getting Data from signUp')
           winstonLogger.error(e.stack)
           // if there was error in generating payload
-          return null
+          return res.json({
+            state: 'failure',
+            statusCode: publicEnums.SERPS_STATUS_CODES.INTERNAL_SERVER_ERROR,
+            statusMessage: publicEnums.SERPS_STATUS_MESSAGES.INTERNAL_SERVER_ERROR,
+            Token: null
+          })
 
         }) 
 

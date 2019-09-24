@@ -8,12 +8,16 @@ import signUpController from '../../interfaces/controllers/signUpController'
 import authenticationController from '../../interfaces/controllers/authenticationController'
 import RedisCache from '../utils/redisAuthCache'
 
+
+
 /**
  * base64 image strings are compress b4 sent to server
  * so we decompress them first 
  * 
  */
 const hm = new jsStringCompression.Hauffman()
+
+
 
 /**
      * 
@@ -26,156 +30,195 @@ const hm = new jsStringCompression.Hauffman()
   const openAccessRouterService = express.Router([routeUtils.routerOptions])
 
   // OpenAccess_routes : don't require accessToken
-  openAccessRouterService.route('/SERPS/schoolSignUp').get(routeUtils.asyncMiddleware(async (req,res,next) => {
+  openAccessRouterService.route('/SERPS/schoolSignUp').post(routeUtils.asyncMiddleware(async (req,res,next) => {//routeUtils.csrfHandler.csrfTokenVerify,
+  //openAccessRouterService.get('/SERPS/schoolSignUp',routeUtils.asyncMiddleware(async (req,res,next) => {
   
     winstonLogger.info('SCHOOL-SIGNUP')
 
     winstonLogger.info('REQUEST BODY')
     winstonLogger.info(JSON.stringify(req.body,null,4))
-   
-    const profiler = winstonLogger.startTimer()
 
-    try{
+    if(
+       req.body &&
+       req.body.name && 
+       req.body.email &&
+       req.body.password && 
+       req.body.motto && 
+       req.body.address && 
+       req.body.logo && 
+       req.body.images
+       ){
+      const profiler = winstonLogger.startTimer()
+
+      try{
 
         const schoolID = req.body.schoolPrefix// + shortid.generate()
 
         winstonLogger.info("generated schoolID ")
         winstonLogger.info(schoolID)
-        
+          
         // create school
         const payloadS =  await signUpController.createSchool({
-          Name: req.body.Name,
-          schoolID,
-          email: req.body.email,
-          password: req.body.password,
-          motto: req.body.motto,
-          Address: req.body.Address,
-          Logo: 'tempURL',// Gets updated on Logo upload to cloudinary
-          Images: req.body.imagesLinks // 1-3
+            Name: req.body.name,
+            schoolID,
+            email: req.body.email,
+            password: req.body.password,
+            motto: req.body.motto,
+            Address: req.body.address,
+            Logo: 'tempURL',// Gets updated on Logo upload to cloudinary
+            Images: req.body.imagesLinks // 1-3
+        })
+      
+        if(payloadS){
+            
+          // done with SIGNUP
+          // authenticate school -> creates token
+          const payloadA = await authenticationController.authenticateSchoolAdmin({
+              detail: payloadS.email,
+              password: payloadS.password
+          }).
+          catch((err) => {
+      
+              winstonLogger.error('ERROR: authentication')
+              winstonLogger.error(err.stack)
+      
+          })
+      
+          winstonLogger.info("SIGNUP PAYLOAD")
+          winstonLogger.info(JSON.stringify(payloadA))
+
+          payloadS.state = 'failure'
+          // Persist Logo and images if school was created 
+          if(payloadS.Token !== null ){
+
+              winstonLogger.info('SAVE LOGO TO CLOUDINARY')
+              // if it worked save the image to cloudinary with schoolName / profile # hm.decompress(req.body.Logo)
+              const result = await cloudinaryCon.uploadSchoolLogo(req.body.logo, req.body.name, req.body.schoolPrefix).
+              catch((e) => {
+
+                  winstonLogger.error('Error uploading Logo')
+                  winstonLogger.error(e.stack)
+
+              })
+
+              winstonLogger.info('COUDLINARY RESULTS')
+              winstonLogger.info(result)
+              winstonLogger.info('END')
+              payloadS.state = 'success'  
+
+          }
+
+          // Send the payload to client
+          res.json(payloadS)
+
+      }
+      else{
+
+          winstonLogger.info('INFO: user not created')
+            res.json({
+              state: 'failure',
+              statusCode: publicEnums.SERPS_STATUS_CODES.INTERNAL_SERVER_ERROR,
+              Token: null
+        })
+
+      }
+    } catch(e){
+
+      winstonLogger.error('ERROR: signup failed')
+      winstonLogger.error(e.stack)
+      res.json({
+        state: 'failure',
+        statusCode: publicEnums.SERPS_STATUS_CODES.INTERNAL_SERVER_ERROR,
+        statusMessage: publicEnums.SERPS_STATUS_MESSAGES.INTERNAL_SERVER_ERROR,
+        Token: null
       })
-    
-      if(payloadS){
-          
-         // done with SIGNUP
-         // authenticate school -> creates token
-         const payloadA = await authenticationController.authenticateSchoolAdmin({
-             detail: payloadS.email,
-             password: payloadS.password
-         }).
-         catch((err) => {
-     
-             winstonLogger.error('ERROR: authentication')
-             winstonLogger.error(err.stack)
-     
-         })
-     
-         winstonLogger.info("SIGNUP PAYLOAD")
-         winstonLogger.info(JSON.stringify(payloadA))
-
-        payloadS.state = 'failure'
-        // Persist Logo and images if school was created 
-        if(payloadS.Token !== null ){
-
-            winstonLogger.info('SAVE LOGO TO CLOUDINARY')
-            // if it worked save the image to cloudinary with schoolName / profile # hm.decompress(req.body.Logo)
-            const result = await cloudinaryCon.uploadSchoolLogo(req.body.Logo, req.body.Name, req.body.schoolPrefix).
-            catch((e) => {
-
-                winstonLogger.error('Error uploading Logo')
-                winstonLogger.error(e.stack)
-
-            })
-
-            winstonLogger.info('COUDLINARY RESULTS')
-            winstonLogger.info(result)
-            winstonLogger.info('END')
-            payloadS.state = 'success'  
-
-        }
-
-        // Send the payload to client
-        res.json(payloadS)
 
     }
-    else{
+            
+      profiler.done({ message: 'End of school_signup'})
+      
+      next()
 
-        winstonLogger.info('INFO: user not created')
-          res.json({
-            state: 'failure',
-            statusCode: publicEnums.SERPS_STATUS_CODES.INTERNAL_SERVER_ERROR,
-            Token: null
-       })
+  }else{
 
-    }
-  } catch(e){
-
-    winstonLogger.error('ERROR: signup failed')
-    winstonLogger.error(e.stack)
     res.json({
       state: 'failure',
-      statusCode: publicEnums.SERPS_STATUS_CODES.INTERNAL_SERVER_ERROR,
+      statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_ERROR,
+      statusMessage: publicEnums.SERPS_STATUS_MESSAGES.INCORRECT_PARAMS,
       Token: null
     })
 
   }
-          
-    profiler.done({ message: 'End of school_signup'})
-    
-    next()
 
 }))
   
-openAccessRouterService.route('/SERPS/schoolLogin').get(routeUtils.asyncMiddleware(async (req,res,next) => {
+openAccessRouterService.route('/SERPS/schoolLogin').post(routeUtils.asyncMiddleware(async (req,res,next) => {
 
     winstonLogger.info('SCHOOL-LOGIN')
 
     winstonLogger.info('REQUEST BODY')
     winstonLogger.info(JSON.stringify(req.body,null,4))
-   
-      try {
+    if(
+      req.body.detail &&
+      req.body.password
+      ){
+      
+        try {
 
-        /**
+            // *test cache
+            // RedisCache.Whitelist.AddToken(req.body.detail, "testToken")
+            //
+            // winstonLogger.info('CHECK: redisCache')
+            // RedisCache.Whitelist.remove(req.body.detail)
+            // winstonLogger.info(JSON.stringify(RedisCache.Whitelist.verify(req.body.detail),null,4))
+
+            //if(!RedisCache.Whitelist.verify(req.body.detail)){
           
-          // *test cache
-          RedisCache.setSync(req.body.detail, "testToken")
-          //
-          winstonLogger.info('CHECK: redisCache')
-          winstonLogger.info(JSON.stringify(RedisCache.getSync(req.body.detail),null,4))
+              const payload = await authenticationController.authenticateSchoolAdmin(
+                req.body.detail,
+                req.body.password
+              )
+              winstonLogger.info("PAYLOAD")
+              winstonLogger.info(JSON.stringify(payload))
+              payload.state = 'failure'
+              if(payload){
+                payload.state = 'success'
+                RedisCache.Whitelist.AddToken(req.body.detail, "testToken")
+              }
+              res.json(payload)
 
-          if(!RedisCache.getSync(req.body.detail)){
-        */
-            const payload = await authenticationController.authenticateSchoolAdmin(
-              req.body.detail,
-              req.body.password
-            )
-            winstonLogger.info("PAYLOAD")
-            winstonLogger.info(JSON.stringify(payload))
-            payload.state = 'failure'
-            if(payload){
-              payload.state = 'success'
-            }
-            res.json(payload)
+            // }else{
+            //   winstonLogger.info(req.body.detail+ " Already Logged In")
+            //   res.json({message: "INFO: User Already Logged In"})
+            // }
 
-        /**
-          }
-          else{
-            res.json({message: "INFO: User Already Logged In"})
-          }
-        */ 
-      } catch (e) {
+          } catch (e) {
 
-        winstonLogger.error('ERROR: authentication')
-        winstonLogger.error(e.stack)
+          winstonLogger.error('ERROR: authentication')
+          winstonLogger.error(e.stack)
+
+          res.json({
+            state: 'failure',
+            statusCode: publicEnums.SERPS_STATUS_CODES.INTERNAL_SERVER_ERROR,
+            statusMessage: publicEnums.SERPS_STATUS_MESSAGES.INTERNAL_SERVER_ERROR,
+            Token: null
+          })
+
+        }
+
+        next()
+    
+      }else{
 
         res.json({
           state: 'failure',
-          statusCode: publicEnums.SERPS_STATUS_CODES.INTERNAL_SERVER_ERROR,
+          statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_ERROR,
+          statusMessage: publicEnums.SERPS_STATUS_MESSAGES.INCORRECT_PARAMS,
           Token: null
         })
-
+        
       }
 
-      next()
 
 }))
 
@@ -187,62 +230,75 @@ openAccessRouterService.route('/SERPS/studentSignUp').get(routeUtils.asyncMiddle
     winstonLogger.info('REQUEST BODY')
     winstonLogger.info(JSON.stringify(req.body,null,4))
    
-    const profiler = winstonLogger.startTimer()
+    if(
+      req.body &&
+      req.body.schoolName &&
+      req.body.publicIdentifier &&
+      req.body.Name &&
+      req.body.gender &&
+      req.body.birthDate &&
+      req.body.email &&
+      req.body.password &&
+      req.body.classAlias
+      ){
+      const profiler = winstonLogger.startTimer()
 
-    try{
-        //
+      try{
+          //
 
 
-        const payloadS = await signUpController.createStudent({
-          schoolName: req.body.schoolName,  
-          publicIdentifier: req.body.publicIdentifier,
-          Name: req.body.Name,
-          gender: req.body.gender,
-          birthDate: req.body.birthDate,
-          email: req.body.email,
-          password: req.body.password,
-          classAlias: req.body.classAlias
-      })
+          const payloadS = await signUpController.createStudent({
+            schoolName: req.body.schoolName,  
+            publicIdentifier: req.body.publicIdentifier,
+            Name: req.body.Name,
+            gender: req.body.gender,
+            birthDate: req.body.birthDate,
+            email: req.body.email,
+            password: req.body.password,
+            classAlias: req.body.classAlias
+        })
 
-      if(payloadS){
-        
-        // done with SIGNUP 
-        const payloadA = await authenticationController.authenticateStudent(
-            payloadS.Data.email,
-            payloadS.Data.password
-        )
-        payloadA.state = 'failure'
-        if(payloadA){
-          payloadA.state = 'success'
+        if(payloadS){
+          
+          // done with SIGNUP 
+          const payloadA = await authenticationController.authenticateStudent(
+              payloadS.Data.email,
+              payloadS.Data.password
+          )
+          payloadA.state = 'failure'
+          if(payloadA){
+            payloadA.state = 'success'
+          }
+          // Send the payload to client
+          res.json(payloadA)
+      
+        }else{
+
+          winstonLogger.info('INFO: user not created')
+          res.json({
+            state: 'failure',
+            statusCode: publicEnums.SERPS_STATUS_CODES.INTERNAL_SERVER_ERROR,
+            Token: null
+        })
+
         }
-        // Send the payload to client
-        res.json(payloadA)
-    
-      }else{
+          
+    }catch(e) {
+        
+        winstonLogger.error('ERROR: signUp')
+        winstonLogger.error(e.stack)
 
-        winstonLogger.info('INFO: user not created')
         res.json({
-          state: 'failure',
-          statusCode: publicEnums.SERPS_STATUS_CODES.INTERNAL_SERVER_ERROR,
-          Token: null
-       })
+          status: 'failure',
+            statusCode: publicEnums.SERPS_STATUS_CODES.INTERNAL_SERVER_ERROR,
+            Token: null
+        })
 
       }
-        
-   }catch(e) {
       
-      winstonLogger.error('ERROR: signUp')
-      winstonLogger.error(e.stack)
+      profiler.done({ message: 'End of student_signup'})
 
-       res.json({
-        status: 'failure',
-          statusCode: publicEnums.SERPS_STATUS_CODES.INTERNAL_SERVER_ERROR,
-          Token: null
-      })
-
-    }
-    
-    profiler.done({ message: 'End of student_signup'})
+    }else{}
   
   }))
   openAccessRouterService.route('/SERPS/studentLogin').get(routeUtils.asyncMiddleware (async(req,res,next) => {

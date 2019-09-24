@@ -4,6 +4,8 @@
  * Copyright (c) 2019 Echwood Inc.
  * 
  */
+import redisClient from '../plugins/redisClient'
+import winstonLogger from './winstonLogger'
 
 
 const redisAuthCache = {
@@ -19,15 +21,38 @@ const redisAuthCache = {
         /**
          * Add Token reference of logged in users
          */
-        AddToken: async (Token) =>{},
+        AddToken: async (key, Token) =>{
+
+            //
+            redisClient.setSync(key, Token)
+            redisClient.getSync(key)
+            winstonLogger.info(`LOGGED_IN: ${key}`)
+            winstonLogger.info(`TOKEN: ${Token}`)
+
+        },
         /**
          * verify if Token is logged in
          */
-        verify: async (Label) => {},
+        verify: async (key) => {
+
+            //
+            if(redisClient.getSync(key)){
+                return Promise.resolve(true)
+            }else{
+                winstonLogger.info('login not found')
+                return Promise.resolve(false)
+            }
+
+        },
         /**
          * logging out or blocking user -> remove from whitelist
          */
-        Remove: async (Token) =>{},
+        remove: async (key) => {
+
+            //
+            return Promise.resolve(redisClient.remove(key))
+
+        },
 
     },
     /**

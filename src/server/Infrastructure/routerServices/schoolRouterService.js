@@ -5,10 +5,8 @@ import cloudinaryCon from '../plugins/cloudinaryCon'
 import winstonLogger from '../utils/winstonLogger'
 import redisCache from '../utils/redisAuthCache'
 // import shortid from 'shortid'
-import csurf from 'csurf'
 import publicEnums from '../../app/publicEnums'
 import jsStringCompression from 'js-string-compression'
-import cookieParser from 'cookie-parser'
 import profileManagementController from '../../interfaces/controllers/profileManagementController'
 import paymentManagementController from '../../interfaces/controllers/paymentManagementController'
 import schoolSessionController from '../../interfaces/controllers/schoolSessionController'
@@ -31,22 +29,8 @@ const hm = new jsStringCompression.Hauffman()
     // school router for all school calls
     const schoolRouter = express.Router([routeUtils.routerOptions])
     
-    //Middleware
-    const csrfMiddleware = csurf({cookie: true})// crorss site resource forgery Handling
-
     //
     schoolRouter.use('/SERPS/School',routeUtils.asyncMiddleware(routeUtils.authSchool))
-    schoolRouter.use(cookieParser())
-    schoolRouter.use(csrfMiddleware)
-
-    schoolRouter.get('/csrfTOKENS', csrfMiddleware, function (req, res) {
-        // send the token to client
-        res.json({ csrfToken: req.csrfToken()})
-    })
-      
-    schoolRouter.post('/csrfTOKENS', csrfMiddleware, function (req, res) {
-        //process the Token for validation
-    })
 
 // Non openAccess_Routes : require Access Token
   schoolRouter.route('/SERPS/School/logOut').get(routeUtils.asyncMiddleware(async (req,res, next) => {
@@ -92,86 +76,117 @@ const hm = new jsStringCompression.Hauffman()
 
   // Info API routes
   schoolRouter.route('/SERPS/School')// profileInfo
-  .get(routeUtils.asyncMiddleware (async (req,res, next) => {
+  .get(routeUtils.authSchool,routeUtils.asyncMiddleware (async (req,res, next) => {//routeUtils.csrfHandler.csrfTokenVerify,
 
     winstonLogger.info('GET: SCHOOL PROFILE')
 
     winstonLogger.info('REQUEST BODY')
     winstonLogger.info(JSON.stringify(req.body,null,4))
 
+    if(
+        req.body.schoolName &&
+        req.body.schoolID
+    ){
 
-    try {
+        try {
+            
+            // * REVIEW to make sure schools can access only their school data when authorised
+            const schoolProfileInfo = await profileManagementController.getSchoolInfo(
+            req.body.schoolName,
+            req.body.schoolID
+            )
+            winstonLogger.info('PAYLOAD')
+            winstonLogger.info(JSON.stringify(schoolProfileInfo,null,4))
+
+            res.json({
+                state: 'SUCCESS',
+                statusCode: schoolProfileInfo.statusCode,
+                statusMessage: schoolProfileInfo.statusMessage,
+                Data: schoolProfileInfo.Data
+            })
+
+        } catch (e) {
+
+            winstonLogger.error('ERROR: getting profileInfo')
+            winstonLogger.error(e)
+
+            res.json({
+                state: 'FAILURE',
+                statusCode: publicEnums.SERPS_STATUS_CODES.INTERNAL_SERVER_ERROR,
+                Data: null
+            })
+
+        }
+
+        // next()
+    }else{
+
+        res.json({
+          state: 'FAILURE',
+          statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_ERROR,
+          statusMessage: publicEnums.SERPS_STATUS_MESSAGES.INCORRECT_PARAMS,
+          Token: null
+        })
         
-        // * REVIEW to make sure schools can access only their school data when authorised
-        const schoolProfileInfo = await profileManagementController.getSchoolInfo(
-          req.body.schoolName,
-          req.body.schoolID
-        )
-        winstonLogger.info('PAYLOAD')
-        winstonLogger.info(JSON.stringify(schoolProfileInfo,null,4))
-
-        res.json({
-            state: 'success',
-            statusCode: schoolProfileInfo.statusCode,
-            Data: schoolProfileInfo.Data
-        })
-
-    } catch (e) {
-
-        winstonLogger.error('ERROR: getting profileInfo')
-        winstonLogger.error(e)
-
-        res.json({
-            state: 'failure',
-            statusCode: publicEnums.SERPS_STATUS_CODES.INTERNAL_SERVER_ERROR,
-            Data: null
-        })
-
-    }
-
-    // next()
+    }        
 
 }))
 
   schoolRouter.route('/SERPS/School/contactInfo')
-  .get(routeUtils.asyncMiddleware (async (req,res, next) => {
+  .get(routeUtils.csrfHandler.csrfTokenVerify,routeUtils.asyncMiddleware (async (req,res, next) => {
 
     winstonLogger.info('GET: SCHOOL CONTACT_INFO')
 
     winstonLogger.info('REQUEST BODY')
     winstonLogger.info(JSON.stringify(req.body,null,4))
 
-    try {
-        
-        // *
-        winstonLogger.info('SCHOOL')
-        const schoolContactInfo = await profileManagementController.getSchoolContactInfo(
-            req.body.schoolName,
-            req.body.schoolID
-        )
-        winstonLogger.info('PAYLOAD')
-        winstonLogger.info(JSON.stringify(schoolContactInfo,null,4))
+    if(
+        req.body.schoolName &&
+        req.body.schoolID
+    ){
+            
+        try {
+            
+            // *
+            winstonLogger.info('SCHOOL')
+            const schoolContactInfo = await profileManagementController.getSchoolContactInfo(
+                req.body.schoolName,
+                req.body.schoolID
+            )
+            winstonLogger.info('PAYLOAD')
+            winstonLogger.info(JSON.stringify(schoolContactInfo,null,4))
+
+            res.json({
+                state: 'success',
+                statusCode: schoolContactInfo.statusCode,
+                Data: schoolContactInfo.Data
+            })
+            
+        } catch (e) {
+
+            winstonLogger.error('ERROR: getting contactInfo')
+            winstonLogger.error(e)
+
+            res.json({
+                state: 'failure',
+                statusCode: publicEnums.SERPS_STATUS_CODES.INTERNAL_SERVER_ERROR,
+                statusMessage: publicEnums.SERPS_STATUS_MESSAGES.INTERNAL_SERVER_ERROR,
+                Data: null
+            })
+
+        }
+
+        // next()
+    }else{
 
         res.json({
-            state: 'success',
-            statusCode: schoolContactInfo.statusCode,
-            Data: schoolContactInfo.Data
+          state: 'FAILURE',
+          statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_ERROR,
+          statusMessage: publicEnums.SERPS_STATUS_MESSAGES.INCORRECT_PARAMS,
+          Token: null
         })
         
-    } catch (e) {
-
-        winstonLogger.error('ERROR: getting contactInfo')
-        winstonLogger.error(e)
-
-        res.json({
-            state: 'failure',
-            statusCode: publicEnums.SERPS_STATUS_CODES.INTERNAL_SERVER_ERROR,
-            Data: null
-        })
-
     }
-
-    // next()
 
 }))
   schoolRouter.route('/SERPS/School/contactInfo/update')
@@ -180,37 +195,52 @@ const hm = new jsStringCompression.Hauffman()
     winstonLogger.info('REQUEST BODY')
     winstonLogger.info(JSON.stringify(req.body,null,4))
 
-    try {
-      
-        // *
-        const result = await profileManagementController.updateSchoolContactInfo(
-            req.body.schoolName,
-            req.body.schoolID,
-            req.body.contactInfo
-        )
-        winstonLogger.info('PAYLOAD')
-        winstonLogger.info(JSON.stringify(result,null,4))
+    if(
+        req.body.schoolName &&
+        req.body.schoolID   &&
+        req.body.contactInfo
+    ){
+        try {
+        
+            // *
+            const result = await profileManagementController.updateSchoolContactInfo(
+                req.body.schoolName,
+                req.body.schoolID,
+                req.body.contactInfo
+            )
+            winstonLogger.info('PAYLOAD')
+            winstonLogger.info(JSON.stringify(result,null,4))
+
+            res.json({
+                state: 'success',
+                statusCode: result.statusCode,
+                Data: result.Data
+            })
+            
+        } catch (e) {
+
+            winstonLogger.error('ERROR: updating contactInfo')
+            winstonLogger.error(e)
+
+            res.json({
+                state: 'failure',
+                statusCode: publicEnums.SERPS_STATUS_CODES.INTERNAL_SERVER_ERROR,
+                Data: false
+            })
+
+        }
+
+        // next()
+    }else{
 
         res.json({
-            state: 'success',
-            statusCode: result.statusCode,
-            Data: result.Data
+          state: 'FAILURE',
+          statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_ERROR,
+          statusMessage: publicEnums.SERPS_STATUS_MESSAGES.INCORRECT_PARAMS,
+          Token: null
         })
         
-    } catch (e) {
-
-        winstonLogger.error('ERROR: updating contactInfo')
-        winstonLogger.error(e)
-
-        res.json({
-            state: 'failure',
-            statusCode: publicEnums.SERPS_STATUS_CODES.INTERNAL_SERVER_ERROR,
-            Data: false
-        })
-
     }
-
-    // next()
 
 }))
 

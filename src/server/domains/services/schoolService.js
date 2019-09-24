@@ -53,20 +53,43 @@ const schoolService = {
     then((result) => {
 
       winstonLogger.info('searching DB for school')
+      winstonLogger.info(JSON.stringify(result,null,4))
       // Email exists in database
         response = result
 
     }).
     catch((e) => {
+      
       winstonLogger.info('existence error')
       winstonLogger.error(e)
-      Promise.resolve(null)
+
+      Promise.resolve({
+        state: 'failure',
+        statusCode: publicEnums.SERPS_STATUS_CODES.INTERNAL_SERVER_ERROR,
+        statusMessage: publicEnums.SERPS_STATUS_MESSAGES.INTERNAL_SERVER_ERROR,
+        Token: null
+      })
+
     })
     // Becomes true if user already exists and we kick out of function
-    if (response) {
+    if (response.value) {
 
-      // Return to higher scope if there's a user
-      return Promise.resolve(null)
+      if(response.type == "email"){
+        // Return to higher scope if there's a user
+        return Promise.resolve({
+          state: 'failure',
+          statusCode: publicEnums.SERPS_STATUS_CODES.SIGNUP_ERROR_USEREXISTS,
+          statusMessage: publicEnums.SERPS_STATUS_MESSAGES.SIGNUP_ERROR_EMAILEXISTS,
+          Token: null
+        })
+      }else if(response.type == "user"){
+        return Promise.resolve({
+          state: 'failure',
+          statusCode: publicEnums.SERPS_STATUS_CODES.SIGNUP_ERROR_USEREXISTS,
+          statusMessage: publicEnums.SERPS_STATUS_MESSAGES.SIGNUP_ERROR_USEREXISTS,
+          Token: null
+        })
+      }
 
     }
     // Create static Data for user
@@ -107,7 +130,12 @@ const schoolService = {
         winstonLogger.error(' -> SCHOOL NOT CREATED')
         winstonLogger.error(err)
 
-        return Promise.resolve(null)
+        return Promise.resolve({
+          state: 'failure',
+          statusCode: publicEnums.SERPS_STATUS_CODES.INTERNAL_SERVER_ERROR,
+          statusMessage: publicEnums.SERPS_STATUS_MESSAGES.HASHING_ERROR,
+          Token: null
+        })
 
       })
 
@@ -116,7 +144,12 @@ const schoolService = {
       winstonLogger.error('SCHOOL PASSWORD NOT HASHED')
       winstonLogger.error(err)  
 
-      response = Promise.resolve(null)
+      response = Promise.resolve({
+        state: 'failure',
+        statusCode: publicEnums.SERPS_STATUS_CODES.INTERNAL_SERVER_ERROR,
+        statusMessage: publicEnums.SERPS_STATUS_MESSAGES.HASHING_ERROR,
+        Token: null
+      })
 
       return response
 
@@ -154,13 +187,20 @@ const schoolService = {
         response1 = true
         id = schoolData.detail
 
-      }
+      }else{response1 = false}
 
     }).
     catch((err) => {
       
       //
       response1 = false
+
+      return Promise.resolve({
+        state: 'failure',
+        statusCode: publicEnums.SERPS_STATUS_CODES.INTERNAL_SERVER_ERROR,
+        statusMessage: publicEnums.SERPS_STATUS_MESSAGES.INTERNAL_SERVER_ERROR,
+        Token: null
+      })
 
     })
 
@@ -186,7 +226,15 @@ const schoolService = {
       //
       winstonLogger.error('ERROR: searching for name')
       winstonLogger.error(err.stack)
+
       response2 = false
+      
+      return Promise.resolve({
+        state: 'failure',
+        statusCode: publicEnums.SERPS_STATUS_CODES.INTERNAL_SERVER_ERROR,
+        statusMessage: publicEnums.SERPS_STATUS_MESSAGES.INTERNAL_SERVER_ERROR,
+        Token: null
+      })
 
     })
 
@@ -196,7 +244,9 @@ const schoolService = {
       winstonLogger.info(`ERROR AUTHENTICATING :::`)
       // Return false and and empty object
       return Promise.resolve({
-        statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_ERROR,
+        state: 'failure',
+        statusCode: publicEnums.SERPS_STATUS_CODES.INTERNAL_SERVER_ERROR,
+        statusMessage: publicEnums.SERPS_STATUS_MESSAGES.INCORRECT_USERNAME,
         Token: null
       })
 
@@ -209,7 +259,7 @@ const schoolService = {
     
       // Password matched
       winstonLogger.info(`password matched ? ${matched}`)
-      res = Promise.resolve(matched)
+      res = matched
 
     }).
     catch((err) => Promise.reject(err))
@@ -217,7 +267,9 @@ const schoolService = {
     if (!res) {
 
       response = {
-        statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_ERROR,
+        state: 'failure',
+        statusCode: publicEnums.SERPS_STATUS_CODES.LOGIN_ERROR,
+        statusMessage: publicEnums.SERPS_STATUS_MESSAGES.INCORRECT_PASSWORD,
         Token: null
       }
 
@@ -251,8 +303,10 @@ const schoolService = {
 
     // Resolve
     response = Promise.resolve({
+      state: 'Success',
       statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_OK,
-      Token
+      statusMessage: publicEnums.SERPS_STATUS_MESSAGES.SUCCESSFUL_LOGIN,
+      Token: Token
     })
 
     return response
@@ -325,7 +379,16 @@ const schoolService = {
 
     })
 
-    return eeResult = eeResult1 || eeResult2
+    let type = null
+    if(eeResult1){
+      type = "email"
+    }else if(eeResult2){
+        type = "user"
+    }
+    return eeResult = {
+      value: eeResult1 || eeResult2,
+      type
+    }
 
   },
 
@@ -510,14 +573,18 @@ const schoolService = {
         winstonLogger.error(e)
 
         return Promise.resolve({
+          state: "FAILURE",
           statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_ERROR,
+          statusMessage: publicEnums.SERPS_STATUS_MESSAGES.INTERNAL_SERVER_ERROR,
           Data: null
         })
 
       })
 
       return Promise.resolve({
+        state: "SUCCESS",
         statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_OK,
+        statusMessage: publicEnums.SERPS_STATUS_MESSAGES.REQUEST_OK,
         Data: profileInfo
       })
 
@@ -599,14 +666,18 @@ const schoolService = {
         winstonLogger.error(e)
 
         return Promise.resolve({
-          statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_ERROR,
+          state: 'FAILURE',
+          statusCode: publicEnums.SERPS_STATUS_CODES.INTERNAL_SERVER_ERROR,
+          statusMessage: publicEnums.SERPS_STATUS_MESSAGES.INTERNAL_SERVER_ERROR,
           Data: null
         })
 
       })
 
       return Promise.resolve({
+        state: 'SUCCESS',
         statusCode: publicEnums.SERPS_STATUS_CODES.REQUEST_OK,
+        statusMessage: publicEnums.SERPS_STATUS_MESSAGES.REQUEST_OK,
         Data: contactInfo
       })
 

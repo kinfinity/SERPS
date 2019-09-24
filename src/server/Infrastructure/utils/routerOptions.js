@@ -1,6 +1,7 @@
 import auth from '../../interfaces/controllers/authorisationController'
 import winstonLogger from './winstonLogger'
-import publicEnums from '../../app/publicEnums';
+import publicEnums from '../../app/publicEnums'
+import csurf from 'csurf'
 
 
 const asyncMiddleware = fn =>
@@ -45,16 +46,24 @@ const authSchool = async (req, res, next) => {
     }else{
       winstonLogger.info('__AUTHORIZED__: false')
       req.body.authorized = false
-      res.json({})
+      res.json({
+        state: 'FAILURE',
+        statusCode: publicEnums.SERPS_STATUS_CODES.INCORRECT_TOKEN,
+        statusMessage: publicEnums.SERPS_STATUS_MESSAGES.INCORRECT_TOKEN,
+        Data: null
+      })
     }
     
     if(req.body.authorized){
       winstonLogger.info('__AUTHORIZED__: true')
       next()
     }
+    
   }else{
     res.json({
+      state: 'FAILURE',
       statusCode: publicEnums.SERPS_STATUS_CODES.NO_TOKEN,
+      statusMessage: publicEnums.SERPS_STATUS_MESSAGES.EMPTY_TOKEN,
       Data: null
     })
   }
@@ -180,6 +189,32 @@ const authTeacher = async (req, res, next) => {
   } 
 }
 
+//Middleware 
+const csrfMiddleware = csurf({cookie: true})// cross site resource forgery Handling
+
+    const csrfTokenGenerate = async (req, res) => {
+
+      // send the token to client
+      let _token = req.csrfToken()
+      winstonLogger.info(`GENERATED_CSRF: ${_token}`)
+      // res.cookie('XSRF-TOKEN', _token)
+      res.json({ csrfToken: _token})
+
+    }
+    const csrfTokenVerify = async (req, res) => {
+
+      //process the Token for validation
+      winstonLogger.info('CSRF_VALIDATION:')
+      winstonLogger.info(req.headers)
+      res.json({})
+
+    }
+
+const csrfHandler = {
+  csrfTokenGenerate,
+  csrfTokenVerify,
+  csrfMiddleware
+}
 
 export default {
   routerOptions,
@@ -187,5 +222,6 @@ export default {
   authParent,
   authSchool,
   authTeacher,
-  asyncMiddleware
+  asyncMiddleware,
+  csrfHandler
 }

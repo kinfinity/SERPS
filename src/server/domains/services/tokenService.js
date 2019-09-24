@@ -41,7 +41,6 @@ const tokenService = {
    */
   async decodeToken(aToken) {
 
-    //tokenService.tokenExists(aToken) handle at redisCache level
     // Return a decoded token 
     const decodedToken = new VerifyAccessToken(jwtAccessTokenManager).
     execute(aToken)
