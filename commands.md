@@ -1,14 +1,16 @@
-docker images
-docker build -t <your username>/node-web-app
+```
+    docker images
 
-docker run -p 8080:8080 -d <your username>/node-web-app
+    docker build -t <your username>/node-web-app
 
-docker ps
+    docker run -p 8080:8080 -d <your username>/node-web-app
 
-docker logs <container id> 
+    docker ps
 
-docker exec -it <container id> /bin/bash
+    docker logs <container id> 
 
+    docker exec -it <container id> /bin/bash
+```
 
 * DockerCompose
     *docker-compose build
